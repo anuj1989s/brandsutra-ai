@@ -1139,8 +1139,8 @@ async function upgradePlan(plan) {
 // ═══════════════════════════════════════════
 //  FIREBASE GOOGLE LOGIN
 // ═══════════════════════════════════════════
-window._firebaseApp = {};
-window._firebaseReady = true;
+window._firebaseApp = null;
+window._firebaseReady = false;
 
 // Load saved config on startup
 (function() {
