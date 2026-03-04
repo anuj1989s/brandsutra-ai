@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>BrandSutra AI</title>
+<!-- Google Identity Services — Real Popup -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -264,6 +266,13 @@ h1,h2,h3{font-family:'Poppins',sans-serif}
            2. Agar browser hai → Chrome Custom Tab se hoga
            3. Fallback → demo login
       ════════════════════════════════════════ -->
+      <!-- Google One Tap hidden trigger -->
+      <div id="g_id_onload"
+        data-client_id="569411051375-io160ks712huh0fnq04frcca6sg9mfjb.apps.googleusercontent.com"
+        data-callback="onGoogleCredential"
+        data-auto_select="false"
+        data-cancel_on_tap_outside="true">
+      </div>
       <button class="google-btn" id="googleBtn" onclick="handleGoogleBtn()">
         <svg width="22" height="22" viewBox="0 0 48 48">
           <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
@@ -549,41 +558,87 @@ const TOOLS={
 };
 
 // ═══════════════════════════════════════════
-//  GOOGLE LOGIN — 3 Methods, Jo Bhi Kaam Kare
+//  GOOGLE LOGIN — Real GSI Popup
 // ═══════════════════════════════════════════
+const GOOGLE_CLIENT_ID = '569411051375-io160ks712huh0fnq04frcca6sg9mfjb.apps.googleusercontent.com';
+
 function handleGoogleBtn() {
   const btn = document.getElementById('googleBtn');
   btn.classList.add('loading');
   document.getElementById('googleBtnText').textContent = 'Connecting...';
 
-  // METHOD 1: Android WebView Java Bridge
-  // Android app mein MainActivity.java mein ye function expose karo:
-  // webView.addJavascriptInterface(new GoogleAuthBridge(this), "AndroidBridge");
-  if (window.AndroidBridge && window.AndroidBridge.startGoogleLogin) {
-    window.AndroidBridge.startGoogleLogin();
-    return; // Android Java se result aayega onGoogleLoginResult() mein
+  // GSI ready hai to real popup trigger karo
+  if (window.google && window.google.accounts && window.google.accounts.id) {
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: onGoogleCredential,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        // Prompt nahi aaya — OAuth popup try karo
+        triggerOAuthPopup();
+      }
+    });
+    setTimeout(() => {
+      btn.classList.remove('loading');
+      document.getElementById('googleBtnText').textContent = 'Google se Continue Karo';
+    }, 2000);
+  } else {
+    // GSI load nahi hua — fallback
+    setTimeout(triggerOAuthPopup, 500);
   }
-
-  // METHOD 2: Chrome Custom Tab / Browser redirect
-  // Ye tab bhi try karo
-  if (window.chrome && window.chrome.webview) {
-    window.chrome.webview.postMessage({type:'googleLogin'});
-    return;
-  }
-
-  // METHOD 3: Demo login — server nahi mila tab bhi kaam kare
-  setTimeout(() => {
-    demoGoogleLogin();
-  }, 1200);
 }
 
-// Android Java se call hoga jab Google login complete ho
-// MainActivity.java mein: webView.evaluateJavascript("onGoogleLoginResult('" + email + "','" + name + "','" + photoUrl + "')", null);
-function onGoogleLoginResult(email, name, photoUrl) {
+// OAuth popup — account chooser dikhata hai
+function triggerOAuthPopup() {
+  const btn = document.getElementById('googleBtn');
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope: 'email profile',
+    callback: async (tokenResponse) => {
+      if (tokenResponse.access_token) {
+        try {
+          // Google se user info fetch karo
+          const resp = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: 'Bearer ' + tokenResponse.access_token }
+          });
+          const info = await resp.json();
+          loginWithGoogleUser(info.email, info.name, info.picture, info.sub);
+        } catch(e) {
+          toast('Google login failed. Try again.', 'error');
+        }
+      }
+      btn.classList.remove('loading');
+      document.getElementById('googleBtnText').textContent = 'Google se Continue Karo';
+    },
+    error_callback: (err) => {
+      toast('Google login cancel ho gaya.', 'info');
+      btn.classList.remove('loading');
+      document.getElementById('googleBtnText').textContent = 'Google se Continue Karo';
+    }
+  });
+  client.requestAccessToken({ prompt: 'select_account' }); // <- ye account chooser dikhata hai
+}
+
+// GSI credential callback
+function onGoogleCredential(response) {
+  try {
+    const payload = JSON.parse(atob(response.credential.split('.')[1]));
+    loginWithGoogleUser(payload.email, payload.name, payload.picture, payload.sub);
+  } catch(e) {
+    toast('Google login error. Try again.', 'error');
+  }
+}
+
+// Unified Google login
+function loginWithGoogleUser(email, name, picture, googleId) {
+  const btn = document.getElementById('googleBtn');
   const user = {
     name: name || email.split('@')[0],
     phone: email,
-    picture: photoUrl || '',
+    picture: picture || '',
     plan: 'free',
     credits: 10,
     planLabel: 'Free Plan',
@@ -592,48 +647,25 @@ function onGoogleLoginResult(email, name, photoUrl) {
   currentUser = user;
   localStorage.setItem('bs_token', authToken);
   localStorage.setItem('bs_user', JSON.stringify(user));
-  toast(`Welcome, ${user.name}! 🎉`, 'success');
-  updateAppUI();
-  setTimeout(() => goTo('app'), 400);
-}
-
-// Demo login — bina kisi setup ke seedha kaam karta hai
-function demoGoogleLogin() {
-  const btn = document.getElementById('googleBtn');
-  // Fake Google account list dikhao
-  const names = ['Rahul Sharma','Priya Singh','Amit Kumar','Neha Gupta'];
-  const emails = ['rahul@gmail.com','priya@gmail.com','amit@gmail.com','neha@gmail.com'];
-  const idx = Math.floor(Math.random()*4);
-
-  const user = {
-    name: names[idx],
-    phone: emails[idx],
-    picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(names[idx])}&background=7C3AED&color=fff&size=100`,
-    plan: 'free',
-    credits: 10,
-    planLabel: 'Free Plan',
-  };
-
-  authToken = 'google_' + Date.now();
-  currentUser = user;
-  localStorage.setItem('bs_token', authToken);
-  localStorage.setItem('bs_user', JSON.stringify(user));
-
-  // Server pe bhi bhejo agar available ho
+  // Server sync (optional)
   fetch(SERVER + '/api/auth/google', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email:user.phone, name:user.name, googleId:'demo_'+Date.now()})
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email, name, googleId: googleId||'g_'+Date.now()})
   }).then(r=>r.json()).then(res=>{
     if(res.token){ authToken=res.token; currentUser={...user,...res.user}; localStorage.setItem('bs_token',authToken); localStorage.setItem('bs_user',JSON.stringify(currentUser)); }
-  }).catch(()=>{}); // Server nahi mila toh bhi chalega
-
-  btn.classList.remove('loading');
-  document.getElementById('googleBtnText').textContent = 'Google se Continue Karo';
+  }).catch(()=>{});
+  if(btn){ btn.classList.remove('loading'); document.getElementById('googleBtnText').textContent='Google se Continue Karo'; }
   toast(`Welcome, ${user.name}! 🎉`, 'success');
   updateAppUI();
   setTimeout(() => goTo('app'), 400);
 }
+
+// Android bridge (WebView ke liye)
+function onGoogleLoginResult(email, name, photoUrl) {
+  loginWithGoogleUser(email, name, photoUrl, 'android_'+Date.now());
+}
+
+// Demo login removed — real GSI used
 
 // Auto login on startup
 if (authToken && currentUser) { updateAppUI(); goTo('app'); }
