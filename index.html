@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>BrandSutra AI</title>
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <!-- Google Identity Services — Real Popup -->
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -887,13 +889,74 @@ function delH(id){savedItems=savedItems.filter(i=>i.id!==id);localStorage.setIte
 
 // PLAN
 function showPlanModal(){document.getElementById('planModal').classList.add('show');}
-function upgradePlan(plan){
-  toast('Payment processing... (Demo)','info');
-  setTimeout(()=>{
-    if(currentUser){currentUser.plan=plan;currentUser.credits=PLANS[plan];currentUser.planLabel=plan==='pro'?'Pro Plan ⚡':'Agency Plan 🏢';credits=PLANS[plan];localStorage.setItem('bs_user',JSON.stringify(currentUser));}
-    updateAppUI();document.getElementById('planModal').classList.remove('show');
-    toast(`${plan==='pro'?'Pro':'Agency'} Plan activated! 🎉`,'success');
-  },1500);
+
+async function upgradePlan(plan) {
+  if(!authToken){ toast('Pehle login karo!','error'); return; }
+  toast('Payment initialize ho raha hai...','info');
+
+  try {
+    // Step 1: Backend se subscription ID lo
+    const res = await api('/api/payment/create-subscription', { plan });
+    const { subscriptionId, key } = res;
+
+    // Step 2: Razorpay checkout open karo
+    const options = {
+      key,
+      subscription_id: subscriptionId,
+      name:            'BrandSutra AI',
+      description:     plan === 'pro' ? 'Pro Plan - ₹499/month' : 'Agency Plan - ₹1499/month',
+      image:           'https://ui-avatars.com/api/?name=BS&background=7C3AED&color=fff&size=100',
+      handler: async function(response) {
+        // Step 3: Payment verify karo
+        try {
+          const verifyRes = await api('/api/payment/verify', {
+            plan,
+            paymentId:      response.razorpay_payment_id,
+            subscriptionId: response.razorpay_subscription_id,
+            signature:      response.razorpay_signature,
+          });
+          // Plan update karo
+          if(currentUser){
+            currentUser.plan      = plan;
+            currentUser.credits   = PLANS[plan];
+            currentUser.planLabel = plan==='pro' ? 'Pro Plan ⚡' : 'Agency Plan 🏢';
+            credits = PLANS[plan];
+            localStorage.setItem('bs_user', JSON.stringify(currentUser));
+          }
+          updateAppUI();
+          document.getElementById('planModal').classList.remove('show');
+          toast(`${plan==='pro'?'Pro':'Agency'} Plan activated! 🎉`, 'success');
+        } catch(e) {
+          toast('Payment verify nahi hua. Support se contact karo.', 'error');
+        }
+      },
+      prefill: {
+        name:  currentUser?.name  || '',
+        email: currentUser?.phone || '',
+      },
+      theme: { color: '#7C3AED' },
+      modal: {
+        ondismiss: function() { toast('Payment cancel ho gaya.', 'info'); }
+      }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+    document.getElementById('planModal').classList.remove('show');
+
+  } catch(e) {
+    // Demo mode fallback agar server nahi mila
+    toast('Demo mode: Plan activated!', 'success');
+    if(currentUser){
+      currentUser.plan      = plan;
+      currentUser.credits   = PLANS[plan];
+      currentUser.planLabel = plan==='pro' ? 'Pro Plan ⚡' : 'Agency Plan 🏢';
+      credits = PLANS[plan];
+      localStorage.setItem('bs_user', JSON.stringify(currentUser));
+    }
+    updateAppUI();
+    document.getElementById('planModal').classList.remove('show');
+  }
 }
 
 // INIT
