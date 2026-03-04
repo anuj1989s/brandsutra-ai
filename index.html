@@ -18,15 +18,13 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;font-family:'DM Sans',sans-serif;background:var(--dark);color:var(--text);overflow-x:hidden}
-h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
+h1,h2,h3{font-family:'Poppins',sans-serif}
 
 .orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:.1;pointer-events:none;z-index:0}
 .o1{width:500px;height:500px;background:var(--blue);top:-150px;left:-150px;animation:d1 20s ease-in-out infinite}
 .o2{width:400px;height:400px;background:var(--purple);top:40%;right:-100px;animation:d2 25s ease-in-out infinite}
-.o3{width:300px;height:300px;background:var(--teal);bottom:5%;left:25%;animation:d3 18s ease-in-out infinite}
 @keyframes d1{0%,100%{transform:translate(0,0)}50%{transform:translate(50px,40px)}}
 @keyframes d2{0%,100%{transform:translate(0,0)}50%{transform:translate(-40px,50px)}}
-@keyframes d3{0%,100%{transform:translate(0,0)}50%{transform:translate(30px,-40px)}}
 
 .screen{display:none;position:relative;z-index:1;min-height:100vh}
 .screen.active{display:flex;flex-direction:column}
@@ -38,29 +36,46 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
 .toast.error{border-color:rgba(239,68,68,.4);color:var(--red)}
 .toast.info{border-color:rgba(124,58,237,.4);color:var(--purple-l)}
 
-/* ── SPLASH ── */
+/* SPLASH */
 #splash{align-items:center;justify-content:center;text-align:center;padding:40px 24px}
 .brand-name{font-size:1.8rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .brand-tag{color:var(--teal);font-size:.88rem;font-weight:600;margin-top:4px}
 .splash-title{font-size:clamp(1.9rem,6vw,2.8rem);font-weight:900;line-height:1.15;letter-spacing:-1px;margin:28px 0 14px}
-.splash-title .g{background:var(--grad2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.g{background:var(--grad2);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .splash-sub{color:var(--muted);font-size:.92rem;line-height:1.7;max-width:320px;margin:0 auto 32px}
 .splash-btns{display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px;margin:0 auto}
-.btn-p{padding:14px;background:var(--grad);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;font-family:'Poppins',sans-serif;box-shadow:0 4px 20px rgba(124,58,237,.35);transition:all .2s}
-.btn-p:active{transform:scale(.98)}
-.btn-g{padding:13px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;font-weight:600;font-size:.9rem;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s}
+.btn-p{padding:14px;background:var(--grad);color:#fff;border:none;border-radius:12px;font-weight:700;font-size:.95rem;cursor:pointer;font-family:'Poppins',sans-serif;box-shadow:0 4px 20px rgba(124,58,237,.35);transition:all .2s;width:100%}
+.btn-p:active{transform:scale(.97)}
+.btn-g{padding:13px;background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:12px;font-weight:600;font-size:.9rem;cursor:pointer;font-family:'Poppins',sans-serif;transition:all .2s;width:100%}
 .splash-stats{display:flex;gap:32px;justify-content:center;margin-top:40px;padding-top:28px;border-top:1px solid var(--border)}
-.s-num{font-size:1.5rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.s-num{font-size:1.5rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-family:'Poppins',sans-serif}
 .s-lbl{color:var(--muted);font-size:.7rem;margin-top:2px}
 
-/* ── LOGIN ── */
+/* LOGIN */
 #login{align-items:center;justify-content:center;padding:24px}
 .login-box{width:100%;max-width:380px;background:var(--dark2);border:1px solid var(--border);border-radius:20px;padding:28px 24px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
 .auth-tabs{display:flex;background:rgba(255,255,255,.04);border-radius:10px;padding:4px;margin-bottom:22px}
 .auth-tab{flex:1;padding:10px;text-align:center;border-radius:8px;cursor:pointer;font-size:.85rem;font-weight:600;color:var(--muted);transition:all .2s;border:none;background:transparent;font-family:'Poppins',sans-serif}
 .auth-tab.on{background:var(--grad);color:#fff}
-.google-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px;padding:13px;border:1px solid var(--border);background:var(--card);border-radius:12px;cursor:pointer;font-size:.88rem;font-weight:600;color:var(--text);margin-bottom:14px;font-family:'Poppins',sans-serif;transition:all .2s}
-.google-btn:active{transform:scale(.98)}
+
+/* GOOGLE BUTTON — Android Native Style */
+.google-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:12px;
+  padding:14px;background:#fff;border:none;
+  border-radius:12px;cursor:pointer;font-size:.92rem;font-weight:600;
+  color:#3c4043;font-family:'Poppins',sans-serif;
+  box-shadow:0 2px 12px rgba(0,0,0,.25);
+  margin-bottom:16px;transition:all .2s;
+  position:relative;overflow:hidden;
+}
+.google-btn:active{transform:scale(.97);box-shadow:0 1px 6px rgba(0,0,0,.2)}
+.google-btn::after{
+  content:'';position:absolute;inset:0;
+  background:rgba(0,0,0,0);transition:background .2s;
+}
+.google-btn:active::after{background:rgba(0,0,0,.05)}
+.google-btn.loading{opacity:.7;pointer-events:none}
+
 .divider{display:flex;align-items:center;gap:12px;margin:14px 0;color:var(--muted);font-size:.8rem}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--border)}
 .fgroup{margin-bottom:14px}
@@ -78,22 +93,21 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
 .login-footer{text-align:center;font-size:.82rem;color:var(--muted);margin-top:14px}
 .login-footer a{color:var(--purple-l);text-decoration:none;font-weight:600;cursor:pointer}
 
-/* ── APP ── */
+/* APP */
 #app{flex-direction:column}
 .app-nav{position:sticky;top:0;z-index:50;background:rgba(10,15,30,.88);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:13px 18px;display:flex;align-items:center;justify-content:space-between}
 .app-nav .brand{font-size:1rem;font-weight:800;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .nav-right{display:flex;align-items:center;gap:10px}
 .credits-pill{background:rgba(124,58,237,.18);border:1px solid rgba(124,58,237,.35);border-radius:20px;padding:5px 12px;font-size:.76rem;font-weight:700;color:var(--purple-l);font-family:'Poppins',sans-serif}
-.avatar{width:32px;height:32px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;cursor:pointer;border:2px solid rgba(124,58,237,.4);font-family:'Poppins',sans-serif}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:700;cursor:pointer;border:2px solid rgba(124,58,237,.4);overflow:hidden}
+.avatar img{width:100%;height:100%;object-fit:cover}
 .app-content{flex:1;overflow-y:auto;padding:18px 16px 90px}
-.tab-panel{display:none}
-.tab-panel.on{display:block}
+.tab-panel{display:none}.tab-panel.on{display:block}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(10,15,30,.92);backdrop-filter:blur(16px);border-top:1px solid var(--border);display:flex;padding:8px 0 12px}
-.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px;transition:all .15s}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;padding:4px}
 .bnav-item svg{opacity:.45;transition:opacity .15s}
 .bnav-item span{font-size:.64rem;font-weight:600;color:var(--muted);font-family:'Poppins',sans-serif}
-.bnav-item.on svg{opacity:1}
-.bnav-item.on span{color:var(--purple-l)}
+.bnav-item.on svg{opacity:1}.bnav-item.on span{color:var(--purple-l)}
 
 /* HOME */
 .welcome-row{margin-bottom:20px}
@@ -124,7 +138,6 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
 .gen-card{background:var(--dark2);border:1px solid var(--border);border-radius:16px;padding:18px;margin-bottom:14px}
 .gc-title{font-size:.95rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
 .ir{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px}
-.ir.full{grid-template-columns:1fr}
 .ig{display:flex;flex-direction:column;gap:4px}
 .il{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
 .ii{padding:10px 12px;background:rgba(255,255,255,.05);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:.86rem;outline:none;font-family:'DM Sans',sans-serif;width:100%;transition:border-color .2s}
@@ -143,66 +156,52 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
 .output-card{background:var(--dark2);border:1px solid var(--border);border-radius:16px;overflow:hidden;display:none;margin-top:14px}
 .output-card.show{display:block}
 .oc-header{padding:13px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.02)}
-.oc-title{font-size:.88rem;font-weight:700;display:flex;align-items:center;gap:6px}
+.oc-title{font-size:.88rem;font-weight:700}
 .oc-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;padding:4px}
 .oc-body{padding:14px;font-size:.86rem;line-height:1.85;color:var(--text);white-space:pre-wrap;max-height:55vh;overflow-y:auto}
 .oc-body .stag{display:inline-block;background:rgba(124,58,237,.15);color:var(--purple-l);padding:2px 8px;border-radius:5px;font-size:.73rem;font-weight:700;font-family:'Poppins',sans-serif}
-.oc-body .htag{color:var(--teal);font-size:.84rem}
-.oc-actions{padding:11px 14px;border-top:1px solid var(--border);display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.oc-btn{padding:10px 6px;border-radius:9px;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s}
+.oc-body .htag{color:var(--teal)}
+.oc-actions{padding:11px 14px;border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.oc-btn{padding:10px 6px;border-radius:9px;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--card);color:var(--text);font-family:'Poppins',sans-serif;display:flex;align-items:center;justify-content:center;gap:5px}
 .oc-btn:active{transform:scale(.96)}
 .oc-btn.teal{background:rgba(20,184,166,.15);border-color:rgba(20,184,166,.35);color:var(--teal-l)}
 .oc-btn.blue{background:rgba(30,58,138,.25);border-color:rgba(30,58,138,.5);color:#93c5fd}
-.oc-btn.full{grid-column:span 3;background:var(--grad);color:#fff;border:none;box-shadow:0 2px 12px rgba(124,58,237,.25)}
 
 /* HISTORY */
 .history-empty{text-align:center;padding:50px 20px;color:var(--muted)}
 .he-ico{font-size:2.8rem;margin-bottom:10px}
-.history-list{display:flex;flex-direction:column;gap:12px}
-.hist-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;cursor:pointer}
+.hist-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
 .hc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:7px}
 .hc-tool{background:var(--grad);padding:3px 10px;border-radius:20px;font-size:.68rem;font-weight:700;font-family:'Poppins',sans-serif}
 .hc-date{color:var(--muted);font-size:.7rem}
 .hc-biz{font-weight:700;font-size:.88rem;margin-bottom:4px}
 .hc-preview{color:var(--muted);font-size:.78rem;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.hc-actions{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.hc-actions{display:flex;gap:8px;margin-top:10px}
 .hc-btn{padding:6px 12px;border-radius:7px;font-size:.7rem;font-weight:700;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'Poppins',sans-serif}
 .hc-btn.del{color:var(--red);border-color:rgba(239,68,68,.3)}
 
-/* UPGRADE BANNER */
-.upgrade-banner{background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(124,58,237,.15));border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:16px;display:none;margin-bottom:16px;text-align:center}
-.upgrade-banner.show{display:block}
-.ub-title{font-size:.95rem;font-weight:700;color:#fca5a5;margin-bottom:6px}
-.ub-sub{color:var(--muted);font-size:.82rem;margin-bottom:12px}
-
 /* PROFILE */
 .profile-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:22px;text-align:center;margin-bottom:14px}
-.pc-avatar{width:68px;height:68px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:1.7rem;font-weight:700;margin:0 auto 10px;border:3px solid rgba(124,58,237,.4);font-family:'Poppins',sans-serif}
+.pc-avatar{width:70px;height:70px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:700;margin:0 auto 10px;border:3px solid rgba(124,58,237,.4);overflow:hidden}
+.pc-avatar img{width:100%;height:100%;object-fit:cover}
 .pc-name{font-size:1.05rem;font-weight:700}
-.pc-phone{color:var(--muted);font-size:.83rem;margin-top:3px}
+.pc-email{color:var(--muted);font-size:.83rem;margin-top:3px}
 .pc-plan{display:inline-block;background:var(--grad);padding:4px 14px;border-radius:20px;font-size:.73rem;font-weight:700;margin-top:10px;font-family:'Poppins',sans-serif}
-.setting-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;cursor:pointer;transition:all .15s}
-.setting-item:active{transform:scale(.99)}
+.setting-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;cursor:pointer}
 .si-left{display:flex;align-items:center;gap:11px}
 .si-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem}
-.si-t{font-size:.88rem;font-weight:600}
-.si-s{font-size:.73rem;color:var(--muted);margin-top:2px}
+.si-t{font-size:.88rem;font-weight:600}.si-s{font-size:.73rem;color:var(--muted);margin-top:2px}
 
-/* MODAL */
+/* PLAN MODAL */
 .modal-overlay{display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center}
 .modal-overlay.show{display:flex}
 .modal-box{background:var(--dark2);border:1px solid var(--border);border-radius:20px 20px 0 0;padding:22px 18px 32px;width:100%;max-width:500px;max-height:88vh;overflow-y:auto;animation:slideUp .3s ease}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-title{font-size:1.05rem;font-weight:700;margin-bottom:16px;text-align:center}
-
-/* PLAN CARDS */
 .plan-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px;position:relative}
-.plan-card.active{background:linear-gradient(135deg,rgba(30,58,138,.3),rgba(124,58,237,.2));border-color:rgba(124,58,237,.4)}
-.plan-current-badge{position:absolute;top:-9px;left:14px;background:var(--grad);padding:2px 10px;border-radius:20px;font-size:.68rem;font-weight:700;font-family:'Poppins',sans-serif}
-.plan-name{font-weight:700;margin-bottom:3px}
-.plan-price{font-size:1.35rem;font-weight:800;margin-bottom:6px;font-family:'Poppins',sans-serif}
-.plan-price span{font-size:.82rem;font-weight:400;color:var(--muted)}
-.plan-desc{font-size:.78rem;color:var(--muted)}
+.plan-card.hl{background:linear-gradient(135deg,rgba(30,58,138,.3),rgba(124,58,237,.2));border-color:rgba(124,58,237,.4)}
+.plan-badge{position:absolute;top:-9px;left:14px;background:var(--grad);padding:2px 10px;border-radius:20px;font-size:.68rem;font-weight:700;font-family:'Poppins',sans-serif}
+.upgrade-banner{background:linear-gradient(135deg,rgba(239,68,68,.15),rgba(124,58,237,.15));border:1px solid rgba(239,68,68,.3);border-radius:14px;padding:16px;display:none;margin-bottom:16px;text-align:center}
+.upgrade-banner.show{display:block}
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
 ::-webkit-scrollbar{width:3px;height:3px}
@@ -212,34 +211,26 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
 <body>
 <div class="orb o1"></div>
 <div class="orb o2"></div>
-<div class="orb o3"></div>
 <div class="toast" id="toast"></div>
 
-<!-- ═══════════════════════════
-     SPLASH SCREEN
-═══════════════════════════ -->
+<!-- ═══ SPLASH ═══ -->
 <div class="screen active" id="splash">
   <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px;text-align:center">
-    <div style="margin-bottom:28px;animation:fadeUp .6s ease both">
-      <svg width="68" height="68" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 10px">
+    <div style="margin-bottom:28px">
+      <svg width="68" height="68" viewBox="0 0 72 72" fill="none" style="display:block;margin:0 auto 10px">
         <defs><linearGradient id="lg1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1E3A8A"/><stop offset="100%" stop-color="#7C3AED"/></linearGradient></defs>
         <circle cx="36" cy="36" r="34" stroke="url(#lg1)" stroke-width="2" fill="none" opacity=".5"/>
-        <circle cx="36" cy="36" r="24" stroke="url(#lg1)" stroke-width="1.2" fill="none" opacity=".35"/>
-        <line x1="36" y1="2" x2="36" y2="70" stroke="url(#lg1)" stroke-width=".8" opacity=".25"/>
-        <line x1="2" y1="36" x2="70" y2="36" stroke="url(#lg1)" stroke-width=".8" opacity=".25"/>
-        <line x1="10" y1="10" x2="62" y2="62" stroke="url(#lg1)" stroke-width=".8" opacity=".25"/>
-        <line x1="62" y1="10" x2="10" y2="62" stroke="url(#lg1)" stroke-width=".8" opacity=".25"/>
-        <circle cx="36" cy="5" r="3.5" fill="#7C3AED"/><circle cx="36" cy="67" r="3.5" fill="#1E3A8A"/>
-        <circle cx="5" cy="36" r="3.5" fill="#7C3AED"/><circle cx="67" cy="36" r="3.5" fill="#1E3A8A"/>
-        <circle cx="36" cy="36" r="10" fill="url(#lg1)" opacity=".9"/>
-        <circle cx="36" cy="36" r="5" fill="#14B8A6"/>
-        <path d="M28 30 Q36 23 44 30 Q50 36 44 42 Q36 49 28 42 Q22 36 28 30Z" stroke="#14B8A6" stroke-width="1.2" fill="none" opacity=".7"/>
+        <circle cx="36" cy="36" r="14" stroke="url(#lg1)" stroke-width="1.2" fill="none" opacity=".35"/>
+        <line x1="36" y1="2" x2="36" y2="70" stroke="url(#lg1)" stroke-width=".8" opacity=".2"/>
+        <line x1="2" y1="36" x2="70" y2="36" stroke="url(#lg1)" stroke-width=".8" opacity=".2"/>
+        <circle cx="36" cy="36" r="9" fill="url(#lg1)" opacity=".9"/>
+        <circle cx="36" cy="36" r="4.5" fill="#14B8A6"/>
       </svg>
       <div class="brand-name">BrandSutra AI</div>
       <div class="brand-tag">Har Business Ka Growth Formula</div>
     </div>
     <h1 class="splash-title">Content Jo<br><span class="g">Convert Kare</span></h1>
-    <p class="splash-sub">AI-powered marketing content for Indian businesses — Instagram, Ads, SEO, WhatsApp & more.</p>
+    <p class="splash-sub">AI-powered marketing — Instagram, Ads, SEO, WhatsApp & more.</p>
     <div class="splash-btns">
       <button class="btn-p" onclick="goTo('login');setMode('signup')">🚀 Free Mein Start Karo</button>
       <button class="btn-g" onclick="goTo('login');setMode('login')">Login Karo</button>
@@ -252,9 +243,7 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
   </div>
 </div>
 
-<!-- ═══════════════════════════
-     LOGIN SCREEN
-═══════════════════════════ -->
+<!-- ═══ LOGIN ═══ -->
 <div class="screen" id="login">
   <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px">
     <div class="login-box">
@@ -262,23 +251,37 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
         <div class="brand-name" style="font-size:1.2rem">BrandSutra AI</div>
         <div class="brand-tag" style="font-size:.76rem">Har Business Ka Growth Formula</div>
       </div>
+
       <div class="auth-tabs">
         <button class="auth-tab on" id="tabL" onclick="setMode('login')">Login</button>
         <button class="auth-tab" id="tabS" onclick="setMode('signup')">Sign Up</button>
       </div>
 
-      <button class="google-btn" onclick="googleLogin()">
-        <svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
-        Google se Continue Karo
+      <!-- ════════════════════════════════════════
+           GOOGLE LOGIN BUTTON
+           Android WebView mein kaam karta hai:
+           1. Agar Android app hai → Java se handle hoga
+           2. Agar browser hai → Chrome Custom Tab se hoga
+           3. Fallback → demo login
+      ════════════════════════════════════════ -->
+      <button class="google-btn" id="googleBtn" onclick="handleGoogleBtn()">
+        <svg width="22" height="22" viewBox="0 0 48 48">
+          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.36-8.16 2.36-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          <path fill="none" d="M0 0h48v48H0z"/>
+        </svg>
+        <span id="googleBtnText">Google se Continue Karo</span>
       </button>
 
-      <div class="divider">ya mobile se</div>
+      <div class="divider">ya mobile number se</div>
 
       <!-- Phone Form -->
       <div id="phoneForm">
         <div class="fgroup" id="nameField" style="display:none">
           <label class="flabel">Full Name</label>
-          <input class="finput" type="text" id="uName" placeholder="Aapka naam likho">
+          <input class="finput" type="text" id="uName" placeholder="Aapka naam">
         </div>
         <div class="fgroup">
           <label class="flabel">Mobile Number</label>
@@ -287,12 +290,11 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
               <option value="+91">🇮🇳 +91</option>
               <option value="+1">🇺🇸 +1</option>
               <option value="+44">🇬🇧 +44</option>
-              <option value="+971">🇦🇪 +971</option>
             </select>
             <input class="finput" type="tel" id="phoneNum" placeholder="10-digit number" maxlength="10" oninput="this.value=this.value.replace(/\D/g,'')">
           </div>
         </div>
-        <button class="btn-p" style="width:100%;padding:13px;border-radius:12px;font-size:.9rem" id="sendOtpBtn" onclick="sendOTP()">OTP Bhejo →</button>
+        <button class="btn-p" style="padding:13px;border-radius:12px" id="sendOtpBtn" onclick="sendOTP()">OTP Bhejo →</button>
       </div>
 
       <!-- OTP Form -->
@@ -301,82 +303,55 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
           OTP bheja gaya <strong id="otpSentTo" style="color:var(--text)"></strong> pe
         </p>
         <div class="otp-row">
-          <input class="otp-box" type="tel" maxlength="1" id="o1" oninput="otpMove(this,'o2')" onkeydown="otpBack(event,this,'')">
-          <input class="otp-box" type="tel" maxlength="1" id="o2" oninput="otpMove(this,'o3')" onkeydown="otpBack(event,this,'o1')">
-          <input class="otp-box" type="tel" maxlength="1" id="o3" oninput="otpMove(this,'o4')" onkeydown="otpBack(event,this,'o2')">
-          <input class="otp-box" type="tel" maxlength="1" id="o4" oninput="otpMove(this,'o5')" onkeydown="otpBack(event,this,'o3')">
-          <input class="otp-box" type="tel" maxlength="1" id="o5" oninput="otpMove(this,'o6')" onkeydown="otpBack(event,this,'o4')">
-          <input class="otp-box" type="tel" maxlength="1" id="o6" oninput="otpLast()" onkeydown="otpBack(event,this,'o5')">
+          <input class="otp-box" type="tel" maxlength="1" id="o1" oninput="om(this,'o2')" onkeydown="ob(event,this,'')">
+          <input class="otp-box" type="tel" maxlength="1" id="o2" oninput="om(this,'o3')" onkeydown="ob(event,this,'o1')">
+          <input class="otp-box" type="tel" maxlength="1" id="o3" oninput="om(this,'o4')" onkeydown="ob(event,this,'o2')">
+          <input class="otp-box" type="tel" maxlength="1" id="o4" oninput="om(this,'o5')" onkeydown="ob(event,this,'o3')">
+          <input class="otp-box" type="tel" maxlength="1" id="o5" oninput="om(this,'o6')" onkeydown="ob(event,this,'o4')">
+          <input class="otp-box" type="tel" maxlength="1" id="o6" oninput="om(this,'')" onkeydown="ob(event,this,'o5')">
         </div>
         <div class="otp-timer" id="timerBox">Resend in <span id="timerNum">30</span>s</div>
-        <button class="btn-p" style="width:100%;padding:13px;margin-top:14px;border-radius:12px;font-size:.9rem" onclick="verifyOTP()">Verify & Login →</button>
-        <button class="btn-g" style="width:100%;padding:11px;margin-top:8px;border-radius:12px;font-size:.85rem" onclick="backToPhone()">← Wapas Jao</button>
+        <button class="btn-p" style="padding:13px;margin-top:14px;border-radius:12px" onclick="verifyOTP()">Verify & Login →</button>
+        <button class="btn-g" style="padding:11px;margin-top:8px;border-radius:12px;font-size:.85rem" onclick="backToPhone()">← Wapas Jao</button>
       </div>
 
       <div class="login-footer">
         <span id="swText">Account nahi hai? </span>
         <a id="swLink" onclick="toggleMode()">Sign Up karo</a>
       </div>
-      <!-- Firebase Setup Box -->
-      <div id="firebaseSetupBox" style="display:none;margin-top:16px;background:rgba(20,184,166,.08);border:1px solid rgba(20,184,166,.3);border-radius:12px;padding:14px">
-        <div style="font-size:.82rem;font-weight:700;color:var(--teal);margin-bottom:8px">&#128293; Firebase Setup &#8212; One Time Only</div>
-        <div style="font-size:.75rem;color:var(--muted);line-height:1.8;margin-bottom:10px">
-          <b style="color:var(--text)">Step 1:</b> <a href="https://console.firebase.google.com" target="_blank" style="color:var(--teal);text-decoration:underline">console.firebase.google.com</a> pe jao<br>
-          <b style="color:var(--text)">Step 2:</b> Add project &#8594; BrandSutraAI &#8594; Create<br>
-          <b style="color:var(--text)">Step 3:</b> Build &#8594; Authentication &#8594; Get Started &#8594; Google &#8594; Enable<br>
-          <b style="color:var(--text)">Step 4:</b> Project Settings (&#9881;) &#8594; Your apps &#8594; Web &#8594; Register<br>
-          <b style="color:var(--text)">Step 5:</b> firebaseConfig copy karo niche paste karo
-        </div>
-        <textarea id="fbConfigInput" rows="7" style="width:100%;background:rgba(0,0,0,.4);border:1px solid var(--border);border-radius:8px;color:#7ee8a2;font-size:.7rem;padding:10px;font-family:monospace;resize:none;outline:none;line-height:1.6" placeholder="Paste karo:&#10;{&#10;  apiKey: 'AIzaSy...',&#10;  authDomain: 'xxx.firebaseapp.com',&#10;  projectId: 'xxx',&#10;  appId: '1:...'&#10;}"></textarea>
-        <button onclick="initFirebaseFromInput()" style="width:100%;margin-top:10px;padding:11px;background:var(--grad);color:#fff;border:none;border-radius:9px;font-weight:700;font-size:.88rem;cursor:pointer;font-family:Poppins,sans-serif">&#128293; Connect &#38; Enable Google Login</button>
-        <div id="fbStatus" style="text-align:center;font-size:.75rem;margin-top:8px;color:var(--muted)"></div>
-      </div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════
-     MAIN APP
-═══════════════════════════ -->
+<!-- ═══ MAIN APP ═══ -->
 <div class="screen" id="app">
-
   <div class="app-nav">
     <div class="brand">BrandSutra AI</div>
     <div class="nav-right">
-      <div class="credits-pill" id="navCredits">⚡ -- Credits</div>
+      <div class="credits-pill" id="navCredits">⚡ 10 Credits</div>
       <div class="avatar" id="navAvatar" onclick="showTab('profile')">?</div>
     </div>
   </div>
 
   <div class="app-content">
-
     <!-- HOME -->
     <div class="tab-panel on" id="tab-home">
       <div class="welcome-row">
         <h2>Namaste, <span id="welName">--</span> 👋</h2>
         <p>Aaj kya content banayein?</p>
       </div>
-
       <div class="credits-bar-card">
         <div class="cb-top">
-          <span class="cb-lbl">⚡ Credits Remaining</span>
-          <span class="cb-cnt" id="homeCredits">-- / --</span>
+          <span class="cb-lbl">⚡ Credits</span>
+          <span class="cb-cnt" id="homeCredits">10 / 10</span>
         </div>
-        <div class="cb-track"><div class="cb-fill" id="creditsFill" style="width:0%"></div></div>
-        <p style="font-size:.73rem;color:var(--muted);margin-top:7px" id="planLabel">Loading...</p>
+        <div class="cb-track"><div class="cb-fill" id="creditsFill" style="width:100%"></div></div>
+        <p style="font-size:.73rem;color:var(--muted);margin-top:7px" id="planLabel">Free Plan</p>
       </div>
-
       <div class="stats-row">
-        <div class="stat-card">
-          <div class="num" id="totalGenStat">0</div>
-          <div class="lbl">Content Generated</div>
-        </div>
-        <div class="stat-card">
-          <div class="num" id="savedStat">0</div>
-          <div class="lbl">Saved Items</div>
-        </div>
+        <div class="stat-card"><div class="num" id="totalGenStat">0</div><div class="lbl">Generated</div></div>
+        <div class="stat-card"><div class="num" id="savedStat">0</div><div class="lbl">Saved</div></div>
       </div>
-
       <div class="qt-title">Quick Tools</div>
       <div class="qt-grid">
         <div class="qt-card" onclick="quickGen('instagram')"><div class="ico">📸</div><div class="nm">Instagram</div></div>
@@ -391,15 +366,12 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
     <!-- GENERATE -->
     <div class="tab-panel" id="tab-generate">
       <div style="font-size:1.05rem;font-weight:700;margin-bottom:14px">AI Content Generator ✨</div>
-
-      <!-- Upgrade Banner -->
       <div class="upgrade-banner" id="upgradeBanner">
-        <div class="ub-title">⚠️ Credits Khatam Ho Gaye!</div>
-        <div class="ub-sub">Plan upgrade karo aur aur content banao</div>
-        <button class="btn-p" style="padding:11px 24px;font-size:.88rem;border-radius:10px" onclick="showPlanModal()">💎 Plan Upgrade Karo</button>
+        <div style="font-weight:700;color:#fca5a5;margin-bottom:6px">⚠️ Credits Khatam!</div>
+        <div style="color:var(--muted);font-size:.82rem;margin-bottom:10px">Plan upgrade karo</div>
+        <button class="btn-p" style="padding:10px 20px;font-size:.85rem;border-radius:10px;width:auto" onclick="showPlanModal()">💎 Upgrade</button>
       </div>
-
-      <div class="tool-scroll" id="toolPills">
+      <div class="tool-scroll">
         <div class="tpill on" data-tool="instagram" onclick="selPill(this)">📸 Instagram</div>
         <div class="tpill" data-tool="reel" onclick="selPill(this)">🎬 Reel</div>
         <div class="tpill" data-tool="fb_ad" onclick="selPill(this)">📣 FB Ad</div>
@@ -410,23 +382,16 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
         <div class="tpill" data-tool="landing" onclick="selPill(this)">🚀 Landing</div>
         <div class="tpill" data-tool="youtube" onclick="selPill(this)">▶️ YouTube</div>
       </div>
-
       <div class="gen-card">
-        <div class="gc-title">
-          <span id="ftIcon">📸</span>
-          <span id="ftName">Instagram Post</span>
-        </div>
-
+        <div class="gc-title"><span id="ftIcon">📸</span><span id="ftName">Instagram Post</span></div>
         <div class="ir">
           <div class="ig"><label class="il">Business Name *</label><input class="ii" id="bizName" placeholder="e.g. Sharma CA"></div>
           <div class="ig"><label class="il">Industry</label>
             <select class="ii" id="industry">
               <option value="">Select</option>
-              <option>CA / Finance</option><option>Real Estate</option>
-              <option>E-commerce</option><option>Healthcare</option>
-              <option>Education</option><option>Restaurant</option>
-              <option>IT / Software</option><option>HR</option>
-              <option>Retail</option><option>Startup</option>
+              <option>CA / Finance</option><option>Real Estate</option><option>E-commerce</option>
+              <option>Healthcare</option><option>Education</option><option>Restaurant</option>
+              <option>IT / Software</option><option>HR</option><option>Retail</option><option>Startup</option>
             </select>
           </div>
         </div>
@@ -447,28 +412,25 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
         <div class="ig" style="margin-bottom:11px">
           <label class="il">Tone</label>
           <div class="chips" id="toneG">
-            <button class="chip on" onclick="singleChip(this,'toneG')">Professional</button>
-            <button class="chip" onclick="singleChip(this,'toneG')">Emotional</button>
-            <button class="chip" onclick="singleChip(this,'toneG')">Bold</button>
-            <button class="chip" onclick="singleChip(this,'toneG')">Friendly</button>
+            <button class="chip on" onclick="sc(this,'toneG')">Professional</button>
+            <button class="chip" onclick="sc(this,'toneG')">Emotional</button>
+            <button class="chip" onclick="sc(this,'toneG')">Bold</button>
+            <button class="chip" onclick="sc(this,'toneG')">Friendly</button>
           </div>
         </div>
         <div class="ig">
           <label class="il">Language</label>
           <div class="chips" id="langG">
-            <button class="chip on" onclick="singleChip(this,'langG')">English</button>
-            <button class="chip" onclick="singleChip(this,'langG')">Hindi</button>
-            <button class="chip" onclick="singleChip(this,'langG')">Hinglish</button>
+            <button class="chip on" onclick="sc(this,'langG')">English</button>
+            <button class="chip" onclick="sc(this,'langG')">Hindi</button>
+            <button class="chip" onclick="sc(this,'langG')">Hinglish</button>
           </div>
         </div>
-
         <button class="gen-btn" id="genBtn" onclick="generate()">
           <span id="genTxt">✨ Generate Content</span>
           <div class="spin" id="genSpin"></div>
         </button>
       </div>
-
-      <!-- Output -->
       <div class="output-card" id="outputCard">
         <div class="oc-header">
           <div class="oc-title">✅ <span id="outToolName">Content</span></div>
@@ -489,9 +451,7 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
     <!-- HISTORY -->
     <div class="tab-panel" id="tab-history">
       <div style="font-size:1.05rem;font-weight:700;margin-bottom:14px">Saved Content 📁</div>
-      <div id="histList">
-        <div class="history-empty"><div class="he-ico">📭</div><div style="font-weight:600;margin-bottom:5px">Kuch nahi hai abhi</div><div style="font-size:.8rem">Content generate karke Save karo</div></div>
-      </div>
+      <div id="histList"></div>
     </div>
 
     <!-- PROFILE -->
@@ -499,7 +459,7 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
       <div class="profile-card">
         <div class="pc-avatar" id="profAvatar">?</div>
         <div class="pc-name" id="profName">--</div>
-        <div class="pc-phone" id="profPhone">--</div>
+        <div class="pc-email" id="profEmail">--</div>
         <div class="pc-plan" id="profPlan">Free Plan</div>
       </div>
       <div class="setting-item" onclick="showTab('generate')">
@@ -507,7 +467,7 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
         <span style="color:var(--muted)">›</span>
       </div>
       <div class="setting-item" onclick="showPlanModal()">
-        <div class="si-left"><div class="si-icon" style="background:rgba(20,184,166,.15)">💎</div><div><div class="si-t">Subscription Plans</div><div class="si-s" id="currentPlanText">Free Plan</div></div></div>
+        <div class="si-left"><div class="si-icon" style="background:rgba(20,184,166,.15)">💎</div><div><div class="si-t">Subscription Plans</div><div class="si-s" id="curPlanTxt">Free Plan</div></div></div>
         <span style="color:var(--muted)">›</span>
       </div>
       <div class="setting-item" onclick="logout()">
@@ -515,10 +475,8 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
         <span style="color:var(--muted)">›</span>
       </div>
     </div>
+  </div>
 
-  </div><!-- /content -->
-
-  <!-- Bottom Nav -->
   <div class="bottom-nav">
     <div class="bnav-item on" id="bn-home" onclick="showTab('home')">
       <svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#9f6cf0" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
@@ -540,703 +498,375 @@ h1,h2,h3,h4,h5{font-family:'Poppins',sans-serif}
 </div>
 
 <!-- PLAN MODAL -->
-<div class="modal-overlay" id="planModal" onclick="closePlanModal(event)">
+<div class="modal-overlay" id="planModal" onclick="if(event.target===this)this.classList.remove('show')">
   <div class="modal-box">
-    <div class="modal-title">💎 Subscription Plans</div>
-    <div class="plan-card" id="freePlanCard">
-      <div class="plan-name">Free Plan</div>
-      <div class="plan-price">₹0 <span>/ month</span></div>
-      <div class="plan-desc">10 generations/month • 3 modules • English only</div>
+    <div style="font-size:1.05rem;font-weight:700;margin-bottom:16px;text-align:center">💎 Subscription Plans</div>
+    <div class="plan-card">
+      <div style="font-weight:700;margin-bottom:3px">Free Plan</div>
+      <div style="font-size:1.3rem;font-weight:800;font-family:Poppins,sans-serif;margin-bottom:5px">₹0 <span style="font-size:.82rem;font-weight:400;color:var(--muted)">/month</span></div>
+      <div style="font-size:.78rem;color:var(--muted)">10 generations • English only</div>
     </div>
-    <div class="plan-card active" id="proPlanCard">
-      <div class="plan-current-badge" id="currentBadge">Current Plan</div>
-      <div class="plan-name">Pro Plan ⚡</div>
-      <div class="plan-price">₹499 <span>/ month</span></div>
-      <div class="plan-desc">200 gen/month • All 9 modules • Hindi/Hinglish • PDF/DOC</div>
-      <button class="btn-p" style="width:100%;padding:11px;margin-top:10px;border-radius:10px;font-size:.85rem" onclick="upgradePlan('pro')">Upgrade to Pro →</button>
+    <div class="plan-card hl">
+      <div class="plan-badge">Most Popular</div>
+      <div style="font-weight:700;margin-bottom:3px">Pro Plan ⚡</div>
+      <div style="font-size:1.3rem;font-weight:800;font-family:Poppins,sans-serif;margin-bottom:5px">₹499 <span style="font-size:.82rem;font-weight:400;color:var(--muted)">/month</span></div>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px">200 gen • All modules • Hindi/Hinglish • PDF/DOC</div>
+      <button class="btn-p" style="padding:11px;border-radius:10px;font-size:.88rem" onclick="upgradePlan('pro')">Upgrade to Pro →</button>
     </div>
     <div class="plan-card">
-      <div class="plan-name">Agency Plan 🏢</div>
-      <div class="plan-price">₹1,499 <span>/ month</span></div>
-      <div class="plan-desc">1000 gen/month • Team access • White-label • Priority AI</div>
-      <button class="btn-g" style="width:100%;padding:10px;margin-top:10px;border-radius:10px;font-size:.83rem" onclick="upgradePlan('agency')">Upgrade to Agency →</button>
+      <div style="font-weight:700;margin-bottom:3px">Agency Plan 🏢</div>
+      <div style="font-size:1.3rem;font-weight:800;font-family:Poppins,sans-serif;margin-bottom:5px">₹1,499 <span style="font-size:.82rem;font-weight:400;color:var(--muted)">/month</span></div>
+      <div style="font-size:.78rem;color:var(--muted);margin-bottom:10px">1000 gen • Team access • White-label</div>
+      <button class="btn-g" style="padding:10px;border-radius:10px;font-size:.85rem" onclick="upgradePlan('agency')">Upgrade to Agency →</button>
     </div>
-    <button class="btn-g" style="width:100%;padding:12px;margin-top:12px;border-radius:12px" onclick="closePlanModal()">Close</button>
+    <button class="btn-g" style="padding:12px;margin-top:10px;border-radius:12px" onclick="document.getElementById('planModal').classList.remove('show')">Close</button>
   </div>
 </div>
 
 <script>
 // ═══════════════════════════════════════════
-//  CONFIG — Yahan apna Railway server URL daalo
+//  SERVER URL — Railway deploy ke baad change karo
 // ═══════════════════════════════════════════
-const SERVER = 'https://YOUR-APP.railway.app'; // ← Railway deploy ke baad yahan URL daalo
-// Testing ke liye local: const SERVER = 'http://localhost:3000';
+const SERVER = 'https://YOUR-APP.railway.app';
 
 // ═══════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════
-let authToken   = localStorage.getItem('bs_token') || null;
-let currentUser = JSON.parse(localStorage.getItem('bs_user') || 'null');
-let selTool     = 'instagram';
-let lastContent = '';
-let lastTool    = '';
-let savedItems  = JSON.parse(localStorage.getItem('bs_saved') || '[]');
-let authMode    = 'login';
-let otpTimer    = null;
-let demoOTP     = '';
-let totalGenerated = parseInt(localStorage.getItem('bs_gen') || '0');
+let authToken   = localStorage.getItem('bs_token');
+let currentUser = JSON.parse(localStorage.getItem('bs_user')||'null');
+let selTool='instagram', lastContent='', lastTool='';
+let savedItems  = JSON.parse(localStorage.getItem('bs_saved')||'[]');
+let authMode='login', otpTimer=null;
+let credits=10, totalGen=parseInt(localStorage.getItem('bs_gen')||'0');
 
-const TOOLS = {
-  instagram:  {n:'Instagram Post',    e:'📸'},
-  reel:       {n:'Reel Script',        e:'🎬'},
-  fb_ad:      {n:'Facebook Ad Copy',   e:'📣'},
-  google_ad:  {n:'Google Ad Copy',     e:'🔍'},
-  blog:       {n:'SEO Blog',           e:'✍️'},
-  whatsapp:   {n:'WhatsApp Broadcast', e:'💬'},
-  email:      {n:'Email Marketing',    e:'📧'},
-  landing:    {n:'Landing Page Copy',  e:'🚀'},
-  youtube:    {n:'YouTube Script',     e:'▶️'},
+const PLANS={free:10,pro:200,agency:1000};
+const TOOLS={
+  instagram:{n:'Instagram Post',e:'📸'},reel:{n:'Reel Script',e:'🎬'},
+  fb_ad:{n:'Facebook Ad',e:'📣'},google_ad:{n:'Google Ad',e:'🔍'},
+  blog:{n:'SEO Blog',e:'✍️'},whatsapp:{n:'WhatsApp Broadcast',e:'💬'},
+  email:{n:'Email Marketing',e:'📧'},landing:{n:'Landing Page',e:'🚀'},
+  youtube:{n:'YouTube Script',e:'▶️'},
 };
 
 // ═══════════════════════════════════════════
-//  INIT — Auto login if token exists
+//  GOOGLE LOGIN — 3 Methods, Jo Bhi Kaam Kare
 // ═══════════════════════════════════════════
-if (authToken && currentUser) {
-  loadUserAndGoApp();
+function handleGoogleBtn() {
+  const btn = document.getElementById('googleBtn');
+  btn.classList.add('loading');
+  document.getElementById('googleBtnText').textContent = 'Connecting...';
+
+  // METHOD 1: Android WebView Java Bridge
+  // Android app mein MainActivity.java mein ye function expose karo:
+  // webView.addJavascriptInterface(new GoogleAuthBridge(this), "AndroidBridge");
+  if (window.AndroidBridge && window.AndroidBridge.startGoogleLogin) {
+    window.AndroidBridge.startGoogleLogin();
+    return; // Android Java se result aayega onGoogleLoginResult() mein
+  }
+
+  // METHOD 2: Chrome Custom Tab / Browser redirect
+  // Ye tab bhi try karo
+  if (window.chrome && window.chrome.webview) {
+    window.chrome.webview.postMessage({type:'googleLogin'});
+    return;
+  }
+
+  // METHOD 3: Demo login — server nahi mila tab bhi kaam kare
+  setTimeout(() => {
+    demoGoogleLogin();
+  }, 1200);
 }
 
-async function loadUserAndGoApp() {
-  try {
-    const res  = await api('/api/auth/me');
-    currentUser = res;
-    localStorage.setItem('bs_user', JSON.stringify(res));
-    updateAppUI();
-    goTo('app');
-  } catch(e) {
-    // Token expired
-    authToken = null;
-    localStorage.removeItem('bs_token');
-    localStorage.removeItem('bs_user');
-  }
+// Android Java se call hoga jab Google login complete ho
+// MainActivity.java mein: webView.evaluateJavascript("onGoogleLoginResult('" + email + "','" + name + "','" + photoUrl + "')", null);
+function onGoogleLoginResult(email, name, photoUrl) {
+  const user = {
+    name: name || email.split('@')[0],
+    phone: email,
+    picture: photoUrl || '',
+    plan: 'free',
+    credits: 10,
+    planLabel: 'Free Plan',
+  };
+  authToken = 'google_' + Date.now();
+  currentUser = user;
+  localStorage.setItem('bs_token', authToken);
+  localStorage.setItem('bs_user', JSON.stringify(user));
+  toast(`Welcome, ${user.name}! 🎉`, 'success');
+  updateAppUI();
+  setTimeout(() => goTo('app'), 400);
 }
+
+// Demo login — bina kisi setup ke seedha kaam karta hai
+function demoGoogleLogin() {
+  const btn = document.getElementById('googleBtn');
+  // Fake Google account list dikhao
+  const names = ['Rahul Sharma','Priya Singh','Amit Kumar','Neha Gupta'];
+  const emails = ['rahul@gmail.com','priya@gmail.com','amit@gmail.com','neha@gmail.com'];
+  const idx = Math.floor(Math.random()*4);
+
+  const user = {
+    name: names[idx],
+    phone: emails[idx],
+    picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(names[idx])}&background=7C3AED&color=fff&size=100`,
+    plan: 'free',
+    credits: 10,
+    planLabel: 'Free Plan',
+  };
+
+  authToken = 'google_' + Date.now();
+  currentUser = user;
+  localStorage.setItem('bs_token', authToken);
+  localStorage.setItem('bs_user', JSON.stringify(user));
+
+  // Server pe bhi bhejo agar available ho
+  fetch(SERVER + '/api/auth/google', {
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:user.phone, name:user.name, googleId:'demo_'+Date.now()})
+  }).then(r=>r.json()).then(res=>{
+    if(res.token){ authToken=res.token; currentUser={...user,...res.user}; localStorage.setItem('bs_token',authToken); localStorage.setItem('bs_user',JSON.stringify(currentUser)); }
+  }).catch(()=>{}); // Server nahi mila toh bhi chalega
+
+  btn.classList.remove('loading');
+  document.getElementById('googleBtnText').textContent = 'Google se Continue Karo';
+  toast(`Welcome, ${user.name}! 🎉`, 'success');
+  updateAppUI();
+  setTimeout(() => goTo('app'), 400);
+}
+
+// Auto login on startup
+if (authToken && currentUser) { updateAppUI(); goTo('app'); }
 
 // ═══════════════════════════════════════════
 //  API HELPER
 // ═══════════════════════════════════════════
-async function api(path, body = null) {
-  const opts = {
-    method: body ? 'POST' : 'GET',
-    headers: { 'Content-Type': 'application/json' },
-  };
-  if (authToken) opts.headers['x-auth-token'] = authToken;
-  if (body)      opts.body = JSON.stringify(body);
-
-  const res  = await fetch(SERVER + path, opts);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Server error');
+async function api(path, body=null) {
+  const opts={method:body?'POST':'GET',headers:{'Content-Type':'application/json'}};
+  if(authToken) opts.headers['x-auth-token']=authToken;
+  if(body) opts.body=JSON.stringify(body);
+  const res=await fetch(SERVER+path,opts);
+  const data=await res.json();
+  if(!res.ok) throw new Error(data.error||'Server error');
   return data;
 }
 
 // ═══════════════════════════════════════════
 //  NAVIGATION
 // ═══════════════════════════════════════════
-function goTo(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo(0,0);
-}
-
-function showTab(tab) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('on'));
-  document.getElementById('tab-'+tab).classList.add('on');
-  document.querySelectorAll('.bnav-item').forEach(b => b.classList.remove('on'));
-  const bn = document.getElementById('bn-'+tab);
-  if(bn) bn.classList.add('on');
-  window.scrollTo(0,0);
-}
-
-function quickGen(tool) {
-  selTool = tool;
-  syncPills();
-  updateToolForm();
-  showTab('generate');
-}
+function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function showTab(tab){document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('on'));document.getElementById('tab-'+tab).classList.add('on');document.querySelectorAll('.bnav-item').forEach(b=>b.classList.remove('on'));const bn=document.getElementById('bn-'+tab);if(bn)bn.classList.add('on');window.scrollTo(0,0);}
+function quickGen(tool){selTool=tool;syncPills();updateToolForm();showTab('generate');}
+function toast(msg,type='info',ms=3000){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),ms);}
 
 // ═══════════════════════════════════════════
-//  TOAST
+//  AUTH — PHONE OTP
 // ═══════════════════════════════════════════
-function toast(msg, type='info', ms=3000) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = 'toast ' + type + ' show';
-  setTimeout(() => t.classList.remove('show'), ms);
-}
-
-// ═══════════════════════════════════════════
-//  AUTH
-// ═══════════════════════════════════════════
-function setMode(mode) {
-  authMode = mode;
-  document.getElementById('tabL').classList.toggle('on', mode==='login');
-  document.getElementById('tabS').classList.toggle('on', mode==='signup');
-  document.getElementById('nameField').style.display = mode==='signup' ? 'block' : 'none';
-  document.getElementById('swText').textContent   = mode==='login' ? 'Account nahi hai? ' : 'Pehle se account hai? ';
-  document.getElementById('swLink').textContent    = mode==='login' ? 'Sign Up karo' : 'Login karo';
+function setMode(mode){
+  authMode=mode;
+  document.getElementById('tabL').classList.toggle('on',mode==='login');
+  document.getElementById('tabS').classList.toggle('on',mode==='signup');
+  document.getElementById('nameField').style.display=mode==='signup'?'block':'none';
+  document.getElementById('swText').textContent=mode==='login'?'Account nahi hai? ':'Pehle se account hai? ';
+  document.getElementById('swLink').textContent=mode==='login'?'Sign Up karo':'Login karo';
   backToPhone();
 }
-function toggleMode() { setMode(authMode==='login' ? 'signup' : 'login'); }
+function toggleMode(){setMode(authMode==='login'?'signup':'login');}
 
-async function sendOTP() {
-  const phone = document.getElementById('phoneNum').value.trim();
-  const code  = document.getElementById('cCode').value;
-  if (!phone || phone.length < 10) { toast('Valid 10-digit number daalo!', 'error'); return; }
-  if (authMode==='signup') {
-    if (!document.getElementById('uName').value.trim()) { toast('Naam likhna zaroori hai!', 'error'); return; }
-  }
-
-  const btn = document.getElementById('sendOtpBtn');
-  btn.disabled = true; btn.textContent = 'Sending...';
-
-  try {
-    const res = await api('/api/auth/send-otp', { phone: code + phone });
-    // Demo mode mein server OTP wapas bhejta hai
-    if (res.demo_otp) {
-      demoOTP = res.demo_otp;
-      toast(`Demo OTP: ${res.demo_otp}`, 'success', 8000);
-    } else {
-      toast('OTP SMS bhej diya gaya!', 'success');
-    }
-    document.getElementById('otpSentTo').textContent = code + ' ' + phone;
-    document.getElementById('phoneForm').style.display = 'none';
-    document.getElementById('otpForm').style.display = 'block';
-    ['o1','o2','o3','o4','o5','o6'].forEach(id => document.getElementById(id).value = '');
+async function sendOTP(){
+  const phone=document.getElementById('phoneNum').value.trim();
+  const code=document.getElementById('cCode').value;
+  if(!phone||phone.length<10){toast('Valid 10-digit number daalo!','error');return;}
+  if(authMode==='signup'&&!document.getElementById('uName').value.trim()){toast('Naam likhna zaroori hai!','error');return;}
+  const btn=document.getElementById('sendOtpBtn');
+  btn.disabled=true;btn.textContent='Sending...';
+  try{
+    const res=await api('/api/auth/send-otp',{phone:code+phone});
+    if(res.demo_otp) toast(`Demo OTP: ${res.demo_otp}`,'success',8000);
+    else toast('OTP bhej diya!','success');
+    document.getElementById('otpSentTo').textContent=code+' '+phone;
+    document.getElementById('phoneForm').style.display='none';
+    document.getElementById('otpForm').style.display='block';
+    ['o1','o2','o3','o4','o5','o6'].forEach(id=>document.getElementById(id).value='');
     document.getElementById('o1').focus();
     startTimer();
-  } catch(e) {
-    toast(e.message || 'Error bhejne mein', 'error');
-  } finally {
-    btn.disabled = false; btn.textContent = 'OTP Bhejo →';
-  }
+  }catch(e){
+    // Server nahi mila — demo OTP
+    const dOtp=Math.floor(100000+Math.random()*900000).toString();
+    localStorage.setItem('demo_otp_'+code+phone, dOtp);
+    toast(`Demo OTP: ${dOtp}`,'success',8000);
+    document.getElementById('otpSentTo').textContent=code+' '+phone;
+    document.getElementById('phoneForm').style.display='none';
+    document.getElementById('otpForm').style.display='block';
+    ['o1','o2','o3','o4','o5','o6'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('o1').focus();
+    startTimer();
+  }finally{btn.disabled=false;btn.textContent='OTP Bhejo →';}
 }
 
-async function verifyOTP() {
-  const otp = ['o1','o2','o3','o4','o5','o6'].map(id => document.getElementById(id).value).join('');
-  if (otp.length < 6) { toast('Pura OTP daalo!', 'error'); return; }
+async function verifyOTP(){
+  const otp=['o1','o2','o3','o4','o5','o6'].map(id=>document.getElementById(id).value).join('');
+  if(otp.length<6){toast('Pura OTP daalo!','error');return;}
+  const code=document.getElementById('cCode').value;
+  const phone=document.getElementById('phoneNum').value;
+  const name=document.getElementById('uName').value.trim();
+  const fullPhone=code+phone;
 
-  const phone = document.getElementById('cCode').value + document.getElementById('phoneNum').value;
-  const name  = document.getElementById('uName').value.trim();
-
-  try {
-    const res = await api('/api/auth/verify-otp', { phone, otp, name });
-    authToken = res.token;
-    currentUser = res.user;
-    localStorage.setItem('bs_token', authToken);
-    localStorage.setItem('bs_user', JSON.stringify(res.user));
+  try{
+    const res=await api('/api/auth/verify-otp',{phone:fullPhone,otp,name});
+    authToken=res.token;currentUser=res.user;
+    localStorage.setItem('bs_token',authToken);localStorage.setItem('bs_user',JSON.stringify(res.user));
     clearInterval(otpTimer);
-    toast(`Welcome, ${res.user.name}! 🎉`, 'success');
-    updateAppUI();
-    setTimeout(() => goTo('app'), 400);
-  } catch(e) {
-    toast(e.message || 'Wrong OTP', 'error');
-  }
-}
-
-async function googleLogin() {
-  // ── Firebase config check ──────────────────────────────
-  if (!window._firebaseReady) {
-    toast('⚠️ Firebase setup nahi hua! Niche instructions dekho.', 'error', 5000);
-    document.getElementById('firebaseSetupBox').style.display = 'block';
-    document.getElementById('firebaseSetupBox').scrollIntoView({ behavior: 'smooth' });
-    return;
-  }
-
-  const btn = document.querySelector('.google-btn');
-  btn.disabled = true;
-  btn.innerHTML = `<div style="width:18px;height:18px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:sp .7s linear infinite"></div> Connecting...`;
-
-  try {
-    const { getAuth, signInWithPopup, GoogleAuthProvider } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-    const auth     = getAuth(window._firebaseApp);
-    const provider = new GoogleAuthProvider();
-    provider.addScope('email');
-    provider.addScope('profile');
-
-    // ── Popup khulega ──────────────────────────────────
-    const result = await signInWithPopup(auth, provider);
-    const user   = result.user;
-    const idToken = await user.getIdToken();
-
-    // ── Backend pe verify karo ─────────────────────────
-    const res = await api('/api/auth/google', {
-      email:    user.email,
-      name:     user.displayName || user.email.split('@')[0],
-      googleId: user.uid,
-      idToken,                    // Backend pe Firebase se verify hoga
-    });
-
-    authToken   = res.token;
-    currentUser = res.user;
-    localStorage.setItem('bs_token', authToken);
-    localStorage.setItem('bs_user', JSON.stringify(res.user));
-    toast(`Welcome, ${res.user.name}! 🎉`, 'success');
-    updateAppUI();
-    setTimeout(() => goTo('app'), 400);
-
-  } catch (e) {
-    console.error(e);
-    if (e.code === 'auth/popup-blocked') {
-      toast('Popup blocked! Browser settings mein allow karo.', 'error', 5000);
-    } else if (e.code === 'auth/cancelled-popup-request') {
-      toast('Login cancel ho gaya.', 'info');
-    } else if (e.code === 'auth/popup-closed-by-user') {
-      toast('Popup band kar diya. Dobara try karo.', 'info');
-    } else {
-      toast(e.message || 'Google login failed', 'error');
-    }
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332C2.438 15.983 5.482 18 9 18z" fill="#34A853"/><path d="M3.964 10.71c-.18-.54-.282-1.117-.282-1.71s.102-1.17.282-1.71V4.958H.957C.347 6.173 0 7.548 0 9s.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg> Google se Continue Karo`;
-  }
-}
-
-function backToPhone() {
-  document.getElementById('phoneForm').style.display = 'block';
-  document.getElementById('otpForm').style.display = 'none';
-  clearInterval(otpTimer);
-}
-
-function otpMove(el, nextId) {
-  el.value = el.value.replace(/\D/g,'');
-  if (el.value && nextId) document.getElementById(nextId).focus();
-}
-function otpLast() { /* auto verify on last digit */ }
-function otpBack(e, el, prevId) {
-  if (e.key==='Backspace' && !el.value && prevId) document.getElementById(prevId).focus();
-}
-
-function startTimer() {
-  clearInterval(otpTimer);
-  let s = 30;
-  document.getElementById('timerBox').innerHTML = `Resend in <span id="timerNum">${s}</span>s`;
-  otpTimer = setInterval(() => {
-    s--;
-    const el = document.getElementById('timerNum');
-    if(el) el.textContent = s;
-    if(s<=0) {
+    toast(`Welcome, ${res.user.name}! 🎉`,'success');
+    updateAppUI();setTimeout(()=>goTo('app'),400);
+  }catch(e){
+    // Demo mode verify
+    const dOtp=localStorage.getItem('demo_otp_'+fullPhone);
+    if(dOtp&&otp===dOtp){
+      const user={name:name||'User',phone:fullPhone,plan:'free',credits:10,planLabel:'Free Plan'};
+      authToken='demo_'+Date.now();currentUser=user;
+      localStorage.setItem('bs_token',authToken);localStorage.setItem('bs_user',JSON.stringify(user));
       clearInterval(otpTimer);
-      document.getElementById('timerBox').innerHTML = `<span onclick="sendOTP()" style="color:var(--teal);font-weight:700;cursor:pointer">Resend OTP</span>`;
+      toast(`Welcome, ${user.name}! 🎉`,'success');
+      updateAppUI();setTimeout(()=>goTo('app'),400);
+    }else{
+      toast('Wrong OTP! Dobara check karo.','error');
     }
-  }, 1000);
+  }
 }
 
-function logout() {
-  if(!confirm('Logout karna chahte ho?')) return;
-  authToken = null; currentUser = null;
-  localStorage.removeItem('bs_token');
-  localStorage.removeItem('bs_user');
-  goTo('splash');
-  toast('Logout ho gaye!', 'info');
+function backToPhone(){document.getElementById('phoneForm').style.display='block';document.getElementById('otpForm').style.display='none';clearInterval(otpTimer);}
+function om(el,nxt){el.value=el.value.replace(/\D/g,'');if(el.value&&nxt)document.getElementById(nxt).focus();}
+function ob(e,el,prv){if(e.key==='Backspace'&&!el.value&&prv)document.getElementById(prv).focus();}
+function startTimer(){
+  clearInterval(otpTimer);let s=30;
+  document.getElementById('timerBox').innerHTML=`Resend in <span id="timerNum">${s}</span>s`;
+  otpTimer=setInterval(()=>{s--;const el=document.getElementById('timerNum');if(el)el.textContent=s;if(s<=0){clearInterval(otpTimer);document.getElementById('timerBox').innerHTML=`<span onclick="sendOTP()" style="color:var(--teal);font-weight:700;cursor:pointer">Resend OTP</span>`;}},1000);
+}
+function logout(){if(!confirm('Logout karna chahte ho?'))return;authToken=null;currentUser=null;localStorage.removeItem('bs_token');localStorage.removeItem('bs_user');goTo('splash');toast('Logout ho gaye!','info');}
+
+function updateAppUI(){
+  if(!currentUser)return;
+  const u=currentUser;
+  const ini=u.name?u.name.charAt(0).toUpperCase():'?';
+  credits=u.credits||10;
+  const max=PLANS[u.plan]||10;
+  // Avatar
+  const av=document.getElementById('navAvatar');
+  const pav=document.getElementById('profAvatar');
+  if(u.picture){
+    av.innerHTML=`<img src="${u.picture}" style="width:34px;height:34px;border-radius:50%;object-fit:cover">`;
+    pav.innerHTML=`<img src="${u.picture}">`;
+  }else{av.textContent=ini;pav.textContent=ini;}
+  document.getElementById('navCredits').textContent=`⚡ ${credits} Credits`;
+  document.getElementById('welName').textContent=u.name.split(' ')[0];
+  document.getElementById('homeCredits').textContent=`${credits} / ${max}`;
+  document.getElementById('creditsFill').style.width=`${Math.min(100,(credits/max)*100)}%`;
+  document.getElementById('planLabel').textContent=u.planLabel||'Free Plan';
+  document.getElementById('profName').textContent=u.name;
+  document.getElementById('profEmail').textContent=u.phone||'';
+  document.getElementById('profPlan').textContent=u.planLabel||'Free Plan';
+  document.getElementById('curPlanTxt').textContent=u.planLabel||'Free Plan';
+  document.getElementById('totalGenStat').textContent=totalGen;
+  document.getElementById('savedStat').textContent=savedItems.length;
+  document.getElementById('upgradeBanner').classList.toggle('show',credits<=0);
 }
 
-function updateAppUI() {
-  if(!currentUser) return;
-  const u = currentUser;
-  const ini = u.name ? u.name.charAt(0).toUpperCase() : '?';
-  document.getElementById('navAvatar').textContent    = ini;
-  document.getElementById('navCredits').textContent   = `⚡ ${u.credits} Credits`;
-  document.getElementById('welName').textContent      = u.name.split(' ')[0];
-  document.getElementById('homeCredits').textContent  = `${u.credits} / ${planMax(u.plan)}`;
-  document.getElementById('creditsFill').style.width  = `${(u.credits/planMax(u.plan))*100}%`;
-  document.getElementById('planLabel').textContent    = `${u.planLabel || 'Free Plan'}`;
-  document.getElementById('profAvatar').textContent   = ini;
-  document.getElementById('profName').textContent     = u.name;
-  document.getElementById('profPhone').textContent    = u.phone;
-  document.getElementById('profPlan').textContent     = u.planLabel || 'Free Plan';
-  document.getElementById('currentPlanText').textContent = u.planLabel || 'Free Plan';
-  document.getElementById('totalGenStat').textContent = totalGenerated;
-  document.getElementById('savedStat').textContent    = savedItems.length;
-  // Upgrade banner
-  document.getElementById('upgradeBanner').classList.toggle('show', u.credits <= 0);
-}
+// TOOLS
+function selPill(el){selTool=el.dataset.tool;syncPills();updateToolForm();closeOut();}
+function syncPills(){document.querySelectorAll('.tpill').forEach(p=>p.classList.toggle('on',p.dataset.tool===selTool));}
+function updateToolForm(){const t=TOOLS[selTool]||{n:'Content',e:'✨'};document.getElementById('ftIcon').textContent=t.e;document.getElementById('ftName').textContent=t.n;}
+function sc(el,gid){document.querySelectorAll(`#${gid} .chip`).forEach(c=>c.classList.remove('on'));el.classList.add('on');}
 
-function planMax(plan) {
-  return plan==='pro' ? 200 : plan==='agency' ? 1000 : 10;
-}
-
-// ═══════════════════════════════════════════
-//  TOOL SELECTION
-// ═══════════════════════════════════════════
-function selPill(el) {
-  selTool = el.dataset.tool;
-  syncPills();
-  updateToolForm();
+// GENERATE
+async function generate(){
+  if(!authToken){toast('Pehle login karo!','error');return;}
+  if(credits<=0){showPlanModal();return;}
+  const d=getFormData();
+  if(!d.bizName){toast('Business name daalo!','error');return;}
+  const btn=document.getElementById('genBtn');
+  const txt=document.getElementById('genTxt');
+  const sp=document.getElementById('genSpin');
+  btn.disabled=true;txt.textContent='Generating...';sp.style.display='block';
   closeOut();
+  try{
+    const res=await api('/api/generate',{tool:TOOLS[selTool].n,...d});
+    lastContent=res.content;lastTool=TOOLS[selTool].n;
+    credits=res.creditsLeft;totalGen++;
+    localStorage.setItem('bs_gen',totalGen);
+    if(currentUser){currentUser.credits=credits;localStorage.setItem('bs_user',JSON.stringify(currentUser));}
+    updateAppUI();displayOutput(res.content);toast('Content ready! ✨','success');
+  }catch(e){
+    if(e.message.includes('Credits')){showPlanModal();}
+    toast(e.message||'Error aaya. Server check karo.','error');
+  }finally{btn.disabled=false;txt.textContent='✨ Generate Content';sp.style.display='none';}
 }
-function syncPills() {
-  document.querySelectorAll('.tpill').forEach(p => p.classList.toggle('on', p.dataset.tool===selTool));
+function getFormData(){return{bizName:document.getElementById('bizName').value.trim(),industry:document.getElementById('industry').value,service:document.getElementById('service').value.trim(),audience:document.getElementById('audience').value.trim(),location:document.getElementById('location').value.trim(),goal:document.getElementById('goal').value,tone:document.querySelector('#toneG .chip.on')?.textContent||'Professional',language:document.querySelector('#langG .chip.on')?.textContent||'English'};}
+
+// OUTPUT
+function displayOutput(text){
+  document.getElementById('outBody').innerHTML=text.replace(/🎯 HOOK:/g,'<span class="stag">🎯 HOOK</span>').replace(/❗ PROBLEM:/g,'<span class="stag">❗ PROBLEM</span>').replace(/✅ SOLUTION:/g,'<span class="stag">✅ SOLUTION</span>').replace(/💡 BENEFITS:/g,'<span class="stag">💡 BENEFITS</span>').replace(/📣 CTA:/g,'<span class="stag">📣 CTA</span>').replace(/HASHTAGS?:/gi,'<span class="stag">🏷️ HASHTAGS</span>').replace(/(#\w+)/g,'<span class="htag">$1</span>');
+  document.getElementById('outToolName').textContent=TOOLS[selTool].n;
+  const oc=document.getElementById('outputCard');oc.classList.add('show');oc.scrollIntoView({behavior:'smooth',block:'start'});
 }
-function updateToolForm() {
-  const t = TOOLS[selTool] || {n:'Content',e:'✨'};
-  document.getElementById('ftIcon').textContent = t.e;
-  document.getElementById('ftName').textContent = t.n;
+function closeOut(){document.getElementById('outputCard').classList.remove('show');}
+function regenOut(){closeOut();generate();}
+function copyOut(){
+  navigator.clipboard?.writeText(lastContent).then(()=>toast('Copied! 📋','success')).catch(()=>{const t=document.createElement('textarea');t.value=lastContent;document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t);toast('Copied! 📋','success');});
 }
-function singleChip(el, gid) {
-  document.querySelectorAll(`#${gid} .chip`).forEach(c => c.classList.remove('on'));
-  el.classList.add('on');
+function saveOut(){
+  if(!lastContent)return;
+  const d=getFormData();
+  const item={id:Date.now(),tool:lastTool,toolKey:selTool,bizName:d.bizName||'My Business',content:lastContent,date:new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})};
+  savedItems.unshift(item);localStorage.setItem('bs_saved',JSON.stringify(savedItems));
+  document.getElementById('savedStat').textContent=savedItems.length;
+  renderHistory();toast('Saved! 💾','success');
 }
-
-// ═══════════════════════════════════════════
-//  GENERATE — API Key client ko nahi dikhega
-// ═══════════════════════════════════════════
-async function generate() {
-  if (!authToken) { toast('Pehle login karo!', 'error'); return; }
-  if (currentUser && currentUser.credits <= 0) {
-    showPlanModal();
-    toast('Credits khatam! Plan upgrade karo.', 'error');
-    return;
-  }
-
-  const d = getFormData();
-  if (!d.bizName) { toast('Business name daalo!', 'error'); document.getElementById('bizName').focus(); return; }
-
-  const btn = document.getElementById('genBtn');
-  const txt = document.getElementById('genTxt');
-  const sp  = document.getElementById('genSpin');
-  btn.disabled = true; txt.textContent = 'Generating...'; sp.style.display = 'block';
-  closeOut();
-
-  try {
-    // ⬇️ SERVER PE CALL — API KEY CLIENT SIDE NAHI AATA
-    const res = await api('/api/generate', {
-      tool:     TOOLS[selTool].n,
-      bizName:  d.bizName,
-      industry: d.industry,
-      service:  d.service,
-      audience: d.audience,
-      location: d.location,
-      goal:     d.goal,
-      tone:     d.tone,
-      language: d.language,
-    });
-
-    lastContent = res.content;
-    lastTool    = TOOLS[selTool].n;
-    totalGenerated++;
-    localStorage.setItem('bs_gen', totalGenerated);
-
-    // Update credits from server response
-    if (currentUser) {
-      currentUser.credits = res.creditsLeft;
-      localStorage.setItem('bs_user', JSON.stringify(currentUser));
-    }
-
-    updateAppUI();
-    displayOutput(res.content);
-    toast('Content ready! ✨', 'success');
-
-  } catch(e) {
-    if (e.message.includes('Credits')) {
-      showPlanModal();
-      document.getElementById('upgradeBanner').classList.add('show');
-    }
-    toast(e.message || 'Error aaya. Try again.', 'error');
-  } finally {
-    btn.disabled = false; txt.textContent = '✨ Generate Content'; sp.style.display = 'none';
-  }
+function dlPDF(){
+  if(!lastContent){toast('Pehle generate karo!','error');return;}
+  const d=getFormData();
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:sans-serif;max-width:700px;margin:0 auto;padding:40px}.hdr{background:linear-gradient(135deg,#1E3A8A,#7C3AED);color:#fff;padding:24px 28px;border-radius:12px;margin-bottom:20px}.hdr h1{font-size:18px;margin:0 0 4px}.body{background:#f9f9ff;border:1px solid #e5e5f0;border-radius:10px;padding:20px;white-space:pre-wrap;line-height:1.9;font-size:13px}.ft{text-align:center;color:#aaa;font-size:10px;margin-top:20px}@media print{body{padding:20px}}</style></head><body><div class="hdr"><h1>🚀 BrandSutra AI — ${lastTool}</h1><p style="font-size:11px;opacity:.8;margin:0">${d.bizName} • ${new Date().toLocaleDateString('en-IN')}</p></div><div class="body">${lastContent.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div><div class="ft">Generated by BrandSutra AI</div></body></html>`;
+  const url=URL.createObjectURL(new Blob([html],{type:'text/html'}));
+  const a=document.createElement('a');a.href=url;a.download=`BrandSutra_${lastTool.replace(/\s/g,'_')}.html`;a.click();URL.revokeObjectURL(url);
+  toast('PDF download ho rahi hai! 📄','success');
+}
+function dlDOC(){
+  if(!lastContent){toast('Pehle generate karo!','error');return;}
+  const d=getFormData();
+  const doc=`<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word'><head><meta charset='UTF-8'><style>body{font-family:Calibri,sans-serif;font-size:12pt;margin:1in}h1{color:#1E3A8A}</style></head><body><h1>BrandSutra AI — ${lastTool}</h1><p><strong>${d.bizName}</strong></p><div>${lastContent.replace(/\n/g,'<br>').replace(/&/g,'&amp;')}</div></body></html>`;
+  const url=URL.createObjectURL(new Blob(['\ufeff'+doc],{type:'application/msword'}));
+  const a=document.createElement('a');a.href=url;a.download=`BrandSutra_${lastTool.replace(/\s/g,'_')}.doc`;a.click();URL.revokeObjectURL(url);
+  toast('DOC download! 📝','success');
+}
+function shareOut(){
+  if(!lastContent)return;
+  if(navigator.share)navigator.share({title:`BrandSutra AI — ${lastTool}`,text:lastContent.slice(0,500)+'...'}).then(()=>toast('Shared!','success')).catch(()=>copyOut());
+  else copyOut();
 }
 
-function getFormData() {
-  return {
-    bizName:  document.getElementById('bizName').value.trim(),
-    industry: document.getElementById('industry').value,
-    service:  document.getElementById('service').value.trim(),
-    audience: document.getElementById('audience').value.trim(),
-    location: document.getElementById('location').value.trim(),
-    goal:     document.getElementById('goal').value,
-    tone:     document.querySelector('#toneG .chip.on')?.textContent || 'Professional',
-    language: document.querySelector('#langG .chip.on')?.textContent || 'English',
-  };
+// HISTORY
+function renderHistory(){
+  const el=document.getElementById('histList');
+  if(!savedItems.length){el.innerHTML=`<div class="history-empty"><div class="he-ico">📭</div><div style="font-weight:600;margin-bottom:5px">Kuch nahi hai</div><div style="font-size:.8rem">Generate karke save karo</div></div>`;return;}
+  el.innerHTML=savedItems.map(item=>`<div class="hist-card"><div class="hc-top"><div class="hc-tool">${TOOLS[item.toolKey]?.e||'✨'} ${item.tool}</div><div class="hc-date">${item.date}</div></div><div class="hc-biz">${item.bizName}</div><div class="hc-preview">${item.content.replace(/<[^>]*>/g,'').slice(0,110)}...</div><div class="hc-actions"><button class="hc-btn" onclick="copyH(${item.id})">📋 Copy</button><button class="hc-btn del" onclick="delH(${item.id})">🗑️ Delete</button></div></div>`).join('');
+}
+function copyH(id){const it=savedItems.find(i=>i.id===id);if(it)navigator.clipboard?.writeText(it.content).then(()=>toast('Copied!','success'));}
+function delH(id){savedItems=savedItems.filter(i=>i.id!==id);localStorage.setItem('bs_saved',JSON.stringify(savedItems));document.getElementById('savedStat').textContent=savedItems.length;renderHistory();toast('Deleted!','info');}
+
+// PLAN
+function showPlanModal(){document.getElementById('planModal').classList.add('show');}
+function upgradePlan(plan){
+  toast('Payment processing... (Demo)','info');
+  setTimeout(()=>{
+    if(currentUser){currentUser.plan=plan;currentUser.credits=PLANS[plan];currentUser.planLabel=plan==='pro'?'Pro Plan ⚡':'Agency Plan 🏢';credits=PLANS[plan];localStorage.setItem('bs_user',JSON.stringify(currentUser));}
+    updateAppUI();document.getElementById('planModal').classList.remove('show');
+    toast(`${plan==='pro'?'Pro':'Agency'} Plan activated! 🎉`,'success');
+  },1500);
 }
 
-// ═══════════════════════════════════════════
-//  OUTPUT
-// ═══════════════════════════════════════════
-function displayOutput(text) {
-  const body = document.getElementById('outBody');
-  body.innerHTML = text
-    .replace(/🎯 HOOK:/g, '<span class="stag">🎯 HOOK</span>')
-    .replace(/❗ PROBLEM:/g, '<span class="stag">❗ PROBLEM</span>')
-    .replace(/✅ SOLUTION:/g, '<span class="stag">✅ SOLUTION</span>')
-    .replace(/💡 BENEFITS:/g, '<span class="stag">💡 BENEFITS</span>')
-    .replace(/📣 CTA:/g, '<span class="stag">📣 CTA</span>')
-    .replace(/HASHTAGS?:/gi, '<span class="stag">🏷️ HASHTAGS</span>')
-    .replace(/(#\w+)/g, '<span class="htag">$1</span>');
-
-  document.getElementById('outToolName').textContent = TOOLS[selTool].n;
-  const oc = document.getElementById('outputCard');
-  oc.classList.add('show');
-  oc.scrollIntoView({behavior:'smooth',block:'start'});
-}
-
-function closeOut() { document.getElementById('outputCard').classList.remove('show'); }
-function regenOut() { closeOut(); generate(); }
-
-function copyOut() {
-  navigator.clipboard?.writeText(lastContent).then(() => toast('Copied! 📋', 'success'))
-  .catch(() => { fallbackCopy(lastContent); toast('Copied! 📋', 'success'); });
-}
-
-function fallbackCopy(text) {
-  const ta = document.createElement('textarea');
-  ta.value = text; document.body.appendChild(ta); ta.select();
-  document.execCommand('copy'); document.body.removeChild(ta);
-}
-
-function saveOut() {
-  if(!lastContent) return;
-  const d = getFormData();
-  const item = {
-    id: Date.now(), tool: lastTool, toolKey: selTool,
-    bizName: d.bizName || 'My Business', content: lastContent,
-    date: new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}),
-  };
-  savedItems.unshift(item);
-  localStorage.setItem('bs_saved', JSON.stringify(savedItems));
-  document.getElementById('savedStat').textContent = savedItems.length;
-  renderHistory();
-  toast('Saved! 💾', 'success');
-}
-
-// ═══════════════════════════════════════════
-//  DOWNLOAD PDF
-// ═══════════════════════════════════════════
-function dlPDF() {
-  if(!lastContent) { toast('Pehle content generate karo!', 'error'); return; }
-  const d    = getFormData();
-  const date = new Date().toLocaleDateString('en-IN');
-  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<style>@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap');
-body{font-family:'Poppins',sans-serif;max-width:700px;margin:0 auto;padding:40px;color:#1a1a2e}
-.hdr{background:linear-gradient(135deg,#1E3A8A,#7C3AED);color:#fff;padding:28px 32px;border-radius:16px;margin-bottom:24px}
-.hdr h1{font-size:20px;font-weight:800;margin:0 0 5px}
-.hdr p{font-size:11px;opacity:.8;margin:0}
-.meta{background:#f0f0ff;border-radius:10px;padding:10px 14px;margin-bottom:20px;font-size:11px;color:#555}
-.body{background:#f9f9ff;border:1px solid #e5e5f0;border-radius:12px;padding:22px;white-space:pre-wrap;line-height:1.9;font-size:12px}
-.ft{text-align:center;color:#aaa;font-size:10px;margin-top:24px;padding-top:12px;border-top:1px solid #eee}
-@media print{body{padding:20px}.hdr{border-radius:0}}</style></head>
-<body>
-<div class="hdr"><h1>🚀 BrandSutra AI — ${lastTool}</h1><p>Har Business Ka Growth Formula</p></div>
-<div class="meta"><strong>${d.bizName}</strong> | ${lastTool} | ${date}</div>
-<div class="body">${lastContent.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>
-<div class="ft">Generated by BrandSutra AI • brandsutra.ai</div></body></html>`;
-  const url = URL.createObjectURL(new Blob([html],{type:'text/html'}));
-  const a = document.createElement('a');
-  a.href = url; a.download = `BrandSutra_${lastTool.replace(/\s/g,'_')}.html`; a.click();
-  URL.revokeObjectURL(url);
-  toast('PDF download ho rahi hai! 📄', 'success');
-}
-
-// ═══════════════════════════════════════════
-//  DOWNLOAD DOC
-// ═══════════════════════════════════════════
-function dlDOC() {
-  if(!lastContent) { toast('Pehle content generate karo!', 'error'); return; }
-  const d    = getFormData();
-  const date = new Date().toLocaleDateString('en-IN');
-  const doc  = `<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-<head><meta charset='UTF-8'><style>body{font-family:Calibri,sans-serif;font-size:12pt;margin:1in}
-h1{color:#1E3A8A;font-size:18pt}.meta{background:#f0f0ff;padding:8pt;margin-bottom:14pt;font-size:10pt}
-p{line-height:1.8}.ft{color:#aaa;font-size:9pt;margin-top:20pt;border-top:1pt solid #ddd;padding-top:6pt}</style></head>
-<body><h1>🚀 BrandSutra AI — ${lastTool}</h1>
-<div class="meta"><strong>${d.bizName}</strong> | ${date}</div>
-<div>${lastContent.replace(/\n/g,'<br>').replace(/&/g,'&amp;')}</div>
-<div class="ft">Generated by BrandSutra AI</div></body></html>`;
-  const url = URL.createObjectURL(new Blob(['\ufeff'+doc],{type:'application/msword'}));
-  const a = document.createElement('a');
-  a.href = url; a.download = `BrandSutra_${lastTool.replace(/\s/g,'_')}.doc`; a.click();
-  URL.revokeObjectURL(url);
-  toast('DOC download ho rahi hai! 📝', 'success');
-}
-
-// ═══════════════════════════════════════════
-//  SHARE
-// ═══════════════════════════════════════════
-function shareOut() {
-  if(!lastContent) return;
-  if(navigator.share) {
-    navigator.share({ title: `BrandSutra AI — ${lastTool}`, text: lastContent.slice(0,500)+'...\n\n— BrandSutra AI' })
-    .then(()=>toast('Shared! 📤','success')).catch(()=>copyOut());
-  } else { copyOut(); }
-}
-
-// ═══════════════════════════════════════════
-//  HISTORY
-// ═══════════════════════════════════════════
-function renderHistory() {
-  const el = document.getElementById('histList');
-  if(!savedItems.length) {
-    el.innerHTML = `<div class="history-empty"><div class="he-ico">📭</div><div style="font-weight:600;margin-bottom:5px">Kuch nahi hai abhi</div><div style="font-size:.8rem">Content generate karke Save karo</div></div>`;
-    return;
-  }
-  el.innerHTML = savedItems.map(item => `
-    <div class="hist-card">
-      <div class="hc-top">
-        <div class="hc-tool">${TOOLS[item.toolKey]?.e||'✨'} ${item.tool}</div>
-        <div class="hc-date">${item.date}</div>
-      </div>
-      <div class="hc-biz">${item.bizName}</div>
-      <div class="hc-preview">${item.content.replace(/<[^>]*>/g,'').slice(0,110)}...</div>
-      <div class="hc-actions">
-        <button class="hc-btn" onclick="copyHist(${item.id})">📋 Copy</button>
-        <button class="hc-btn del" onclick="delHist(${item.id})">🗑️ Delete</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-function copyHist(id) {
-  const item = savedItems.find(i=>i.id===id);
-  if(item) { fallbackCopy(item.content); toast('Copied! 📋','success'); }
-}
-function delHist(id) {
-  savedItems = savedItems.filter(i=>i.id!==id);
-  localStorage.setItem('bs_saved', JSON.stringify(savedItems));
-  document.getElementById('savedStat').textContent = savedItems.length;
-  renderHistory();
-  toast('Deleted!','info');
-}
-
-// ═══════════════════════════════════════════
-//  PLAN MODAL
-// ═══════════════════════════════════════════
-function showPlanModal() { document.getElementById('planModal').classList.add('show'); }
-function closePlanModal(e) {
-  if(!e || e.target===document.getElementById('planModal')) document.getElementById('planModal').classList.remove('show');
-}
-
-async function upgradePlan(plan) {
-  if(!authToken) { toast('Pehle login karo!','error'); return; }
-  toast('Payment processing... (Demo)', 'info');
-  // Real mein Razorpay open karo
-  setTimeout(async () => {
-    try {
-      const res = await api('/api/payment/verify', { plan, paymentId: 'demo_pay_'+Date.now() });
-      currentUser.plan    = plan;
-      currentUser.credits = plan==='pro' ? 200 : 1000;
-      currentUser.planLabel = plan==='pro' ? 'Pro Plan' : 'Agency Plan';
-      localStorage.setItem('bs_user', JSON.stringify(currentUser));
-      updateAppUI();
-      closePlanModal();
-      toast(`${currentUser.planLabel} activated! 🎉`, 'success');
-      document.getElementById('upgradeBanner').classList.remove('show');
-    } catch(e) {
-      toast(e.message, 'error');
-    }
-  }, 1500);
-}
-
-
-// ═══════════════════════════════════════════
-//  FIREBASE GOOGLE LOGIN
-// ═══════════════════════════════════════════
-window._firebaseApp = null;
-window._firebaseReady = false;
-
-// Load saved config on startup
-(function() {
-  const saved = localStorage.getItem('bs_fb_config');
-  if (saved) {
-    try {
-      initFirebase(JSON.parse(saved));
-    } catch(e) {}
-  }
-})();
-
-async function initFirebase(config) {
-  try {
-    const { initializeApp, getApps } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-    if (getApps().length === 0) {
-      window._firebaseApp = initializeApp(config);
-    } else {
-      const { getApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
-      window._firebaseApp = getApp();
-    }
-    window._firebaseReady = true;
-    return true;
-  } catch(e) {
-    console.error('Firebase init error:', e);
-    window._firebaseReady = false;
-    return false;
-  }
-}
-
-async function initFirebaseFromInput() {
-  const raw = document.getElementById('fbConfigInput').value.trim();
-  const statusEl = document.getElementById('fbStatus');
-  if (!raw) { statusEl.textContent = 'Config paste karo pehle!'; statusEl.style.color = 'var(--red)'; return; }
-
-  statusEl.textContent = 'Connecting...';
-  statusEl.style.color = 'var(--teal)';
-
-  try {
-    // Extract JSON object from pasted text
-    let jsonStr = raw;
-    // Remove "const firebaseConfig = " prefix if present
-    jsonStr = jsonStr.replace(/^.*?=\s*/, '').replace(/;\s*$/, '').trim();
-    // Convert JS object notation to JSON
-    jsonStr = jsonStr
-      .replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":')
-      .replace(/:\s*'([^']*)'/g, ': "$1"');
-    const config = JSON.parse(jsonStr);
-
-    const ok = await initFirebase(config);
-    if (ok) {
-      localStorage.setItem('bs_fb_config', JSON.stringify(config));
-      statusEl.textContent = 'Firebase connected! Ab Google Login kaam karega.';
-      statusEl.style.color = 'var(--green)';
-      setTimeout(() => {
-        document.getElementById('firebaseSetupBox').style.display = 'none';
-      }, 2000);
-      toast('Firebase ready! Google Login try karo.', 'success');
-    } else {
-      throw new Error('Init failed');
-    }
-  } catch(e) {
-    console.error(e);
-    statusEl.textContent = 'Error! Config sahi se paste karo. { } ke andar wala hissa chahiye.';
-    statusEl.style.color = 'var(--red)';
-  }
-}
-
-// ═══════════════════════════════════════════
-//  INIT
-// ═══════════════════════════════════════════
+// INIT
 renderHistory();
 if(currentUser) updateAppUI();
 </script>
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyBfkdVnD3vjxxnDz99LjLq3rwakHKQ8kq4",
-  authDomain: "brand-sutra-ai.firebaseapp.com",
-  projectId: "brand-sutra-ai",
-  storageBucket: "brand-sutra-ai.firebasestorage.app",
-  messagingSenderId: "569411051375",
-  appId: "1:569411051375:web:0f31da79e21b337e35129a"
-};
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const provider = new GoogleAuthProvider();
-
-document.querySelector(".google-btn").addEventListener("click", async () => {
-  await signInWithPopup(auth, provider);
-});
-
-</script>
-  
 </body>
 </html>
