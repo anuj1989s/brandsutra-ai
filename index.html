@@ -912,13 +912,17 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--ink);color
   <rect width="28" height="28" rx="7" fill="#25D366"/>
   <path d="M14 6.5C9.86 6.5 6.5 9.86 6.5 14c0 1.3.33 2.52.9 3.6L6.5 21.5l4.07-.88A7.44 7.44 0 0014 21.5c4.14 0 7.5-3.36 7.5-7.5S18.14 6.5 14 6.5zm3.7 10.3c-.18.45-1.05.87-1.45.9-.4.04-.73.18-2.45-.5-2.05-.8-3.3-2.9-3.4-3.03-.1-.13-.8-1.07-.8-2.05 0-.97.5-1.44.69-1.64.18-.2.4-.25.53-.25h.38c.13 0 .3-.05.47.35.18.43.6 1.48.66 1.58.05.1.08.23.02.37-.07.13-.1.22-.2.33-.1.12-.2.26-.29.35-.1.1-.2.2-.09.4.12.2.53.87 1.15 1.4.79.7 1.45.92 1.65 1.02.2.1.32.08.43-.05.12-.13.5-.58.63-.78.13-.2.25-.17.43-.1.17.07 1.1.52 1.28.61.18.1.3.14.35.22.04.08.04.47-.14.92z" fill="white"/>
 </svg></div><div class="pn">WhatsApp</div></div>
+            <div class="plat" id="plt-yt" onclick="togglePlat('yt')"><div class="pi"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg"><rect width="28" height="28" rx="7" fill="#FF0000"/><path d="M21 10.5s-.2-1.4-.8-2c-.8-.8-1.7-.8-2.1-.9C15.8 7.4 14 7.4 14 7.4s-1.8 0-4.1.2c-.4 0-1.3.1-2.1.9-.6.6-.8 2-.8 2S6.8 12.1 6.8 14v1.4c0 1.4.2 2.9.2 2.9s.2 1.4.8 2c.8.8 1.8.8 2.3.8C11.4 21 14 21 14 21s1.8 0 4.1-.2c.4 0 1.3-.1 2.1-.9.6-.6.8-2 .8-2s.2-1.5.2-2.9V14c0-1.4-.2-3.5-.2-3.5zM12.3 16.5V11l5.3 2.8-5.3 2.7z" fill="white"/></svg></div><div class="pn">YouTube</div></div>
           </div>
         </div>
         <div class="ig2" style="margin-bottom:0">
           <div class="ig1"><label class="il">Date</label><input class="ii" type="date" id="schedDate"></div>
           <div class="ig1"><label class="il">Time</label><input class="ii" type="time" id="schedTime"></div>
         </div>
-        <button class="gen-btn" onclick="schedulePost()" style="margin-top:16px">🔄 Schedule Post</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px">
+          <button class="gen-btn" onclick="postNow()" style="margin-top:0;font-size:.82rem;padding:13px 8px">&#9889; Post Now</button>
+          <button class="gen-btn" onclick="schedulePost()" style="margin-top:0;background:rgba(102,126,234,.25);border:1px solid rgba(102,126,234,.4);font-size:.82rem;padding:13px 8px">&#128197; Schedule</button>
+        </div>
       </div>
 
       <!-- Scheduled Posts -->
@@ -1472,6 +1476,31 @@ function togglePlat(p){
   if(el.classList.contains('on')){if(!selPlats.includes(p))selPlats.push(p);}
   else selPlats=selPlats.filter(x=>x!==p);
 }
+function postNow(){
+  const content=document.getElementById('postContent').value.trim();
+  if(!content){toast('Write your post content first!','error');return;}
+  if(selPlats.length===0){toast('Select at least one platform!','error');return;}
+  const saved=JSON.parse(localStorage.getItem('bs_connected')||'{}');
+  const notConn=selPlats.filter(p=>{
+    const map={ig:'instagram',fb:'facebook',li:'linkedin',tw:'twitter',wa:'whatsapp',yt:'youtube'};
+    return !saved[map[p]];
+  });
+  if(notConn.length>0){
+    const names={ig:'Instagram',fb:'Facebook',li:'LinkedIn',tw:'X/Twitter',wa:'WhatsApp',yt:'YouTube'};
+    toast('Connect '+notConn.map(p=>names[p]).join(', ')+' first!','error');
+    return;
+  }
+  // Simulate posting
+  selPlats.forEach(function(p){
+    const names={ig:'Instagram',fb:'Facebook',li:'LinkedIn',tw:'X/Twitter',wa:'WhatsApp',yt:'YouTube'};
+    setTimeout(function(){toast('Posted to '+names[p]+'! ✅','success');},selPlats.indexOf(p)*600);
+  });
+  const post={id:Date.now(),content:content,platforms:selPlats,date:new Date().toISOString().split('T')[0],time:new Date().toTimeString().slice(0,5),status:'posted'};
+  schedPosts.unshift(post);
+  localStorage.setItem('bs_sched',JSON.stringify(schedPosts));
+  renderQueue();
+  document.getElementById('postContent').value='';
+}
 function schedulePost(){
   const content=document.getElementById('postContent').value.trim();
   const date=document.getElementById('schedDate').value;
@@ -1479,16 +1508,37 @@ function schedulePost(){
   if(!content){toast('Enter post content!','error');return;}
   if(!date||!time){toast('Select date and time!','error');return;}
   if(selPlats.length===0){toast('Select at least one platform!','error');return;}
-  const post={id:Date.now(),content,platforms:selPlats,date,time,status:'scheduled'};
-  schedPosts.unshift(post);localStorage.setItem('bs_sched',JSON.stringify(schedPosts));
-  renderQueue();toast('Post scheduled! 🔄','success');
+  const saved=JSON.parse(localStorage.getItem('bs_connected')||'{}');
+  const notConn=selPlats.filter(p=>{
+    const map={ig:'instagram',fb:'facebook',li:'linkedin',tw:'twitter',wa:'whatsapp',yt:'youtube'};
+    return !saved[map[p]];
+  });
+  if(notConn.length>0){
+    const names={ig:'Instagram',fb:'Facebook',li:'LinkedIn',tw:'X/Twitter',wa:'WhatsApp',yt:'YouTube'};
+    toast('Connect '+notConn.map(p=>names[p]).join(', ')+' first in Connect Accounts above!','error');
+    return;
+  }
+  const post={id:Date.now(),content:content,platforms:selPlats,date:date,time:time,status:'scheduled'};
+  schedPosts.unshift(post);
+  localStorage.setItem('bs_sched',JSON.stringify(schedPosts));
+  renderQueue();
+  toast('Post scheduled for '+date+' at '+time+'!','success');
   document.getElementById('postContent').value='';
 }
 function renderQueue(){
   const el=document.getElementById('schedQueue');
   if(!schedPosts.length){el.innerHTML='<div style="text-align:center;padding:30px 20px;color:var(--muted)"><div style="font-size:2rem;margin-bottom:8px">📅</div><div style="font-size:.8rem">No posts scheduled yet</div></div>';return;}
-  const pIcons={ig:'📸',fb:'📘',li:'💼',tw:'🐦'};
-  el.innerHTML=schedPosts.map(p=>`<div class="hcard"><div class="hc-top"><div style="display:flex;gap:4px">${p.platforms.map(pl=>`<span style="font-size:.9rem">${pIcons[pl]||'📱'}</span>`).join('')}</div><div class="hc-date">${p.date} ${p.time}</div></div><div class="hc-prev">${p.content.slice(0,100)}${p.content.length>100?'...':''}</div><div class="hc-acts"><span style="font-size:.68rem;padding:3px 9px;border-radius:50px;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);color:var(--green);font-family:'Syne',sans-serif">⏰ Scheduled</span><button class="hc-btn del" onclick="delSched(${p.id})">Delete</button></div></div>`).join('');
+  const pIcons={ig:'<span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:linear-gradient(135deg,#f09433,#dc2743,#bc1888);text-align:center;line-height:20px;font-size:11px;color:white;font-weight:bold;vertical-align:middle">IG</span>',fb:'<span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:#1877F2;text-align:center;line-height:20px;font-size:11px;color:white;font-weight:bold;vertical-align:middle">f</span>',li:'<span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:#0A66C2;text-align:center;line-height:20px;font-size:11px;color:white;font-weight:bold;vertical-align:middle">in</span>',tw:'<span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:#000;text-align:center;line-height:20px;font-size:11px;color:white;font-weight:bold;vertical-align:middle">X</span>',wa:'<span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:#25D366;text-align:center;line-height:20px;font-size:11px;color:white;font-weight:bold;vertical-align:middle">W</span>',yt:'<span style="display:inline-block;width:20px;height:20px;border-radius:5px;background:#FF0000;text-align:center;line-height:20px;font-size:11px;color:white;font-weight:bold;vertical-align:middle">YT</span>'};
+  el.innerHTML=schedPosts.map(function(p){
+    var isPosted=p.status==='posted';
+    var stBg=isPosted?'rgba(16,185,129,.12)':'rgba(251,191,36,.1)';
+    var stBr=isPosted?'rgba(16,185,129,.3)':'rgba(251,191,36,.25)';
+    var stCl=isPosted?'#6ee7b7':'#fbbf24';
+    var stTx=isPosted?'&#10003; Posted':'&#9200; Scheduled';
+    var badge='<span style="font-size:.65rem;padding:3px 10px;border-radius:50px;background:'+stBg+';border:1px solid '+stBr+';color:'+stCl+';font-weight:700">'+stTx+'</span>';
+    var platIcos=p.platforms.map(function(pl){return pIcons[pl]||'&#128241;';}).join('');
+    return '<div class="hcard" style="margin-bottom:10px"><div class="hc-top"><div style="display:flex;gap:5px;align-items:center">'+platIcos+'</div><div class="hc-date">'+p.date+' '+p.time+'</div></div><div class="hc-prev" style="margin:8px 0;line-height:1.5">'+p.content.slice(0,120)+(p.content.length>120?'...':'')+'</div><div class="hc-acts">'+badge+'<button class="hc-btn del" onclick="delSched('+p.id+')" style="font-size:.65rem">&#128465; Delete</button></div></div>';
+  }).join('');;
 }
 function delSched(id){schedPosts=schedPosts.filter(p=>p.id!==id);localStorage.setItem('bs_sched',JSON.stringify(schedPosts));renderQueue();toast('Deleted','info');}
 
