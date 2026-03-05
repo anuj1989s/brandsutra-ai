@@ -143,7 +143,7 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--ink);color
 .nb svg{opacity:.3;transition:opacity .2s;transition:transform .2s}
 .nb span{font-size:.56rem;font-weight:700;color:var(--muted);font-family:'Syne',sans-serif;letter-spacing:.05em;text-transform:uppercase}
 .nb.on{background:rgba(139,92,246,.1)}
-.nb.on svg{opacity:1;transform:scale(1.1)}
+.nb.on svg{opacity:1;transform:scale(1.1)} .nb.on svg path,.nb.on svg rect,.nb.on svg circle,.nb.on svg polygon{stroke:var(--violet-l)}
 .nb.on span{color:var(--violet-l)}
 
 /* ── SECTION TITLES ── */
@@ -806,24 +806,65 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--ink);color
       <div class="sec-t">Connected Accounts</div>
       <div class="schedule-card">
         <button class="conn-btn" onclick="connectPlatform('instagram')">
-          <div class="cb-ico" style="background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)">📸</div>
+          <div class="cb-ico" style="background:transparent;padding:0"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="ig_g1" cx="30%" cy="107%" r="150%">
+      <stop offset="0%" stop-color="#fdf497"/>
+      <stop offset="5%" stop-color="#fdf497"/>
+      <stop offset="45%" stop-color="#fd5949"/>
+      <stop offset="60%" stop-color="#d6249f"/>
+      <stop offset="90%" stop-color="#285AEB"/>
+    </radialGradient>
+  </defs>
+  <rect width="28" height="28" rx="7" fill="url(#ig_g1)"/>
+  <rect x="7" y="7" width="14" height="14" rx="4" stroke="white" stroke-width="1.5" fill="none"/>
+  <circle cx="14" cy="14" r="3.5" stroke="white" stroke-width="1.5" fill="none"/>
+  <circle cx="19.2" cy="8.8" r="1" fill="white"/>
+</svg></div>
           <span>Instagram</span>
           <span class="connect-now" id="ig-status">Connect →</span>
         </button>
         <button class="conn-btn" onclick="connectPlatform('facebook')">
-          <div class="cb-ico" style="background:#1877f2">📘</div>
+          <div class="cb-ico" style="background:transparent;padding:0"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="7" fill="#1877F2"/>
+  <path d="M18 14h-2.5v8h-3v-8H11v-3h1.5v-1.8C12.5 7.6 13.7 7 15.2 7H18v3h-1.8c-.7 0-.7.3-.7.8V11H18l-.5 3z" fill="white"/>
+</svg></div>
           <span>Facebook</span>
           <span class="connect-now" id="fb-status">Connect →</span>
         </button>
         <button class="conn-btn" onclick="connectPlatform('linkedin')">
-          <div class="cb-ico" style="background:#0077b5">💼</div>
+          <div class="cb-ico" style="background:transparent;padding:0"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="7" fill="#0A66C2"/>
+  <rect x="7" y="11" width="3" height="10" fill="white"/>
+  <circle cx="8.5" cy="8.5" r="1.8" fill="white"/>
+  <path d="M13 11h3v1.4c.5-1 1.6-1.5 2.8-1.5C21 10.9 22 12.5 22 15v6h-3v-5.5c0-1-.5-1.5-1.3-1.5s-1.7.6-1.7 1.8V21h-3V11z" fill="white"/>
+</svg></div>
           <span>LinkedIn</span>
           <span class="connect-now" id="li-status">Connect →</span>
         </button>
         <button class="conn-btn" onclick="connectPlatform('twitter')">
-          <div class="cb-ico" style="background:#000">🐦</div>
+          <div class="cb-ico" style="background:transparent;padding:0"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="7" fill="#000000"/>
+  <path d="M7 7h4.5l3 4.2L18 7h4L16.5 14 22 21h-4.5l-3.2-4.5L10 21H6l5.8-7.5L7 7z" fill="white"/>
+</svg></div>
           <span>X (Twitter)</span>
           <span class="connect-now" id="tw-status">Connect →</span>
+        </button>
+        <button class="conn-btn" onclick="connectPlatform('whatsapp')">
+          <div class="cb-ico" style="background:transparent;padding:0"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="7" fill="#25D366"/>
+  <path d="M14 6.5C9.86 6.5 6.5 9.86 6.5 14c0 1.3.33 2.52.9 3.6L6.5 21.5l4.07-.88A7.44 7.44 0 0014 21.5c4.14 0 7.5-3.36 7.5-7.5S18.14 6.5 14 6.5zm3.7 10.3c-.18.45-1.05.87-1.45.9-.4.04-.73.18-2.45-.5-2.05-.8-3.3-2.9-3.4-3.03-.1-.13-.8-1.07-.8-2.05 0-.97.5-1.44.69-1.64.18-.2.4-.25.53-.25h.38c.13 0 .3-.05.47.35.18.43.6 1.48.66 1.58.05.1.08.23.02.37-.07.13-.1.22-.2.33-.1.12-.2.26-.29.35-.1.1-.2.2-.09.4.12.2.53.87 1.15 1.4.79.7 1.45.92 1.65 1.02.2.1.32.08.43-.05.12-.13.5-.58.63-.78.13-.2.25-.17.43-.1.17.07 1.1.52 1.28.61.18.1.3.14.35.22.04.08.04.47-.14.92z" fill="white"/>
+</svg></div>
+          <span>WhatsApp Business</span>
+          <span class="connect-now" id="wa-status">Connect →</span>
+        </button>
+        <button class="conn-btn" onclick="connectPlatform('youtube')">
+          <div class="cb-ico" style="background:transparent;padding:0"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="7" fill="#FF0000"/>
+  <path d="M21 10.5s-.2-1.4-.8-2c-.8-.8-1.7-.8-2.1-.9C15.8 7.4 14 7.4 14 7.4s-1.8 0-4.1.2c-.4 0-1.3.1-2.1.9-.6.6-.8 2-.8 2S6.8 12.1 6.8 14v1.4c0 1.4.2 2.9.2 2.9s.2 1.4.8 2c.8.8 1.8.8 2.3.8C11.4 21 14 21 14 21s1.8 0 4.1-.2c.4 0 1.3-.1 2.1-.9.6-.6.8-2 .8-2s.2-1.5.2-2.9V14c0-1.4-.2-3.5-.2-3.5zM12.3 16.5V11l5.3 2.8-5.3 2.7z" fill="white"/>
+</svg></div>
+          <span>YouTube</span>
+          <span class="connect-now" id="yt-status">Connect →</span>
         </button>
       </div>
 
@@ -837,10 +878,39 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--ink);color
         <div class="ig1" style="margin-bottom:11px">
           <label class="il">Post to Platforms</label>
           <div class="platform-row">
-            <div class="plat on" id="plt-ig" onclick="togglePlat('ig')"><div class="pi">📸</div><div class="pn">Instagram</div></div>
-            <div class="plat" id="plt-fb" onclick="togglePlat('fb')"><div class="pi">📘</div><div class="pn">Facebook</div></div>
-            <div class="plat" id="plt-li" onclick="togglePlat('li')"><div class="pi">💼</div><div class="pn">LinkedIn</div></div>
-            <div class="plat" id="plt-tw" onclick="togglePlat('tw')"><div class="pi">🐦</div><div class="pn">Twitter</div></div>
+            <div class="plat on" id="plt-ig" onclick="togglePlat('ig')"><div class="pi"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="ig_g1" cx="30%" cy="107%" r="150%">
+      <stop offset="0%" stop-color="#fdf497"/>
+      <stop offset="5%" stop-color="#fdf497"/>
+      <stop offset="45%" stop-color="#fd5949"/>
+      <stop offset="60%" stop-color="#d6249f"/>
+      <stop offset="90%" stop-color="#285AEB"/>
+    </radialGradient>
+  </defs>
+  <rect width="28" height="28" rx="7" fill="url(#ig_g1)"/>
+  <rect x="7" y="7" width="14" height="14" rx="4" stroke="white" stroke-width="1.5" fill="none"/>
+  <circle cx="14" cy="14" r="3.5" stroke="white" stroke-width="1.5" fill="none"/>
+  <circle cx="19.2" cy="8.8" r="1" fill="white"/>
+</svg></div><div class="pn">Instagram</div></div>
+            <div class="plat" id="plt-fb" onclick="togglePlat('fb')"><div class="pi"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="7" fill="#1877F2"/>
+  <path d="M18 14h-2.5v8h-3v-8H11v-3h1.5v-1.8C12.5 7.6 13.7 7 15.2 7H18v3h-1.8c-.7 0-.7.3-.7.8V11H18l-.5 3z" fill="white"/>
+</svg></div><div class="pn">Facebook</div></div>
+            <div class="plat" id="plt-li" onclick="togglePlat('li')"><div class="pi"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="7" fill="#0A66C2"/>
+  <rect x="7" y="11" width="3" height="10" fill="white"/>
+  <circle cx="8.5" cy="8.5" r="1.8" fill="white"/>
+  <path d="M13 11h3v1.4c.5-1 1.6-1.5 2.8-1.5C21 10.9 22 12.5 22 15v6h-3v-5.5c0-1-.5-1.5-1.3-1.5s-1.7.6-1.7 1.8V21h-3V11z" fill="white"/>
+</svg></div><div class="pn">LinkedIn</div></div>
+            <div class="plat" id="plt-tw" onclick="togglePlat('tw')"><div class="pi"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="7" fill="#000000"/>
+  <path d="M7 7h4.5l3 4.2L18 7h4L16.5 14 22 21h-4.5l-3.2-4.5L10 21H6l5.8-7.5L7 7z" fill="white"/>
+</svg></div><div class="pn">Twitter</div></div>
+            <div class="plat" id="plt-wa" onclick="togglePlat('wa')"><div class="pi"><svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="28" height="28" rx="7" fill="#25D366"/>
+  <path d="M14 6.5C9.86 6.5 6.5 9.86 6.5 14c0 1.3.33 2.52.9 3.6L6.5 21.5l4.07-.88A7.44 7.44 0 0014 21.5c4.14 0 7.5-3.36 7.5-7.5S18.14 6.5 14 6.5zm3.7 10.3c-.18.45-1.05.87-1.45.9-.4.04-.73.18-2.45-.5-2.05-.8-3.3-2.9-3.4-3.03-.1-.13-.8-1.07-.8-2.05 0-.97.5-1.44.69-1.64.18-.2.4-.25.53-.25h.38c.13 0 .3-.05.47.35.18.43.6 1.48.66 1.58.05.1.08.23.02.37-.07.13-.1.22-.2.33-.1.12-.2.26-.29.35-.1.1-.2.2-.09.4.12.2.53.87 1.15 1.4.79.7 1.45.92 1.65 1.02.2.1.32.08.43-.05.12-.13.5-.58.63-.78.13-.2.25-.17.43-.1.17.07 1.1.52 1.28.61.18.1.3.14.35.22.04.08.04.47-.14.92z" fill="white"/>
+</svg></div><div class="pn">WhatsApp</div></div>
           </div>
         </div>
         <div class="ig2" style="margin-bottom:0">
