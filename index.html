@@ -703,10 +703,53 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--ink);color
     <!-- PROFILE -->
     <div class="panel" id="tab-profile">
       <div class="prof-card">
-        <div class="pav" id="profAv">?</div>
+        <!-- Profile Pic with upload button -->
+        <div style="position:relative;display:inline-block;margin-bottom:12px">
+          <div class="pav" id="profAv" style="width:82px;height:82px;font-size:2rem;cursor:pointer" onclick="document.getElementById('picInput').click()">?</div>
+          <div onclick="document.getElementById('picInput').click()" style="position:absolute;bottom:0;right:0;width:26px;height:26px;background:var(--grad);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--ink2);font-size:.7rem">✏️</div>
+          <input type="file" id="picInput" accept="image/*" style="display:none" onchange="uploadProfilePic(this)">
+        </div>
         <div class="pname" id="profNm">--</div>
-        <div class="pemail" id="profEmail">--</div>
+        <div class="pemail" id="profEmail" style="font-size:.78rem;color:var(--muted2);margin-top:3px"></div>
         <div class="pplan" id="profPlan">Free Plan</div>
+        <!-- Edit Profile Button -->
+        <button onclick="showEditProfile()" style="margin-top:12px;background:var(--glass2);border:1px solid var(--border2);color:var(--text);padding:7px 20px;border-radius:50px;font-size:.72rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">✏️ Edit Profile</button>
+      </div>
+
+      <!-- Edit Profile Modal -->
+      <div id="editProfileMo" style="display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.82);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center">
+        <div style="background:var(--ink2);border:1px solid var(--border2);border-radius:26px 26px 0 0;padding:22px 18px 40px;width:100%;max-width:500px;animation:sheetUp .4s cubic-bezier(.34,1.2,.64,1)">
+          <div style="width:34px;height:4px;background:var(--border2);border-radius:4px;margin:0 auto 18px"></div>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;margin-bottom:18px;text-align:center">✏️ Edit Profile</div>
+
+          <!-- Profile pic in modal -->
+          <div style="display:flex;justify-content:center;margin-bottom:18px">
+            <div style="position:relative;display:inline-block">
+              <div id="editAv" style="width:72px;height:72px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;border:3px solid rgba(139,92,246,.35);overflow:hidden;font-family:'Syne',sans-serif;cursor:pointer" onclick="document.getElementById('picInput2').click()">?</div>
+              <div onclick="document.getElementById('picInput2').click()" style="position:absolute;bottom:0;right:0;width:24px;height:24px;background:var(--grad);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--ink2);font-size:.65rem">📷</div>
+              <input type="file" id="picInput2" accept="image/*" style="display:none" onchange="uploadProfilePic(this)">
+            </div>
+          </div>
+
+          <div style="margin-bottom:11px">
+            <label style="display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px">Full Name</label>
+            <input id="editName" class="fi" type="text" placeholder="Your full name" style="width:100%">
+          </div>
+          <div style="margin-bottom:11px">
+            <label style="display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px">Business Name</label>
+            <input id="editBiz" class="fi" type="text" placeholder="Your business name">
+          </div>
+          <div style="margin-bottom:11px">
+            <label style="display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px">Phone / Email</label>
+            <input id="editPhone" class="fi" type="text" placeholder="Phone or email" style="width:100%">
+          </div>
+          <div style="margin-bottom:18px">
+            <label style="display:block;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:5px">City</label>
+            <input id="editCity" class="fi" type="text" placeholder="Your city">
+          </div>
+          <button onclick="saveProfile()" style="width:100%;padding:13px;background:var(--grad);color:white;border:none;border-radius:50px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(109,40,217,.4)">💾 Save Profile</button>
+          <button onclick="closeEditProfile()" style="width:100%;padding:11px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:50px;font-family:'Syne',sans-serif;font-size:.85rem;font-weight:600;cursor:pointer;margin-top:9px">Cancel</button>
+        </div>
       </div>
       <div class="srow" onclick="showTab('generate')"><div class="srl"><div class="sico" style="background:rgba(139,92,246,.14)"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDggNDgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHJhZGlhbEdyYWRpZW50IGlkPSJJR1QiIGN4PSIzMCUiIGN5PSIxMDclIiByPSIxNTAlIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjZmRmNDk3Ii8+PHN0b3Agb2Zmc2V0PSI0NSUiIHN0b3AtY29sb3I9IiNmZDU5NDkiLz48c3RvcCBvZmZzZXQ9IjYwJSIgc3RvcC1jb2xvcj0iI2Q2MjQ5ZiIvPjxzdG9wIG9mZnNldD0iOTAlIiBzdG9wLWNvbG9yPSIjMjg1QUVCIi8+PC9yYWRpYWxHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiByeD0iMTIiIGZpbGw9InVybCgjSUdUKSIvPjxyZWN0IHg9IjEzIiB5PSIxMyIgd2lkdGg9IjIyIiBoZWlnaHQ9IjIyIiByeD0iNyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyLjUiIGZpbGw9Im5vbmUiLz48Y2lyY2xlIGN4PSIyNCIgY3k9IjI0IiByPSI1LjUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMi41IiBmaWxsPSJub25lIi8+PGNpcmNsZSBjeD0iMzEuNSIgY3k9IjE2LjUiIHI9IjEuOCIgZmlsbD0id2hpdGUiLz48L3N2Zz4=" width="32" height="32" style="display:block;margin:0 auto"></div><div><div class="srt">AI Generator</div><div class="srs">Create content</div></div></div><span style="color:var(--muted)">›</span></div>
       <div class="srow" onclick="showTab('video')"><div class="srl"><div class="sico" style="background:rgba(219,39,119,.12)"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgNDggNDgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJWRiIgeDE9IjAlIiB5MT0iMCUiIHgyPSIxMDAlIiB5Mj0iMTAwJSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzZkMjhkOSIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI2RiMjc3NyIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSI0OCIgaGVpZ2h0PSI0OCIgcng9IjEyIiBmaWxsPSJ1cmwoI1ZGKSIvPjxyZWN0IHg9IjkiIHk9IjE0IiB3aWR0aD0iMjIiIGhlaWdodD0iMjAiIHJ4PSI0IiBmaWxsPSJyZ2JhKDI1NSwyNTUsMjU1LDAuOSkiLz48cGF0aCBkPSJNMzEgMjRsOS02djEybC05LTZ6IiBmaWxsPSJ3aGl0ZSIvPjwvc3ZnPg==" width="32" height="32" style="display:block;margin:0 auto"></div><div><div class="srt">Video Generator</div><div class="srs">Text & image to video</div></div></div><span style="color:var(--muted)">›</span></div>
@@ -904,6 +947,58 @@ function startTimer(){
   document.getElementById('timerBox').innerHTML='Resend in <span id="timerNum">'+s+'</span>s';
   otpTimer=setInterval(function(){s--;var el=document.getElementById('timerNum');if(el)el.textContent=s;if(s<=0){clearInterval(otpTimer);document.getElementById('timerBox').innerHTML='<span onclick="sendOTP()" style="color:var(--teal-l);font-weight:700;cursor:pointer">Resend OTP</span>';}},1000);
 }
+function uploadProfilePic(input){
+  if(!input.files[0])return;
+  var r=new FileReader();
+  r.onload=function(e){
+    var pic=e.target.result;
+    if(currentUser){currentUser.picture=pic;localStorage.setItem('bs_user',JSON.stringify(currentUser));}
+    var av=document.getElementById('navAv');
+    var pav=document.getElementById('profAv');
+    var eav=document.getElementById('editAv');
+    if(av)av.innerHTML='<img src="'+pic+'" style="width:32px;height:32px;border-radius:50%;object-fit:cover">';
+    if(pav)pav.innerHTML='<img src="'+pic+'" style="width:100%;height:100%;object-fit:cover">';
+    if(eav)eav.innerHTML='<img src="'+pic+'" style="width:100%;height:100%;object-fit:cover">';
+    toast('Profile photo updated! 📸','success');
+  };
+  r.readAsDataURL(input.files[0]);
+}
+function showEditProfile(){
+  var mo=document.getElementById('editProfileMo');
+  mo.style.display='flex';
+  if(currentUser){
+    document.getElementById('editName').value=currentUser.name||'';
+    document.getElementById('editBiz').value=currentUser.bizName||'';
+    document.getElementById('editPhone').value=currentUser.phone||'';
+    document.getElementById('editCity').value=currentUser.city||'';
+    var eav=document.getElementById('editAv');
+    if(currentUser.picture){
+      eav.innerHTML='<img src="'+currentUser.picture+'" style="width:100%;height:100%;object-fit:cover">';
+    }else{
+      eav.textContent=currentUser.name?currentUser.name.charAt(0).toUpperCase():'?';
+    }
+  }
+}
+function closeEditProfile(){
+  document.getElementById('editProfileMo').style.display='none';
+}
+function saveProfile(){
+  var name=document.getElementById('editName').value.trim();
+  var biz=document.getElementById('editBiz').value.trim();
+  var phone=document.getElementById('editPhone').value.trim();
+  var city=document.getElementById('editCity').value.trim();
+  if(!name){toast('Name is required!','error');return;}
+  if(currentUser){
+    currentUser.name=name;
+    if(biz)currentUser.bizName=biz;
+    if(phone)currentUser.phone=phone;
+    if(city)currentUser.city=city;
+    localStorage.setItem('bs_user',JSON.stringify(currentUser));
+  }
+  updateUI();
+  closeEditProfile();
+  toast('Profile saved! ✅','success');
+}
 function logout(){if(!confirm('Are you sure?'))return;authToken=null;currentUser=null;localStorage.removeItem('bs_token');localStorage.removeItem('bs_user');goTo('splash');toast('Logged out','info');}
 
 /* UPDATE UI */
@@ -923,7 +1018,8 @@ function updateUI(){
   document.getElementById('crFill').style.width=Math.min(100,(credits/max)*100)+'%';
   document.getElementById('planLbl').textContent=u.planLabel||'Free Plan';
   document.getElementById('profNm').textContent=u.name;
-  document.getElementById('profEmail').textContent=u.phone||'';
+  document.getElementById('profEmail').textContent=u.bizName?u.bizName+(u.city?' • '+u.city:''):(u.phone||'');
+  document.getElementById('profEmail').title=u.phone||'';
   document.getElementById('profPlan').textContent=u.planLabel||'Free Plan';
   document.getElementById('curPlan').textContent=u.planLabel||'Free Plan';
   document.getElementById('genStat').textContent=totalGen;
