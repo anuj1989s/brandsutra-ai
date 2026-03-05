@@ -134,7 +134,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 /* APP NAV */
 #app{flex-direction:column}
-.nav{position:sticky;top:0;z-index:50;background:rgba(15,15,35,.88);backdrop-filter:blur(28px);border-bottom:1px solid rgba(255,255,255,.12);padding:11px 15px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 20px rgba(0,0,0,.4)}
+.nav{position:sticky;top:0;z-index:60;background:rgba(15,15,35,.88);backdrop-filter:blur(28px);border-bottom:1px solid rgba(255,255,255,.12);padding:11px 15px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 20px rgba(0,0,0,.4)}
 .nav-brand{display:flex;align-items:center;gap:8px}
 .nav-wm{font-family:'Syne',sans-serif;font-size:.92rem;font-weight:800;background:var(--grad3);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-.02em}
 .nav-r{display:flex;align-items:center;gap:9px}
@@ -341,6 +341,18 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 ::-webkit-scrollbar{width:2px;height:2px}
 ::-webkit-scrollbar-thumb{background:rgba(139,92,246,.25);border-radius:4px}
+
+/* NEWS TICKER */
+.ticker-wrap{width:100%;background:linear-gradient(90deg,rgba(15,15,35,.98),rgba(22,22,50,.98));border-bottom:1px solid rgba(167,139,250,.2);overflow:hidden;height:36px;display:flex;align-items:center;position:sticky;top:0;z-index:100}
+.ticker-label{flex-shrink:0;background:var(--grad);color:white;font-family:'Syne',sans-serif;font-size:.58rem;font-weight:800;padding:4px 10px;border-radius:0 6px 6px 0;letter-spacing:.08em;text-transform:uppercase;margin-right:10px;white-space:nowrap}
+.ticker-track{display:flex;align-items:center;gap:0;animation:tickerScroll 45s linear infinite;white-space:nowrap}
+.ticker-track:hover{animation-play-state:paused}
+.ticker-item{display:inline-flex;align-items:center;gap:7px;padding:0 22px;font-size:.68rem;color:rgba(240,244,255,.75);font-family:'Inter',sans-serif}
+.ticker-item .t-ico{width:18px;height:18px;border-radius:5px;flex-shrink:0;object-fit:cover}
+.ticker-item .t-src{font-weight:700;font-size:.6rem;opacity:.6;text-transform:uppercase}
+.ticker-item .t-dot{color:rgba(167,139,250,.5);margin:0 8px;font-size:.6rem}
+.ticker-item .t-hot{color:#fbbf24;font-size:.6rem;font-weight:700;background:rgba(251,191,36,.1);padding:1px 6px;border-radius:4px;border:1px solid rgba(251,191,36,.2)}
+@keyframes tickerScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 </style>
 </head>
 <body>
@@ -459,6 +471,30 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
 <!-- APP -->
 <div class="screen" id="app">
+  <!-- LIVE NEWS TICKER -->
+  <div class="ticker-wrap" id="newsTicker">
+    <div class="ticker-label">&#128225; LIVE</div>
+    <div class="ticker-track">
+      <span class="ticker-item"><span style="font-size:1rem">&#128248;</span><span class="t-src">IG</span><span>Reels now get 3x more reach than feed posts &#8212; use trending audio</span><span class="t-hot">&#128293; TRENDING</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128188;</span><span class="t-src">LI</span><span>B2B brands see 6x more leads from LinkedIn video in 2025</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128216;</span><span class="t-src">FB</span><span>Facebook Groups driving 40% of all organic brand engagement</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#9654;&#65039;</span><span class="t-src">YT</span><span>YouTube Shorts monetization now open for 500+ subscriber channels</span><span class="t-hot">&#128293; HOT</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128038;</span><span class="t-src">X</span><span>X introduces revenue sharing &#8212; creators earning $2-5 per 1K views</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128172;</span><span class="t-src">WA</span><span>WhatsApp Business broadcast open rate reaches 98% vs email 20%</span><span class="t-hot">&#128293; TRENDING</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128248;</span><span class="t-src">IG</span><span>Carousel posts get 3x more saves &#8212; algorithm now favors saves over likes</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128188;</span><span class="t-src">LI</span><span>LinkedIn newsletter subscribers up 150% &#8212; best time to start is now</span><span class="t-hot">&#128293; HOT</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128216;</span><span class="t-src">FB</span><span>Meta AI tools auto-generate ad copy &#8212; test multiple variations fast</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#9654;&#65039;</span><span class="t-src">YT</span><span>Average YouTube ad CPM drops 20% &#8212; better ROI for small businesses now</span></span><span class="t-dot">&#8226;</span>
+      <!-- duplicate for seamless loop -->
+      <span class="ticker-item"><span style="font-size:1rem">&#128248;</span><span class="t-src">IG</span><span>Reels now get 3x more reach than feed posts &#8212; use trending audio</span><span class="t-hot">&#128293; TRENDING</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128188;</span><span class="t-src">LI</span><span>B2B brands see 6x more leads from LinkedIn video in 2025</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128216;</span><span class="t-src">FB</span><span>Facebook Groups driving 40% of all organic brand engagement</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#9654;&#65039;</span><span class="t-src">YT</span><span>YouTube Shorts monetization now open for 500+ subscriber channels</span><span class="t-hot">&#128293; HOT</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128038;</span><span class="t-src">X</span><span>X introduces revenue sharing &#8212; creators earning $2-5 per 1K views</span></span><span class="t-dot">&#8226;</span>
+      <span class="ticker-item"><span style="font-size:1rem">&#128172;</span><span class="t-src">WA</span><span>WhatsApp Business broadcast open rate reaches 98% vs email 20%</span><span class="t-hot">&#128293; TRENDING</span></span><span class="t-dot">&#8226;</span>
+    </div>
+  </div>
+
   <div class="nav">
     <div class="nav-brand">
       <svg width="25" height="25" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
@@ -841,11 +877,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
           <label style="display:block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px" id="cmUserLbl">Username / Email</label>
           <input id="cmUsername" class="fi" type="text" placeholder="Enter your username or email" style="width:100%">
         </div>
-        <div id="cmPasswordWrap" style="margin-bottom:0">
-          <label style="display:block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Password</label>
-          <div style="position:relative">
-            <input id="cmPassword" class="fi" type="password" placeholder="Enter your password" style="width:100%;padding-right:44px">
-            <button onclick="toggleCmPwd()" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:.85rem">👁</button>
+        <div id="cmOtpWrap" style="margin-bottom:0;display:none">
+          <label style="display:block;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:6px">Enter OTP</label>
+          <div style="display:flex;gap:8px;align-items:center">
+            <input id="cmOtp" class="fi" type="number" placeholder="6-digit OTP" style="flex:1;letter-spacing:.2em;font-size:1.1rem;text-align:center">
+            <button id="cmResendBtn" onclick="sendConnOtp()" style="padding:10px 14px;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);color:var(--violet-l);border-radius:10px;font-size:.72rem;font-weight:700;cursor:pointer;white-space:nowrap;font-family:'Syne',sans-serif">Resend</button>
           </div>
         </div>
       </div>
@@ -856,7 +892,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
         <div style="font-size:.7rem;color:rgba(110,231,183,.9);line-height:1.6">Your credentials are encrypted and never stored. We use secure OAuth 2.0 to connect your account.</div>
       </div>
 
-      <button id="cmLoginBtn" onclick="submitConnect()" style="width:100%;padding:14px;color:white;border:none;border-radius:50px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;margin-bottom:10px;transition:all .2s">🔗 Connect Account</button>
+      <button id="cmLoginBtn" onclick="submitConnect()" style="width:100%;padding:14px;color:white;border:none;border-radius:50px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;margin-bottom:10px;transition:all .2s">📲 Send OTP</button>
       <button onclick="closeConnectMo()" style="width:100%;padding:11px;background:transparent;color:var(--muted);border:1px solid rgba(255,255,255,.1);border-radius:50px;font-family:'Syne',sans-serif;font-size:.85rem;cursor:pointer">Cancel</button>
     </div>
 
@@ -1272,7 +1308,10 @@ function connectPlat(p){
   document.getElementById('cmUsername').placeholder=d.userPh;
   document.getElementById('cmPassword').placeholder=d.pwdPh;
   document.getElementById('cmUsername').value='';
-  document.getElementById('cmPassword').value='';
+  document.getElementById('cmOtp').value='';
+  document.getElementById('cmOtpWrap').style.display='none';
+  document.getElementById('cmLoginBtn').textContent='📲 Send OTP';
+  _otpSent=false;
   document.getElementById('cmLoginBtn').style.background=d.color;
   document.getElementById('cmPlatIcon').textContent='🔄';
   // Show modal
@@ -1282,31 +1321,51 @@ function toggleCmPwd(){
   var inp=document.getElementById('cmPassword');
   inp.type=inp.type==='password'?'text':'password';
 }
+var _otpSent=false;
 function submitConnect(){
   var user=document.getElementById('cmUsername').value.trim();
-  var pwd=document.getElementById('cmPassword').value.trim();
   var d=_platInfo[_curConnPlat]||{name:_curConnPlat,color:'#667eea'};
   if(!user){toast('Please enter your '+d.userLbl,'error');return;}
-  if(!pwd){toast('Please enter your password','error');return;}
-  // Show step 2 - connecting animation
+  if(!_otpSent){
+    // Step 1: Send OTP
+    sendConnOtp();
+  }else{
+    // Step 2: Verify OTP
+    verifyConnOtp();
+  }
+}
+function sendConnOtp(){
+  var user=document.getElementById('cmUsername').value.trim();
+  var d=_platInfo[_curConnPlat]||{name:_curConnPlat,color:'#667eea'};
+  if(!user){toast('Please enter your '+d.userLbl,'error');return;}
+  // Show OTP field
+  document.getElementById('cmOtpWrap').style.display='block';
+  document.getElementById('cmLoginBtn').textContent='✅ Verify & Connect';
+  document.getElementById('cmLoginBtn').style.background=d.color;
+  _otpSent=true;
+  // Simulate OTP sent
+  toast('OTP sent to your '+d.name+' registered number! 📲','success');
+}
+function verifyConnOtp(){
+  var otp=document.getElementById('cmOtp').value.trim();
+  var user=document.getElementById('cmUsername').value.trim();
+  var d=_platInfo[_curConnPlat]||{name:_curConnPlat,color:'#667eea'};
+  if(!otp||otp.length<4){toast('Please enter the OTP','error');return;}
+  // Show connecting animation
   document.getElementById('cmStep1').style.display='none';
   document.getElementById('cmStep2').style.display='block';
-  document.getElementById('cmPlatIcon').textContent='🔄';
-  // Animate progress bar
   setTimeout(function(){document.getElementById('cmProgress').style.width='100%';},100);
-  // After 2.5s show success
   setTimeout(function(){
     document.getElementById('cmStep2').style.display='none';
     document.getElementById('cmStep3').style.display='block';
     document.getElementById('cmSuccessMsg').textContent=d.name+' Connected!';
-    document.getElementById('cmSuccessUser').textContent='Logged in as: '+user;
-    // Save connected state
+    document.getElementById('cmSuccessUser').textContent='Account: '+user;
     var saved=JSON.parse(localStorage.getItem('bs_connected')||'{}');
     saved[_curConnPlat]={user:user,connectedAt:new Date().toISOString()};
     localStorage.setItem('bs_connected',JSON.stringify(saved));
-    // Update status badge
     updateConnStatus(_curConnPlat,user);
     toast(d.name+' connected! ✅','success');
+    _otpSent=false;
   },2800);
 }
 function updateConnStatus(p,user){
