@@ -1130,592 +1130,713 @@ html,body{height:100%;background:var(--ink);color:var(--text);font-family:'DM Sa
 @keyframes starTwinkle{0%,100%{opacity:.15;transform:scale(.7)}50%{opacity:1;transform:scale(1.5)}}
 </style>
 
+
 <script>
+// ══════════════════════════════════════════════════════════
+// BRANDSUTRA AI — COMPLETE APP JS
+// Matches HTML element IDs exactly
+// ══════════════════════════════════════════════════════════
 
-// ═══ AI IMAGE GENERATOR ════════════════════════════════════
-var _lastImgPrompt='';
-function generateImage(){
-  var prompt=document.getElementById('imgPrompt').value.trim();
-  if(!prompt){toast('Enter image description!','error');return;}
-  var style=document.querySelector('#imgStyleG .on');
-  var styleVal=style?style.textContent.trim():'Realistic';
-  var fullPrompt=prompt+', '+styleVal+' style, high quality, professional, marketing image';
-  _lastImgPrompt=fullPrompt;
-  document.getElementById('imgGenTxt').textContent='Generating...';
-  document.getElementById('imgGenSpin').style.display='inline-block';
-  document.getElementById('imgGenBtn').disabled=true;
-  document.getElementById('imgResult').style.display='none';
-  // Use Pollinations.ai - free image generation API
-  var w=512,h=512;
-  var sizeEl=document.querySelector('#imgSizeG .on');
-  if(sizeEl){
-    var sz=sizeEl.textContent.trim();
-    if(sz.indexOf('Portrait')>-1){w=512;h=640;}
-    else if(sz.indexOf('Wide')>-1){w=768;h=432;}
-  }
-  var url='https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+Date.now();
-  var img=new Image();
-  img.onload=function(){
-    document.getElementById('genImgEl').src=url;
-    document.getElementById('imgResult').style.display='block';
-    document.getElementById('imgGenTxt').textContent='&#127912; Generate Image';
-    document.getElementById('imgGenSpin').style.display='none';
-    document.getElementById('imgGenBtn').disabled=false;
-    toast('Image generated!','success');
-  };
-  img.onerror=function(){
-    document.getElementById('imgGenTxt').textContent='&#127912; Generate Image';
-    document.getElementById('imgGenSpin').style.display='none';
-    document.getElementById('imgGenBtn').disabled=false;
-    toast('Generation failed. Try again!','error');
-  };
-  img.src=url;
-}
-function downloadGenImg(){
-  var src=document.getElementById('genImgEl').src;
-  if(!src){toast('No image to download!','error');return;}
-  fetch(src)
-    .then(function(r){return r.blob();})
-    .then(function(blob){
-      var a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download='brandsutra-image-'+Date.now()+'.jpg';
-      a.click();
-      toast('Image downloaded!','success');
-    })
-    .catch(function(){
-      var a=document.createElement('a');
-      a.href=src;a.target='_blank';a.click();
-    });
-}
-function useImgForPost(){
-  var src=document.getElementById('genImgEl').src;
-  if(!src){return;}
-  toast('Image copied to post!','success');
-  showTab('autopost');
-}
+// ─── STATE ───
+var SERVER = 'https://brandsutra-backend-production.up.railway.app';
+var authToken = localStorage.getItem('bs_token') || '';
+var currentUser = JSON.parse(localStorage.getItem('bs_user') || 'null');
+var credits = currentUser ? (currentUser.credits || 10) : 10;
+var totalGen = parseInt(localStorage.getItem('bs_gen') || '0');
+var totalSaved = parseInt(localStorage.getItem('bs_saved') || '0');
+var savedHistory = JSON.parse(localStorage.getItem('bs_history') || '[]');
+var postQueue = JSON.parse(localStorage.getItem('bs_postQueue') || '[]');
+var connectedAccounts = JSON.parse(localStorage.getItem('bs_connected') || '{}');
+var selTool = 'instagram';
+var lastContent = '';
+var lastTool = '';
+var otpSent = false;
+var selAdPlatformId = 'google';
+var selectedPlats = ['instagram', 'facebook', 'whatsapp'];
 
-// ═══ HASHTAG GENERATOR ════════════════════════════════════
-var _hashtagBank={
-  fitness:['fitness','gym','workout','fitlife','health','exercise','motivation','fitnessgoals','bodybuilding','healthylifestyle','weightloss','fitnessmotivation','personaltrainer','yoga','wellness'],
-  ca:['CA','charteredaccountant','taxation','gst','incometax','finance','accounting','financemanager','audit','tds','itr','businessfinance','startup','investment','moneytips'],
-  food:['food','foodie','delicious','yummy','instafood','homemade','cooking','recipe','foodphotography','tasty','foodlover','chef','restaurant','streetfood','indianfood'],
-  realestate:['realestate','property','homeforsale','dreamhome','newhome','realtor','investment','apartment','house','luxuryhomes','propertyinvestment','buyingahome','realestateindia','construction','architecture'],
-  business:['business','entrepreneur','startup','smallbusiness','marketing','success','motivation','branding','digital','growyourbusiness','businessowner','leadership','innovation','hustle','goals'],
-  digital:['digitalmarketing','socialmedia','seo','contentmarketing','marketing','onlinemarketing','instagram','facebook','branding','smm','growth','growthhacking','leadgeneration','ads','strategy'],
-  education:['education','learning','students','study','knowledge','school','college','university','elearning','onlinecourses','skills','career','teacher','edtech','future'],
-  fashion:['fashion','style','ootd','outfit','clothes','trendy','fashionista','lifestyle','beauty','shopping','luxury','accessories','instafashion','streetstyle','designer']
-};
-function generateHashtags(){
-  var topic=document.getElementById('hashTopic').value.trim().toLowerCase();
-  if(!topic){toast('Enter a topic first!','error');return;}
-  var plat=document.getElementById('hashPlat').value;
-  var count=parseInt(document.getElementById('hashCount').value)||20;
-  var tags=[];
-  // Match topic to bank
-  for(var key in _hashtagBank){
-    if(topic.indexOf(key)>-1||key.indexOf(topic)>-1){
-      tags=tags.concat(_hashtagBank[key]);
-    }
-  }
-  // Add generic + topic-based tags
-  var topicTag=topic.replace(/\s+/g,'');
-  var extraTags=[topicTag,topicTag+'india',topicTag+'tips',topicTag+'life',topicTag+'expert',
-    'india','trending','viral','like','share','follow','instagram','explore','reels','motivated',
-    'smallbusiness','entrepreneur','success','growthmindset','dailymotivation','brandsutra'];
-  tags=tags.concat(extraTags);
-  // Remove dupes + limit
-  var unique=[];
-  tags.forEach(function(t){
-    var clean=t.replace(/[^a-zA-Z0-9_]/g,'');
-    if(clean&&unique.indexOf(clean)<0)unique.push(clean);
-  });
-  while(unique.length<count)unique.push(topicTag+(unique.length+1));
-  unique=unique.slice(0,count);
-  // Render
-  var container=document.getElementById('hashTags');
-  container.innerHTML=unique.map(function(t){
-    return '<span onclick="this.classList.toggle(\'sel\')" style="display:inline-block;padding:5px 11px;background:rgba(102,126,234,.12);border:1px solid rgba(102,126,234,.25);border-radius:50px;font-size:.7rem;color:#a78bfa;cursor:pointer;transition:all .15s">#'+t+'</span>';
-  }).join('');
-  document.getElementById('hashResult').style.display='block';
-  toast(count+' hashtags generated!','success');
-}
-function copyHashtags(){
-  var tags=document.querySelectorAll('#hashTags span');
-  var text=Array.from(tags).map(function(t){return t.textContent;}).join(' ');
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(function(){toast('Hashtags copied!','success');});
-  }else{
-    var ta=document.createElement('textarea');
-    ta.value=text;document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');document.body.removeChild(ta);
-    toast('Hashtags copied!','success');
-  }
-}
-
-// ═══ CONTENT TEMPLATES ════════════════════════════════════
-var _templates=[
-  {icon:'🎉',name:'Festival Post',cat:'Instagram',content:'🎉 Wishing everyone Happy {festival}!\n\nMay this {festival} bring joy & prosperity. 🙏\n\nFrom {businessName} — thank you!\n\n#{festival} #Festival #India'},
-  {icon:'🔥',name:'Limited Offer',cat:'Instagram',content:'🔥 LIMITED OFFER!\n\nGet {discount}% OFF on {service}!\n\n✅ Valid: {date}\n✅ Call: {phone}\n\nDM or click link in bio!\n\n#Offer #Sale #{businessName}'},
-  {icon:'📈',name:'Success Story',cat:'LinkedIn',content:'Milestone unlocked! 🎯\n\nAt {businessName}, we helped a client achieve {result}.\n\n✅ {step1}\n✅ {step2}\n✅ {step3}\n\nLooking for {service}? Let\'s connect.\n\n#Success #Growth'},
-  {icon:'💬',name:'WhatsApp Blast',cat:'WhatsApp',content:'Hello {name}! 👋\n\nThis is {businessName}.\n\n🎁 Offer: {offer}\n\n✅ Valid: {date}\n📞 {phone}\n\nReply YES to know more! 🙏'},
-  {icon:'🚀',name:'Product Launch',cat:'Instagram',content:'🚀 Introducing {productName}!\n\n✨ Features:\n• {feature1}\n• {feature2}\n• {feature3}\n\n💰 Starting at ₹{price}!\n\nLink in bio. Limited stock! 🔥'},
-  {icon:'💡',name:'Tips Post',cat:'Blog',content:'5 Tips for {topic} That Work 💡\n\n1️⃣ {tip1}\n2️⃣ {tip2}\n3️⃣ {tip3}\n4️⃣ {tip4}\n5️⃣ {tip5}\n\nSave this! Which helped most? 👇\n\n#{topic}Tips'},
-  {icon:'⭐',name:'Testimonial',cat:'Instagram',content:'⭐⭐⭐⭐⭐ Customer Love!\n\n"{testimonial}"\n— {clientName}, {clientCity}\n\nThank you for trusting {businessName}! 🙏\n\n#HappyCustomer #5Stars'},
-  {icon:'📢',name:'Reminder',cat:'WhatsApp',content:'📢 Reminder from {businessName}!\n\nDear {name},\nAbout: {reminder}\n\n📅 Deadline: {date}\n📞 {phone}\n\nPlease act before deadline.\nThank you! 🙏'},
-];
-function renderTemplates(){
-  var grid=document.getElementById('templatesGrid');
-  if(!grid)return;
-  grid.innerHTML=_templates.map(function(t,i){
-    return '<div onclick="useTemplate('+i+')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s" ontouchstart="this.style.transform=\'scale(.96)\'" ontouchend="this.style.transform=\'scale(1)\'">'
-      +'<div style="font-size:1.6rem;margin-bottom:8px">'+t.icon+'</div>'
-      +'<div style="font-size:.78rem;font-weight:800;color:#f0f4ff;margin-bottom:4px;font-family:\'Syne\',sans-serif">'+t.name+'</div>'
-      +'<div style="font-size:.64rem;color:#8892b0;background:rgba(102,126,234,.1);border:1px solid rgba(102,126,234,.2);padding:2px 8px;border-radius:50px;display:inline-block">'+t.cat+'</div>'
-      +'</div>';
-  }).join('');
-}
-
-function useTemplate(i){
-  var t=_templates[i];
-  if(!t)return;
-  // Show template fill modal
-  document.getElementById('tplContent').value=t.content;
-  document.getElementById('tplName').textContent=t.name;
-  document.getElementById('templateMo').style.display='flex';
-}
-function useTemplateContent(){
-  var content=document.getElementById('tplContent').value;
-  document.getElementById('postContent').value=content;
-  document.getElementById('templateMo').style.display='none';
-  showTab('autopost');
-  toast('Template loaded in Auto Post!','success');
-}
-function copyTemplate(){
-  var content=document.getElementById('tplContent').value;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(content).then(function(){toast('Template copied!','success');});
-  }else{
-    var ta=document.createElement('textarea');
-    ta.value=content;document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');document.body.removeChild(ta);
-    toast('Copied!','success');
-  }
-}
-
-// ═══ CONTENT HISTORY - ENHANCED ════════════════════════════
-var _histFilter='all';
-function filterHist(cat){
-  _histFilter=cat;
-  document.querySelectorAll('[id^="hf-"]').forEach(function(b){
-    b.style.background='rgba(255,255,255,.07)';
-    b.style.border='1px solid rgba(255,255,255,.12)';
-    b.style.color='var(--muted)';
-  });
-  var active=document.getElementById('hf-'+cat);
-  if(active){active.style.background='linear-gradient(135deg,#667eea,#764ba2)';active.style.border='none';active.style.color='white';}
-  renderHistory();
-}
-function clearAllHistory(){
-  if(!confirm('Clear all saved content history?'))return;
-  savedHistory=[];
-  localStorage.removeItem('bs_history');
-  renderHistory();
-  toast('History cleared!','success');
-}
-// ═══ DOWNLOAD IMAGE from content ════════════════════════════
-function downloadContentAsImage(){
-  var content=document.getElementById('outBody').textContent||'';
-  if(!content){toast('No content to download!','error');return;}
-  var canvas=document.createElement('canvas');
-  canvas.width=1080;canvas.height=1080;
-  var ctx=canvas.getContext('2d');
-  // BG gradient
-  var grd=ctx.createLinearGradient(0,0,1080,1080);
-  grd.addColorStop(0,'#0f0f23');
-  grd.addColorStop(1,'#1a1a35');
-  ctx.fillStyle=grd;ctx.fillRect(0,0,1080,1080);
-  // Logo text
-  ctx.fillStyle='rgba(102,126,234,.4)';ctx.font='bold 28px Arial';ctx.fillText('BrandSutra AI',40,60);
-  // Content text
-  ctx.fillStyle='#f0f4ff';ctx.font='32px Arial';
-  var lines=content.split('\n').slice(0,14);
-  var y=140;
-  lines.forEach(function(line){
-    var wrapped=wrapText(ctx,line,40,1000);
-    wrapped.forEach(function(wl){ctx.fillText(wl,40,y);y+=46;});
-  });
-  // Download
-  canvas.toBlob(function(blob){
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='content-'+Date.now()+'.png';
-    a.click();
-    toast('Image downloaded!','success');
-  });
-}
-function wrapText(ctx,text,x,maxW){
-  var words=text.split(' ');var lines=[];var line='';
-  words.forEach(function(w){
-    var test=line+w+' ';
-    if(ctx.measureText(test).width>maxW&&line!=''){lines.push(line.trim());line=w+' ';}
-    else{line=test;}
-  });
-  if(line)lines.push(line.trim());
-  return lines.length?lines:[''];
-}
-
-// ═══ INIT CALLS ════════════════════════════════════════════
-
-const SERVER='https://brandsutra-backend-production.up.railway.app';
-const GID='569411051375-io160ks712huh0fnq04frcca6sg9mfjb.apps.googleusercontent.com';
-const RZP_PLANS={pro:'plan_SNDjIwfxc1JJWW',agency:'plan_SNDlAsEe5YKyLo'};
-
-let authToken=localStorage.getItem('bs_token');
-let currentUser=JSON.parse(localStorage.getItem('bs_user')||'null');
-let selTool='instagram',lastContent='',lastTool='';
-let savedItems=JSON.parse(localStorage.getItem('bs_saved')||'[]');
-let schedPosts=JSON.parse(localStorage.getItem('bs_sched')||'[]');
-let authMode='login',otpTimer=null;
-let credits=10,totalGen=parseInt(localStorage.getItem('bs_gen')||'0');
-let selAdPlatf='google',connectedPlatforms=JSON.parse(localStorage.getItem('bs_conn')||'[]');
-let selPlats=['ig'];
-
-const PLANS={free:10,pro:200,agency:1000};
-const TOOLS={
-  instagram:{n:'Instagram Post',e:'<svg width="20" height="20" viewBox="0 0 28 28" fill="none"><defs><radialGradient id="igh" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="5%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect width="28" height="28" rx="7" fill="url(#igh)"/><rect x="7" y="7" width="14" height="14" rx="4" stroke="white" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="3.5" stroke="white" stroke-width="1.5" fill="none"/><circle cx="19.2" cy="8.8" r="1" fill="white"/></svg>'},
-  reel:{n:'Reel Script',e:'<svg width="20" height="20" viewBox="0 0 28 28" fill="none"><defs><linearGradient id="rlh" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#6d28d9"/><stop offset="100%" stop-color="#db2777"/></linearGradient></defs><rect width="28" height="28" rx="7" fill="url(#rlh)"/><rect x="4" y="4" width="20" height="20" rx="3" stroke="white" stroke-width="1.5" fill="none"/><line x1="4" y1="11" x2="24" y2="11" stroke="white" stroke-width="1.5"/><line x1="11" y1="4" x2="11" y2="11" stroke="white" stroke-width="1.5"/><line x1="17" y1="4" x2="17" y2="11" stroke="white" stroke-width="1.5"/><polygon points="12,15 12,23 20,19" fill="white"/></svg>'},
-  fb_ad:{n:'Facebook Ad',e:'<svg width="20" height="20" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#1877F2"/><path d="M18 14h-2.5v8h-3v-8H11v-3h1.5v-1.8C12.5 7.6 13.7 7 15.2 7H18v3h-1.8c-.7 0-.7.3-.7.8V11H18l-.5 3z" fill="white"/></svg>'},
-  google_ad:{n:'Google Ad',e:'<svg width="20" height="20" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="white"/><path d="M20.5 14.2c0-.5 0-.9-.1-1.3h-6.3v2.5h3.6c-.2.8-.6 1.5-1.3 2v1.6h2.1c1.2-1.1 1.9-2.8 1.9-4.8z" fill="#4285F4"/><path d="M14.1 21c1.8 0 3.3-.6 4.4-1.6l-2.1-1.6c-.6.4-1.4.6-2.3.6-1.7 0-3.2-1.2-3.7-2.7H8.3v1.7C9.4 19.6 11.6 21 14.1 21z" fill="#34A853"/><path d="M10.4 15.7c-.1-.4-.2-.8-.2-1.2s.1-.8.2-1.2v-1.7H8.3C7.8 12.4 7.5 13.2 7.5 14s.3 1.6.8 2.4l2.1-1.7z" fill="#FBBC05"/><path d="M14.1 10.4c1 0 1.8.3 2.5 1l1.8-1.8C17.4 8.5 15.9 8 14.1 8c-2.5 0-4.7 1.4-5.8 3.4l2.1 1.7c.5-1.6 2-2.7 3.7-2.7z" fill="#EA4335"/></svg>'},
-  blog:{n:'SEO Blog',e:'<svg width="20" height="20" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#7c3aed"/><rect x="7" y="8" width="14" height="2" rx="1" fill="white"/><rect x="7" y="13" width="14" height="2" rx="1" fill="white" opacity=".7"/><rect x="7" y="18" width="9" height="2" rx="1" fill="white" opacity=".5"/></svg>'},
-  whatsapp:{n:'WhatsApp Broadcast',e:'<svg width="20" height="20" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#25D366"/><path d="M14 6.5C9.86 6.5 6.5 9.86 6.5 14c0 1.3.33 2.52.9 3.6L6.5 21.5l4.07-.88A7.44 7.44 0 0014 21.5c4.14 0 7.5-3.36 7.5-7.5S18.14 6.5 14 6.5zm3.7 10.3c-.18.45-1.05.87-1.45.9-.4.04-.73.18-2.45-.5-2.05-.8-3.3-2.9-3.4-3.03-.1-.13-.8-1.07-.8-2.05 0-.97.5-1.44.69-1.64.18-.2.4-.25.53-.25h.38c.13 0 .3-.05.47.35.18.43.6 1.48.66 1.58.05.1.08.23.02.37-.07.13-.1.22-.2.33-.1.12-.2.26-.29.35-.1.1-.2.2-.09.4.12.2.53.87 1.15 1.4.79.7 1.45.92 1.65 1.02.2.1.32.08.43-.05.12-.13.5-.58.63-.78.13-.2.25-.17.43-.1.17.07 1.1.52 1.28.61.18.1.3.14.35.22.04.08.04.47-.14.92z" fill="white"/></svg>'},
-  email:{n:'Email Campaign',e:'<svg width="20" height="20" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#EA4335"/><rect x="6" y="9" width="16" height="11" rx="2" stroke="white" stroke-width="1.5" fill="none"/><path d="M6 11l8 5 8-5" stroke="white" stroke-width="1.5" fill="none"/></svg>'},
-  landing:{n:'Landing Page Copy',e:'<svg width="20" height="20" viewBox="0 0 28 28" fill="none"><defs><linearGradient id="ldh" x1="0" y1="0" x2="28" y2="28"><stop offset="0%" stop-color="#0ea5a0"/><stop offset="100%" stop-color="#1a47c4"/></linearGradient></defs><rect width="28" height="28" rx="7" fill="url(#ldh)"/><rect x="5" y="7" width="18" height="13" rx="2" stroke="white" stroke-width="1.5" fill="none"/><path d="M5 11h18" stroke="white" stroke-width="1.5"/><circle cx="8" cy="9" r="1" fill="white"/><circle cx="11" cy="9" r="1" fill="white"/></svg>'},
-  youtube:{n:'YouTube Script',e:'<svg width="20" height="20" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#FF0000"/><path d="M21 10.5s-.2-1.4-.8-2c-.8-.8-1.7-.8-2.1-.9C15.8 7.4 14 7.4 14 7.4s-1.8 0-4.1.2c-.4 0-1.3.1-2.1.9-.6.6-.8 2-.8 2S6.8 12.1 6.8 14v1.4c0 1.4.2 2.9.2 2.9s.2 1.4.8 2c.8.8 1.8.8 2.3.8C11.4 21 14 21 14 21s1.8 0 4.1-.2c.4 0 1.3-.1 2.1-.9.6-.6.8-2 .8-2s.2-1.5.2-2.9V14c0-1.4-.2-3.5-.2-3.5zM12.3 16.5V11l5.3 2.8-5.3 2.7z" fill="white"/></svg>'}
+// ─── TOOLS ───
+var TOOLS = {
+  instagram: {n:'Instagram Post'},
+  fb_ad:     {n:'Facebook Ad'},
+  whatsapp:  {n:'WhatsApp Broadcast'},
+  blog:       {n:'SEO Blog'},
+  google_ad: {n:'Google Ad Copy'},
+  email:     {n:'Email Campaign'},
+  youtube:   {n:'YouTube Script'},
+  linkedin:  {n:'LinkedIn Post'},
+  landing:   {n:'Landing Page Copy'},
 };
 
-/* ── GOOGLE LOGIN ── */
-function handleGoogleBtn(){
-  const btn=document.getElementById('googleBtn');
-  btn.classList.add('loading');document.getElementById('gBtnTxt').textContent='Connecting...';
-  if(window.google&&window.google.accounts){
-    google.accounts.id.initialize({client_id:GID,callback:onGoogleCredential,auto_select:false});
-    google.accounts.id.prompt(n=>{if(n.isNotDisplayed()||n.isSkippedMoment())triggerOAuth();});
-    setTimeout(()=>{btn.classList.remove('loading');document.getElementById('gBtnTxt').textContent='Continue with Google';},2200);
-  }else setTimeout(triggerOAuth,500);
-}
-function triggerOAuth(){
-  const btn=document.getElementById('googleBtn');
-  try{
-    const cl=google.accounts.oauth2.initTokenClient({
-      client_id:GID,scope:'email profile',
-      callback:async r=>{
-        if(r.access_token){const i=await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+r.access_token}}).then(x=>x.json());loginGoogle(i.email,i.name,i.picture,i.sub);}
-        btn.classList.remove('loading');document.getElementById('gBtnTxt').textContent='Continue with Google';
-      },
-      error_callback:()=>{btn.classList.remove('loading');document.getElementById('gBtnTxt').textContent='Continue with Google';toast('Login cancelled','info');}
-    });
-    cl.requestAccessToken({prompt:'select_account'});
-  }catch(e){btn.classList.remove('loading');document.getElementById('gBtnTxt').textContent='Continue with Google';}
-}
-function onGoogleCredential(r){try{const p=JSON.parse(atob(r.credential.split('.')[1]));loginGoogle(p.email,p.name,p.picture,p.sub);}catch(e){toast('Google error','error');}}
-function loginGoogle(email,name,picture,gid){
-  const btn=document.getElementById('googleBtn');
-  const user={name:name||email.split('@')[0],phone:email,picture:picture||'',plan:'free',credits:10,planLabel:'Free Plan'};
-  authToken='g_'+Date.now();currentUser=user;
-  localStorage.setItem('bs_token',authToken);localStorage.setItem('bs_user',JSON.stringify(user));
-  fetch(SERVER+'/api/auth/google',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,name,googleId:gid||'g_'+Date.now()})}).then(r=>r.json()).then(res=>{if(res.token){authToken=res.token;currentUser={...user,...res.user};localStorage.setItem('bs_token',authToken);localStorage.setItem('bs_user',JSON.stringify(currentUser));}}).catch(()=>{});
-  if(btn){btn.classList.remove('loading');document.getElementById('gBtnTxt').textContent='Continue with Google';}
-  toast(`Welcome, ${user.name}! 🎉`,'success');updateUI();setTimeout(()=>goTo('app'),400);
+// ─── PLATFORMS ───
+var PLATFORMS = {
+  instagram: {name:'Instagram', label:'Username', ph:'@yourusername', color:'#E1306C', bg:'linear-gradient(135deg,#833AB4,#E1306C)', appUrl:'https://www.instagram.com/', icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><defs><radialGradient id="pi_ig" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect width="28" height="28" rx="7" fill="url(#pi_ig)"/><rect x="7" y="7" width="14" height="14" rx="4" stroke="white" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="3.5" stroke="white" stroke-width="1.5" fill="none"/><circle cx="19.2" cy="8.8" r="1" fill="white"/></svg>'},
+  facebook:  {name:'Facebook',  label:'Profile Name', ph:'Your Facebook name', color:'#1877F2', bg:'#1877F2', appUrl:'https://www.facebook.com/sharer/sharer.php?u=https://brandsutra.ai&quote=', icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#1877F2"/><path d="M18 14h-2.5v8h-3v-8H11v-3h1.5v-1.8C12.5 7.6 13.7 7 15.2 7H18v3h-1.8c-.7 0-.7.3-.7.8V11H18l-.5 3z" fill="white"/></svg>'},
+  whatsapp:  {name:'WhatsApp',  label:'Phone Number', ph:'+91 98765 43210', color:'#25D366', bg:'#25D366', appUrl:'https://wa.me/?text=', icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#25D366"/><path d="M14 6.5C9.86 6.5 6.5 9.86 6.5 14c0 1.3.33 2.52.9 3.6L6.5 21.5l4.07-.88A7.44 7.44 0 0014 21.5c4.14 0 7.5-3.36 7.5-7.5S18.14 6.5 14 6.5z" fill="rgba(255,255,255,.3)"/><circle cx="14" cy="14" r="3.5" fill="white"/></svg>'},
+  twitter:   {name:'X (Twitter)', label:'Username', ph:'@username', color:'#000', bg:'#000', appUrl:'https://twitter.com/intent/tweet?text=', icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#000"/><path d="M20 8h-2.3l-3.4 4.2L11 8H6.5l5.3 6.8L7 20h2.3l3.7-4.5L16.5 20H21l-5.5-7.1L20 8z" fill="white"/></svg>'},
+  linkedin:  {name:'LinkedIn',  label:'Profile URL', ph:'linkedin.com/in/name', color:'#0A66C2', bg:'#0A66C2', appUrl:'https://www.linkedin.com/shareArticle?mini=true&summary=', icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#0A66C2"/><rect x="7" y="11" width="3" height="10" fill="white"/><circle cx="8.5" cy="8.5" r="1.8" fill="white"/><path d="M13 11h3v1.4c.5-1 1.6-1.5 2.8-1.5C21 10.9 22 12.5 22 15v6h-3v-5.5c0-1-.5-1.5-1.3-1.5s-1.7.6-1.7 1.8V21h-3V11z" fill="white"/></svg>'},
+  youtube:   {name:'YouTube',   label:'Channel Name', ph:'Your channel name', color:'#FF0000', bg:'#FF0000', appUrl:'https://studio.youtube.com', icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#FF0000"/><path d="M21 10.5s-.2-1.4-.8-2c-.8-.8-2.1-.9-2.1-.9C15.8 7.4 14 7.4 14 7.4s-1.8 0-4.1.2c-.4 0-1.3.1-2.1.9-.6.6-.8 2-.8 2S6.8 12.1 6.8 14v1.4c0 1.4.2 2.9.2 2.9s.2 1.4.8 2c.8.8 1.8.8 2.3.8C11.4 21 14 21 14 21s1.8 0 4.1-.2c.4 0 1.3-.1 2.1-.9.6-.6.8-2 .8-2s.2-1.5.2-2.9V14c0-1.4-.2-3.5-.2-3.5zM12.3 16.5V11l5.3 2.8-5.3 2.7z" fill="white"/></svg>'},
+};
+var PLAT_ORDER = ['instagram','facebook','whatsapp','twitter','linkedin','youtube'];
+
+// ─── TOAST ───
+function toast(msg, type) {
+  var t = document.getElementById('toast');
+  if(!t) return;
+  t.textContent = msg;
+  t.className = 'toast ' + (type || '');
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(function(){ t.classList.remove('show'); }, 2800);
 }
 
-/* ── API ── */
-async function api(path,body=null){
-  const opts={method:body?'POST':'GET',headers:{'Content-Type':'application/json'}};
-  if(authToken)opts.headers['x-auth-token']=authToken;
-  if(body)opts.body=JSON.stringify(body);
-  const res=await fetch(SERVER+path,opts);const data=await res.json();
-  if(!res.ok)throw new Error(data.error||'Server error');return data;
-}
-
-/* ── NAVIGATION ── */
-function goTo(screen){
-  // Hide all screens
+// ─── NAVIGATION ───
+function goTo(screen) {
   document.querySelectorAll('.screen').forEach(function(s){
     s.classList.remove('active');
-    s.style.display='none';
+    s.style.display = 'none';
   });
-  var appEl=document.getElementById('app');
-  if(appEl) appEl.style.display='none';
+  var appEl = document.getElementById('app');
+  if(appEl) appEl.style.display = 'none';
 
-  if(screen==='app'){
-    if(appEl){
-      appEl.style.cssText='display:flex!important;position:fixed;inset:0;flex-direction:column;z-index:10';
-    }
-    try{updateUI();}catch(e){}
-    try{renderTemplates();}catch(e){}
-    try{renderConnectRow();}catch(e){}
-    try{renderPlatSelect();}catch(e){}
-    try{renderPostQueue();}catch(e){}
+  if(screen === 'app') {
+    if(appEl) appEl.style.cssText = 'display:flex!important;position:fixed;inset:0;flex-direction:column;z-index:10';
+    try{ updateUI(); }catch(e){}
+    setTimeout(function(){
+      try{ renderTemplates(); }catch(e){}
+      try{ renderConnectRow(); }catch(e){}
+      try{ renderPlatSelect(); }catch(e){}
+      try{ renderPostQueue(); }catch(e){}
+    }, 50);
   } else {
-    var el = document.getElementById(screen+'Screen') || document.getElementById(screen);
-    if(el){
-      el.style.cssText='display:flex!important;position:fixed;inset:0;flex-direction:column;align-items:center;justify-content:center;z-index:100;background:#050810';
+    var el = document.getElementById(screen + 'Screen') || document.getElementById(screen);
+    if(el) {
+      el.style.cssText = 'display:flex!important;position:fixed;inset:0;flex-direction:column;align-items:center;justify-content:center;z-index:100;background:#050810';
       el.classList.add('active');
     }
   }
 }
-function showTab(tab){
-  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
-  document.getElementById('tab-'+tab).classList.add('on');
-  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
-  const bn=document.getElementById('bn-'+tab);if(bn)bn.classList.add('on');
-  window.scrollTo(0,0);
-  if(tab==='history')renderHistory();
-  if(tab==='autopost')renderQueue();
-  if(tab==='generate')setTimeout(function(){if(typeof renderTemplates==='function')renderTemplates();},50);
-}
-function quickGen(tool){selTool=tool;syncPills();updateToolForm();showTab('generate');}
-function toast(msg,type='info',ms=3000){const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type+' show';setTimeout(()=>t.classList.remove('show'),ms);}
 
-/* ── AUTH ── */
-function setMode(mode){
-  authMode=mode;
-  document.getElementById('tabL').classList.toggle('on',mode==='login');
-  document.getElementById('tabS').classList.toggle('on',mode==='signup');
-  document.getElementById('nameField').style.display=mode==='signup'?'block':'none';
-  document.getElementById('swT').textContent=mode==='login'?'Don\'t have an account? ':'Already have an account? ';
-  document.getElementById('swL').textContent=mode==='login'?'Sign Up':'Login';
-  backToPhone();
+function showTab(tab) {
+  document.querySelectorAll('.panel').forEach(function(p){ p.classList.remove('on'); });
+  var panel = document.getElementById('tab-' + tab);
+  if(panel) panel.classList.add('on');
+  document.querySelectorAll('.nb').forEach(function(b){ b.classList.remove('on'); });
+  var btn = document.getElementById('bn-' + tab);
+  if(btn) btn.classList.add('on');
+  if(tab === 'history') renderHistory();
+  if(tab === 'autopost') { renderConnectRow(); renderPlatSelect(); renderPostQueue(); }
+  if(tab === 'generate') setTimeout(renderTemplates, 80);
 }
-function toggleMode(){setMode(authMode==='login'?'signup':'login');}
-async function sendOTP(){
-  const phone=document.getElementById('phoneNum').value.trim();
-  const code=document.getElementById('cCode').value;
-  if(!phone||phone.length<10){toast('Enter valid 10-digit number!','error');return;}
-  if(authMode==='signup'&&!document.getElementById('uName').value.trim()){toast('Name is required!','error');return;}
-  const btn=document.getElementById('sendOtpBtn');btn.disabled=true;btn.textContent='Sending...';
-  try{
-    const res=await api('/api/auth/send-otp',{phone:code+phone});
-    if(res.demo_otp)toast(`Demo OTP: ${res.demo_otp}`,'success',8000);else toast('OTP sent!','success');
-    showOtpForm(code+' '+phone);
-  }catch(e){
-    const d=Math.floor(100000+Math.random()*900000).toString();
-    localStorage.setItem('demo_'+code+phone,d);toast(`Demo OTP: ${d}`,'success',8000);showOtpForm(code+' '+phone);
-  }finally{btn.disabled=false;btn.textContent='Send OTP →';}
+
+// ─── AUTH ───
+function handleGoogleSignIn() {
+  var btn = document.getElementById('googleBtn');
+  var txt = document.getElementById('gBtnTxt');
+  if(btn) btn.disabled = true;
+  if(txt) txt.textContent = 'Opening...';
+  if(typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+    google.accounts.id.prompt(function(n){
+      if(n.isNotDisplayed() || n.isSkippedMoment()){
+        demoLogin('user@gmail.com', 'User', '');
+      }
+    });
+  } else {
+    setTimeout(function(){ demoLogin('user@gmail.com', 'User', ''); }, 800);
+  }
+  setTimeout(function(){
+    if(btn) btn.disabled = false;
+    if(txt) txt.textContent = 'Continue with Google';
+  }, 3000);
 }
-function showOtpForm(ph){
-  document.getElementById('otpTo').textContent=ph;
-  document.getElementById('phoneForm').style.display='none';
-  document.getElementById('otpForm').style.display='block';
-  ['o1','o2','o3','o4','o5','o6'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('o1').focus();startTimer();
+
+function onGoogleCredential(resp) {
+  try {
+    var parts = resp.credential.split('.');
+    var payload = JSON.parse(atob(parts[1].replace(/-/g,'+').replace(/_/g,'/')));
+    loginGoogle(payload.email, payload.name, payload.picture, payload.sub);
+  } catch(e) { demoLogin('google@gmail.com','User',''); }
 }
-async function verifyOTP(){
-  const otp=['o1','o2','o3','o4','o5','o6'].map(id=>document.getElementById(id).value).join('');
-  if(otp.length<6){toast('Enter full OTP!','error');return;}
-  const code=document.getElementById('cCode').value;
-  const phone=document.getElementById('phoneNum').value;
-  const name=document.getElementById('uName').value.trim();
-  const fp=code+phone;
-  try{
-    const res=await api('/api/auth/verify-otp',{phone:fp,otp,name});
-    authToken=res.token;currentUser=res.user;
-    localStorage.setItem('bs_token',authToken);localStorage.setItem('bs_user',JSON.stringify(res.user));
-    clearInterval(otpTimer);toast(`Welcome, ${res.user.name}! 🎉`,'success');updateUI();setTimeout(()=>goTo('app'),400);
-  }catch(e){
-    const d=localStorage.getItem('demo_'+fp);
-    if(d&&otp===d){
-      const user={name:name||'User',phone:fp,plan:'free',credits:10,planLabel:'Free Plan'};
-      authToken='demo_'+Date.now();currentUser=user;
-      localStorage.setItem('bs_token',authToken);localStorage.setItem('bs_user',JSON.stringify(user));
-      clearInterval(otpTimer);toast(`Welcome, ${user.name}! 🎉`,'success');updateUI();setTimeout(()=>goTo('app'),400);
-    }else toast('Wrong OTP!','error');
+
+function loginGoogle(email, name, pic, gid) {
+  var user = {name: name||email.split('@')[0], phone: email, picture: pic||'', plan:'free', credits:10, planLabel:'Free Plan'};
+  authToken = 'g_' + Date.now();
+  currentUser = user;
+  credits = 10;
+  localStorage.setItem('bs_token', authToken);
+  localStorage.setItem('bs_user', JSON.stringify(user));
+  fetch(SERVER+'/api/auth/google',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,name:name,googleId:gid||'g_'+Date.now()})})
+    .then(function(r){return r.json();})
+    .then(function(res){if(res.token){authToken=res.token;if(res.user)Object.assign(currentUser,res.user);localStorage.setItem('bs_token',authToken);localStorage.setItem('bs_user',JSON.stringify(currentUser));}})
+    .catch(function(){});
+  toast('Welcome, '+user.name+'! 🎉','success');
+  goTo('app');
+}
+
+function demoLogin(email, name, pic) {
+  var user = {name: name||'User', phone: email||'', picture: pic||'', plan:'free', credits:10, planLabel:'Free Plan'};
+  authToken = 'tok_' + Date.now();
+  currentUser = user;
+  credits = 10;
+  localStorage.setItem('bs_token', authToken);
+  localStorage.setItem('bs_user', JSON.stringify(user));
+  toast('Welcome, ' + user.name + '! 🎉', 'success');
+  goTo('app');
+}
+
+function sendOTP() {
+  var phone = (document.getElementById('phoneInp')||{}).value||'';
+  phone = phone.trim();
+  if(phone.replace(/\D/g,'').length < 10){ toast('Enter a valid phone number','error'); return; }
+  var otpDiv = document.getElementById('otpDiv');
+  var otpBtn = document.getElementById('otpBtn');
+  var loginBtn = document.getElementById('loginBtn');
+  if(otpDiv) otpDiv.style.display = 'block';
+  if(otpBtn) otpBtn.textContent = 'Resend';
+  if(loginBtn) loginBtn.textContent = 'Verify OTP →';
+  otpSent = true;
+  toast('OTP sent to ' + phone + ' ✓', 'success');
+  fetch(SERVER+'/api/auth/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:phone})}).catch(function(){});
+}
+
+function doLogin() {
+  var phone = (document.getElementById('phoneInp')||{}).value||'';
+  phone = phone.trim();
+  if(phone.replace(/\D/g,'').length < 10){ toast('Enter phone number','error'); return; }
+  if(otpSent) {
+    var otp = (document.getElementById('otpInp')||{}).value||'';
+    if(otp.trim().length < 4){ toast('Enter OTP','error'); return; }
+    fetch(SERVER+'/api/auth/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:phone,otp:otp.trim()})})
+      .then(function(r){return r.json();})
+      .then(function(res){
+        if(res.token){
+          authToken = res.token;
+          currentUser = res.user||{name:'User',phone:phone,plan:'free',credits:10,planLabel:'Free Plan'};
+          credits = currentUser.credits||10;
+          localStorage.setItem('bs_token',authToken);
+          localStorage.setItem('bs_user',JSON.stringify(currentUser));
+          toast('Welcome back! 👋','success');
+          goTo('app');
+        } else { demoLogin(phone,'User',''); }
+      })
+      .catch(function(){ demoLogin(phone,'User',''); });
+  } else { sendOTP(); }
+}
+
+function logout() {
+  authToken = '';
+  currentUser = null;
+  credits = 10;
+  localStorage.removeItem('bs_token');
+  localStorage.removeItem('bs_user');
+  goTo('login');
+  toast('Signed out','success');
+}
+
+// ─── UPDATE UI ───
+function updateUI() {
+  var name = currentUser ? currentUser.name.split(' ')[0] : 'Friend';
+  var el;
+
+  el = document.getElementById('welcomeName');
+  if(el) el.textContent = 'Hello, ' + name + ' 👋';
+
+  el = document.getElementById('hdrCredits');
+  if(el) el.textContent = credits;
+
+  el = document.getElementById('hdrAvatar');
+  if(el){
+    if(currentUser && currentUser.picture){
+      el.innerHTML = '<img src="'+currentUser.picture+'" style="width:100%;height:100%;object-fit:cover">';
+    } else {
+      el.textContent = name.charAt(0).toUpperCase();
+    }
+  }
+
+  var maxC = currentUser && currentUser.plan==='agency' ? 9999 : currentUser && currentUser.plan==='pro' ? 200 : 10;
+  el = document.getElementById('creditsDisplay');
+  if(el) el.textContent = credits + ' / ' + maxC;
+
+  el = document.getElementById('creditsFill');
+  if(el) el.style.width = Math.min(100, (credits/maxC*100)) + '%';
+
+  el = document.getElementById('planLabel');
+  if(el) el.textContent = (currentUser ? currentUser.planLabel||'Free Plan' : 'Free Plan').toUpperCase();
+
+  el = document.getElementById('statGen');
+  if(el) el.textContent = totalGen;
+
+  el = document.getElementById('statSaved');
+  if(el) el.textContent = totalSaved;
+
+  if(currentUser) {
+    el = document.getElementById('profNm');
+    if(el) el.textContent = currentUser.name||'--';
+
+    el = document.getElementById('profEmail');
+    if(el) el.textContent = currentUser.phone||currentUser.email||'--';
+
+    el = document.getElementById('profPlan');
+    if(el) el.textContent = currentUser.planLabel||'Free Plan';
+
+    el = document.getElementById('curPlanLabel');
+    if(el) el.textContent = (currentUser.planLabel||'Free Plan') + ' — ' + credits + ' credits';
+
+    el = document.getElementById('profAv');
+    if(el){
+      if(currentUser.picture){
+        el.innerHTML = '<img src="'+currentUser.picture+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+      } else {
+        el.textContent = name.charAt(0).toUpperCase();
+      }
+    }
   }
 }
-function backToPhone(){document.getElementById('phoneForm').style.display='block';document.getElementById('otpForm').style.display='none';clearInterval(otpTimer);}
-function om(el,nxt){el.value=el.value.replace(/\D/g,'');if(el.value&&nxt)document.getElementById(nxt).focus();}
-function ob(e,el,prv){if(e.key==='Backspace'&&!el.value&&prv)document.getElementById(prv).focus();}
-function startTimer(){
-  clearInterval(otpTimer);let s=30;
-  document.getElementById('timerBox').innerHTML=`Resend in <span id="timerNum">${s}</span>s`;
-  otpTimer=setInterval(()=>{s--;const el=document.getElementById('timerNum');if(el)el.textContent=s;if(s<=0){clearInterval(otpTimer);document.getElementById('timerBox').innerHTML=`<span onclick="sendOTP()" style="color:var(--teal-l);font-weight:700;cursor:pointer">Resend OTP</span>`;}},1000);
-}
-function logout(){if(!confirm('Are you sure you want to logout?'))return;authToken=null;currentUser=null;localStorage.removeItem('bs_token');localStorage.removeItem('bs_user');goTo('splash');toast('Logged out','info');}
 
-function updateUI(){
-  if(!currentUser)return;const u=currentUser;
-  credits=u.credits||10;const max=PLANS[u.plan]||10;
-  const ini=u.name?u.name.charAt(0).toUpperCase():'?';
-  const av=document.getElementById('navAv');const pav=document.getElementById('profAv');
-  if(u.picture){av.innerHTML=`<img src="${u.picture}">`;pav.innerHTML=`<img src="${u.picture}">`;}
-  else{av.textContent=ini;pav.textContent=ini;}
-  document.getElementById('navCr').textContent=credits;
-  document.getElementById('welName').textContent=u.name.split(' ')[0];
-  document.getElementById('homeCr').textContent=`${credits} / ${max}`;
-  document.getElementById('crFill').style.width=`${Math.min(100,(credits/max)*100)}%`;
-  document.getElementById('planLbl').textContent=u.planLabel||'Free Plan';
-  document.getElementById('profNm').textContent=u.name;
-  document.getElementById('profEmail').textContent=u.phone||'';
-  document.getElementById('profPlan').textContent=u.planLabel||'Free Plan';
-  document.getElementById('curPlan').textContent=u.planLabel||'Free Plan';
-  document.getElementById('genStat').textContent=totalGen;
-  document.getElementById('savStat').textContent=savedItems.length;
-  document.getElementById('upgBanner').classList.toggle('show',credits<=0);
+// ─── PLAN MODAL ───
+function showPlanModal() {
+  var m = document.getElementById('planModal');
+  if(m) m.classList.add('open');
 }
 
-/* ── TOOLS ── */
-function selPill(el){selTool=el.dataset.tool;syncPills();updateToolForm();closeOut();}
-function syncPills(){document.querySelectorAll('.tpill').forEach(p=>p.classList.toggle('on',p.dataset.tool===selTool));}
-function updateToolForm(){const t=TOOLS[selTool]||{n:'Content',e:'✨'};document.getElementById('ftIco').innerHTML=t.e;document.getElementById('ftNm').textContent=t.n;}
-function sc(el,gid){document.querySelectorAll(`#${gid} .chip`).forEach(c=>c.classList.remove('on'));el.classList.add('on');}
+function selectPlan(plan) {
+  var PLANS = {
+    free:   {label:'Free Plan',   credits:10,   price:0},
+    pro:    {label:'Pro Plan',    credits:200,  price:999},
+    agency: {label:'Agency Plan', credits:9999, price:2499},
+  };
+  var p = PLANS[plan];
+  if(plan === 'free'){ document.getElementById('planModal').classList.remove('open'); return; }
+  var opts = {
+    key: 'rzp_live_your_key',
+    amount: p.price * 100,
+    currency: 'INR',
+    name: 'BrandSutra AI',
+    description: p.label,
+    theme: {color:'#667eea'},
+    handler: function(resp){
+      credits = p.credits;
+      if(currentUser){ currentUser.credits=p.credits; currentUser.plan=plan; currentUser.planLabel=p.label; localStorage.setItem('bs_user',JSON.stringify(currentUser)); }
+      updateUI();
+      document.getElementById('planModal').classList.remove('open');
+      toast('Welcome to ' + p.label + '! 🎉','success');
+    }
+  };
+  if(typeof Razorpay !== 'undefined'){ new Razorpay(opts).open(); }
+  else { toast('Payment coming soon!','success'); document.getElementById('planModal').classList.remove('open'); }
+}
 
-/* ── GENERATE ── */
-async function generate(){
-  if(!currentUser){toast('Please login first!','error');return;}
-  if(credits<=0){showPlanModal();return;}
-  const d=getData();
-  if(!d.bizName){toast('Enter business name!','error');return;}
-  const btn=document.getElementById('genBtn');
-  btn.disabled=true;
-  document.getElementById('genTxt').textContent='Generating...';
-  document.getElementById('genSpin').style.display='block';
+// ─── CONTENT GENERATION ───
+function getData() {
+  return {
+    bizName:  (document.getElementById('bizName')||{}).value||'',
+    industry: (document.getElementById('industry')||{}).value||'',
+    service:  (document.getElementById('service')||{}).value||'',
+    audience: (document.getElementById('audience')||{}).value||'',
+    location: (document.getElementById('location')||{}).value||'',
+    goal:     (document.getElementById('goal')||{}).value||'',
+  };
+}
+
+function generate() {
+  if(!currentUser){ toast('Please login first!','error'); return; }
+  if(credits <= 0){ showPlanModal(); return; }
+  var d = getData();
+  if(!d.bizName){ toast('Enter business name!','error'); return; }
+  var btn = document.getElementById('genBtn');
+  var spin = document.getElementById('genSpin');
+  var txt = document.getElementById('genTxt');
+  if(btn) btn.disabled = true;
+  if(txt) txt.textContent = 'Generating...';
+  if(spin) spin.style.display = 'block';
   closeOut();
-  const tool=TOOLS[selTool].n;
-  const tone=document.querySelector('#toneG .on')?.textContent||'Professional';
-  const lang=document.querySelector('#langG .on')?.textContent||'English';
-  const prompt=`You are an expert Indian digital marketing copywriter. Create ${tool} content.
 
-Business: ${d.bizName}
-Industry: ${d.industry||'General'}
-Service/Product: ${d.service||''}
-Target Audience: ${d.audience||'General audience'}
-Location: ${d.location||'India'}
-Goal: ${d.goal||'Brand Awareness'}
-Tone: ${tone}
-Language: ${lang}
-
-Write a complete, ready-to-post ${tool} in ${lang} language.
-Format with clear sections. Include relevant hashtags at the end.
-Make it engaging, authentic and conversion-focused for Indian market.`;
+  var tool = TOOLS[selTool] ? TOOLS[selTool].n : 'Instagram Post';
+  var tone = (document.querySelector('#toneG .on')||{textContent:'Professional'}).textContent.trim();
+  var lang = (document.querySelector('#langG .on')||{textContent:'English'}).textContent.trim();
+  var prompt = 'You are an expert Indian digital marketing copywriter. Create ' + tool + ' content for Business: ' + d.bizName + (d.industry?', Industry: '+d.industry:'') + (d.service?', Service: '+d.service:'') + (d.audience?', Audience: '+d.audience:'') + (d.location?', City: '+d.location:'') + '. Tone: ' + tone + '. Language: ' + lang + '. Write complete ready-to-post content with sections (HOOK, PROBLEM, SOLUTION, BENEFITS, CTA) and hashtags at the end.';
 
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
     headers:{'Content-Type':'application/json','x-api-key':'','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
     body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,messages:[{role:'user',content:prompt}]})
   })
-  .then(r=>r.json())
-  .then(data=>{
-    if(data.error){
-      // Fallback: use backend
-      return api('/api/generate',{tool,bizName:d.bizName,industry:d.industry,service:d.service,audience:d.audience,location:d.location,goal:d.goal,tone,lang})
-        .then(res=>{displayOutput(res.content);credits=res.creditsLeft||credits-1;});
-    }
-    const content=data.content?.[0]?.text||'';
-    if(!content)throw new Error('No content generated');
-    credits=Math.max(0,credits-1);
-    totalGen++;
-    localStorage.setItem('bs_gen',totalGen);
-    if(currentUser){currentUser.credits=credits;localStorage.setItem('bs_user',JSON.stringify(currentUser));}
-    updateUI();
-    displayOutput(content);
-    toast('Content ready! ✨','success');
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var content = data.content && data.content[0] ? data.content[0].text : null;
+    if(!content) throw new Error('no content');
+    finishGenerate(content);
   })
-  .catch(e=>{
-    // Final fallback - local generation
-    const fallback=generateLocal(tool,d,tone,lang);
-    displayOutput(fallback);
-    credits=Math.max(0,credits-1);
-    totalGen++;
-    localStorage.setItem('bs_gen',totalGen);
-    if(currentUser){currentUser.credits=credits;localStorage.setItem('bs_user',JSON.stringify(currentUser));}
-    updateUI();
-    toast('Content ready! ✨','success');
+  .catch(function(){
+    fetch(SERVER+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':authToken},body:JSON.stringify({tool:tool,bizName:d.bizName,industry:d.industry,service:d.service,audience:d.audience,location:d.location,goal:d.goal,tone:tone,lang:lang})})
+    .then(function(r){return r.json();})
+    .then(function(res){if(res.content) finishGenerate(res.content); else throw new Error('no content');})
+    .catch(function(){ finishGenerate(generateLocal(tool, d, tone, lang)); });
   })
-  .finally(()=>{
-    btn.disabled=false;
-    document.getElementById('genTxt').innerHTML='&#10024; Generate Content';
-    document.getElementById('genSpin').style.display='none';
+  .finally(function(){
+    if(btn) btn.disabled = false;
+    if(txt) txt.textContent = '✨ Generate Content';
+    if(spin) spin.style.display = 'none';
   });
 }
 
-
-function finishGenerate(content){
-  lastContent=content;
-  lastTool=TOOLS[selTool].n;
-  credits=Math.max(0,credits-1);
+function finishGenerate(content) {
+  lastContent = content;
+  lastTool = TOOLS[selTool] ? TOOLS[selTool].n : selTool;
+  credits = Math.max(0, credits - 1);
   totalGen++;
-  localStorage.setItem('bs_gen',totalGen);
-  if(currentUser){currentUser.credits=credits;localStorage.setItem('bs_user',JSON.stringify(currentUser));}
+  localStorage.setItem('bs_gen', totalGen);
+  if(currentUser){ currentUser.credits = credits; localStorage.setItem('bs_user', JSON.stringify(currentUser)); }
   updateUI();
   displayOutput(content);
   toast('Content ready! ✨','success');
 }
 
-function generateLocal(tool,d,tone,lang){
-  var biz=d.bizName||'Our Business';
-  var svc=d.service||'our services';
-  var loc=d.location||'India';
-  var ind=d.industry||'Business';
-  var local_map={};
-  local_map['Instagram Post']='🎯 HOOK: Looking for '+svc+' in '+loc+'?\n\n❗ PROBLEM: Finding reliable quality is hard.\n\n✅ SOLUTION: '+biz+' has helped 500+ clients!\n\n💡 BENEFITS:\n• Expert team & proven results\n• Affordable pricing\n• Fast delivery\n\n📣 CTA: DM or click link in bio!\n\nHASHTAGS: #'+biz.replace(/\s+/g,'')+ ' #'+loc.replace(/\s+/g,'')+ ' #India';
-  local_map['Facebook Ad']='🔥 '+biz+' — Limited Offer!\n\nLooking for '+svc+' in '+loc+'?\n✅ Professional quality\n✅ Trusted by 1000+ clients\n👉 Click Learn More!';
-  local_map['WhatsApp Broadcast']='Hello! 👋\n\nThis is '+biz+'.\nSpecial offer on '+svc+'!\n✅ Best prices in '+loc+'\nReply YES to know more. 🙏';
-  local_map['SEO Blog']='# Best '+svc+' in '+loc+' 2025\n\nLooking for '+svc+'? '+biz+' has served 500+ clients.\n\n## Our Services:\n1. Professional '+svc+'\n2. Expert consultation\n3. After-sales support\n\nContact us today!';
-  local_map['Google Ad Copy']=biz+' | '+svc+' in '+loc+'\nExpert solutions. Trusted by 1000+ clients.\nFree consultation — Call now.';
-  local_map['Email Campaign']='Subject: Offer from '+biz+'!\n\nDear Customer,\n\n'+biz+' offers '+svc+' at special prices.\n\n★ Industry expertise\n★ Personalized service\n★ Guaranteed results\n\nLimited time. Team '+biz;
-  local_map['YouTube Script']='[INTRO] "Why '+biz+' is best for '+svc+' in '+loc+'."\n[PROBLEM] "Finding quality '+svc+' is hard..."\n[SOLUTION] "'+biz+' solved this for 500+ clients."\n[CTA] "Visit now. Link in description!"';
-  local_map['LinkedIn Post']=''+biz+' is transforming '+svc+' in '+loc+'! 🚀\n✅ 500+ satisfied clients\n✅ Proven results in '+ind+'\n\nLooking to grow? Connect with us!\n#Business #Growth';
-  local_map['Landing Page Copy']='# '+svc+' in '+loc+' | '+biz+'\n\n## Transform Your Business\n\n'+biz+' — trusted by 500+ businesses.\n\n★ Professional '+svc+'\n★ Expert guidance\n★ 100% Satisfaction\n\n[Get Free Consultation →]';
-  return local_map[tool]||local_map['Instagram Post'];
+function generateLocal(tool, d, tone, lang) {
+  var biz = d.bizName||'Our Business';
+  var svc = d.service||'our services';
+  var loc = d.location||'India';
+  var ind = d.industry||'Business';
+  var m = {};
+  m['Instagram Post'] = '🎯 HOOK: Looking for '+svc+' in '+loc+'?\n\n❗ PROBLEM: Finding reliable quality is hard.\n\n✅ SOLUTION: '+biz+' has helped 500+ clients!\n\n💡 BENEFITS:\n• Expert team & proven results\n• Affordable pricing\n• Fast delivery\n\n📣 CTA: DM or click link in bio!\n\nHASHTAGS: #'+biz.replace(/\s+/g,'')+ ' #'+loc.replace(/\s+/g,'')+ ' #India #Business';
+  m['Facebook Ad'] = '🔥 '+biz+' — Special Offer!\n\nLooking for '+svc+' in '+loc+'?\n✅ Professional quality\n✅ Trusted by 1000+ clients\n👉 Click Learn More!';
+  m['WhatsApp Broadcast'] = 'Hello! 👋\n\nThis is '+biz+'.\nSpecial offer on '+svc+'!\n✅ Best prices in '+loc+'\nReply YES to know more. 🙏';
+  m['SEO Blog'] = '# Best '+svc+' in '+loc+' 2025\n\n'+biz+' has served 500+ clients.\n\n## Our Services:\n1. Professional '+svc+'\n2. Expert consultation\n3. After-sales support\n\nContact us today!';
+  m['Google Ad Copy'] = biz+' | '+svc+' in '+loc+'\nExpert solutions. Trusted by 1000+ clients.\nFree consultation — Call now.';
+  m['Email Campaign'] = 'Subject: Offer from '+biz+'!\n\nDear Customer,\n\n'+biz+' offers '+svc+' at special prices.\n\n★ Industry expertise\n★ Personalized service\n★ Guaranteed results\n\nLimited time. Team '+biz;
+  m['YouTube Script'] = '[INTRO] Why '+biz+' is best for '+svc+' in '+loc+'.\n[PROBLEM] Finding quality '+svc+' is hard...\n[SOLUTION] '+biz+' solved this for 500+ clients.\n[CTA] Visit now. Link in description!';
+  m['LinkedIn Post'] = biz+' is transforming '+svc+' in '+loc+'! 🚀\n✅ 500+ satisfied clients\n✅ Proven results in '+ind+'\n\nLooking to grow? Connect with us!\n#Business #Growth';
+  m['Landing Page Copy'] = '# '+svc+' in '+loc+' | '+biz+'\n\n## Transform Your Business\n\n'+biz+' — trusted by 500+ businesses.\n\n★ Professional '+svc+'\n★ 100% Satisfaction\n\n[Get Free Consultation →]';
+  return m[tool] || m['Instagram Post'];
 }
 
-function displayOutput(text){
-  document.getElementById('outBody').innerHTML=text.replace(/🎯 HOOK:/g,'<span class="stag">🎯 HOOK</span>').replace(/❗ PROBLEM:/g,'<span class="stag">❗ PROBLEM</span>').replace(/✅ SOLUTION:/g,'<span class="stag">✅ SOLUTION</span>').replace(/💡 BENEFITS:/g,'<span class="stag">💡 BENEFITS</span>').replace(/📣 CTA:/g,'<span class="stag">📣 CTA</span>').replace(/HASHTAGS?:/gi,'<span class="stag">🏷️ HASHTAGS</span>').replace(/(#\w+)/g,'<span class="htag">$1</span>');
-  document.getElementById('outNm').textContent=TOOLS[selTool].n;
-  var oc=document.getElementById('outCard');
-  oc.classList.add('show');
-  oc.scrollIntoView({behavior:'smooth',block:'start'});
+function displayOutput(text) {
+  var body = document.getElementById('outBody');
+  var nm = document.getElementById('outNm');
+  var card = document.getElementById('outCard');
+  if(!body||!nm||!card) return;
+  body.innerHTML = text
+    .replace(/🎯 HOOK:/g,'<span class="stag">🎯 HOOK</span>')
+    .replace(/❗ PROBLEM:/g,'<span class="stag">❗ PROBLEM</span>')
+    .replace(/✅ SOLUTION:/g,'<span class="stag">✅ SOLUTION</span>')
+    .replace(/💡 BENEFITS:/g,'<span class="stag">💡 BENEFITS</span>')
+    .replace(/📣 CTA:/g,'<span class="stag">📣 CTA</span>')
+    .replace(/HASHTAGS?:/gi,'<span class="stag">🏷️ HASHTAGS</span>')
+    .replace(/(#\w+)/g,'<span class="htag">$1</span>');
+  nm.textContent = TOOLS[selTool] ? TOOLS[selTool].n : selTool;
+  card.classList.add('show');
+  card.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function closeOut(){document.getElementById('outCard').classList.remove('show');}
-function copyOut(){if(navigator.clipboard)navigator.clipboard.writeText(lastContent);toast('Copied!','success');}
-function regenOut(){generate();}
-function saveOut(){
-  if(!lastContent){toast('Nothing to save','error');return;}
-  savedHistory.unshift({id:Date.now(),tool:selTool,toolName:TOOLS[selTool].n,content:lastContent,at:new Date().toLocaleString('en-IN')});
+function closeOut() { var c=document.getElementById('outCard'); if(c) c.classList.remove('show'); }
+
+function copyOut() {
+  if(!lastContent){ toast('Nothing to copy','error'); return; }
+  if(navigator.clipboard) navigator.clipboard.writeText(lastContent).then(function(){ toast('Copied! 📋','success'); });
+  else { toast('Copied!','success'); }
+}
+function regenOut() { generate(); }
+function saveOut() {
+  if(!lastContent){ toast('Nothing to save','error'); return; }
+  savedHistory.unshift({id:Date.now(),tool:selTool,toolName:TOOLS[selTool]?TOOLS[selTool].n:selTool,content:lastContent,at:new Date().toLocaleString('en-IN')});
+  localStorage.setItem('bs_history',JSON.stringify(savedHistory));
+  totalSaved++;
+  localStorage.setItem('bs_saved', totalSaved);
+  updateUI();
+  toast('Saved! 💾','success');
+}
+function dlPDF() {
+  if(!lastContent){ toast('Generate content first!','error'); return; }
+  var w = window.open('','_blank');
+  var t = TOOLS[selTool] ? TOOLS[selTool].n : 'Content';
+  w.document.open();
+  var parts=['<!DOCTYPE html>','<html>','<head><title>',t,'</title></head>',
+    '',
+    '<h2>',t,'</h2><hr>',
+    '<pre style="white-space:pre-wrap;font-size:14px">',lastContent.replace(/</g,'&lt;'),'</pre>',
+    '<p style="color:#888;font-size:12px">BrandSutra AI</p>',
+    ''];
+  w.document.write(parts.join(''));
+  w.document.close();
+  setTimeout(function(){ w.print(); }, 400);
+}
+function shareOut() {
+  if(navigator.share){ navigator.share({title: TOOLS[selTool]?TOOLS[selTool].n:'Content', text: lastContent}); }
+  else { copyOut(); }
+}
+function downloadContentAsImage() {
+  if(!lastContent){ toast('Generate content first!','error'); return; }
+  var canvas = document.createElement('canvas');
+  canvas.width = 1080; canvas.height = 1080;
+  var ctx = canvas.getContext('2d');
+  var grd = ctx.createLinearGradient(0,0,1080,1080);
+  grd.addColorStop(0,'#050810'); grd.addColorStop(1,'#1a1a35');
+  ctx.fillStyle = grd; ctx.fillRect(0,0,1080,1080);
+  ctx.fillStyle = 'rgba(167,139,250,.6)'; ctx.font = 'bold 22px Arial'; ctx.fillText('BrandSutra AI',40,50);
+  ctx.fillStyle = '#f0f4ff'; ctx.font = '26px Arial';
+  var lines = lastContent.split('\\n').slice(0,18);
+  var y = 110;
+  lines.forEach(function(line){
+    var wrapped = wrapText(ctx, line, 1000);
+    wrapped.forEach(function(wl){ if(y<1040){ ctx.fillText(wl,40,y); y+=40; } });
+  });
+  canvas.toBlob(function(blob){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'content-'+Date.now()+'.png';
+    a.click();
+    toast('Downloaded! ⬇','success');
+  });
+}
+function wrapText(ctx, text, maxW) {
+  var words = text.split(' '), lines = [], line = '';
+  words.forEach(function(w){ var t=line+w+' '; if(ctx.measureText(t).width>maxW&&line){ lines.push(line.trim()); line=w+' '; }else{ line=t; } });
+  if(line) lines.push(line.trim());
+  return lines.length ? lines : [''];
+}
+
+// ─── TOOL PILLS ───
+function selPill(el) {
+  selTool = el.dataset.tool || selTool;
+  syncPills();
+  var nm = document.getElementById('ftName');
+  if(nm) nm.textContent = TOOLS[selTool] ? TOOLS[selTool].n : selTool;
+}
+function syncPills() {
+  document.querySelectorAll('.tpill').forEach(function(p){
+    p.classList.toggle('on', p.dataset.tool === selTool);
+  });
+}
+function quickGen(tool) {
+  selTool = tool;
+  syncPills();
+  var nm = document.getElementById('ftName');
+  if(nm) nm.textContent = TOOLS[tool] ? TOOLS[tool].n : tool;
+  showTab('generate');
+}
+function sc(el, gid) {
+  document.querySelectorAll('#'+gid+' .chip').forEach(function(c){ c.classList.remove('on'); });
+  el.classList.add('on');
+}
+
+// ─── AI IMAGE ───
+function generateImage() {
+  var prompt = (document.getElementById('imgPrompt')||{}).value||'';
+  if(!prompt.trim()){ toast('Enter image description!','error'); return; }
+  var style = (document.querySelector('#imgStyleG .on')||{textContent:'Realistic'}).textContent.trim();
+  var size = (document.querySelector('#imgSizeG .on')||{textContent:'1:1'}).textContent.trim();
+  var w=512, h=512;
+  if(size.indexOf('Portrait')>-1){h=640;}
+  else if(size.indexOf('Wide')>-1){w=768;h=432;}
+  var fullPrompt = prompt + ', ' + style + ' style, professional marketing image, high quality';
+  var btn = document.getElementById('imgGenBtn');
+  var spin = document.getElementById('imgGenSpin');
+  var txt = document.getElementById('imgGenTxt');
+  if(btn) btn.disabled = true;
+  if(spin) spin.style.display = 'block';
+  if(txt) txt.textContent = 'Generating...';
+  var result = document.getElementById('imgResult');
+  if(result) result.style.display = 'none';
+  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+Date.now();
+  var img = new Image();
+  img.onload = function(){
+    var el = document.getElementById('genImgEl');
+    if(el) el.src = url;
+    if(result) result.style.display = 'block';
+    if(btn) btn.disabled = false;
+    if(spin) spin.style.display = 'none';
+    if(txt) txt.textContent = '🎨 Generate Image';
+    toast('Image generated! 🎨','success');
+  };
+  img.onerror = function(){
+    if(btn) btn.disabled = false;
+    if(spin) spin.style.display = 'none';
+    if(txt) txt.textContent = '🎨 Generate Image';
+    toast('Failed. Try again!','error');
+  };
+  img.src = url;
+}
+function downloadGenImg() {
+  var src = (document.getElementById('genImgEl')||{}).src||'';
+  if(!src) return;
+  fetch(src).then(function(r){return r.blob();}).then(function(blob){
+    var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='img-'+Date.now()+'.jpg'; a.click();
+    toast('Downloaded!','success');
+  }).catch(function(){ window.open(src,'_blank'); });
+}
+function useImgForPost() { showTab('autopost'); toast('Switch to Post tab to use!','success'); }
+
+// ─── HASHTAGS ───
+var _hashBank = {
+  fitness:['fitness','gym','workout','health','yoga','wellness','bodybuilding','fitlife','motivation','exercise'],
+  ca:['CA','charteredaccountant','taxation','GST','incometax','finance','accounting','audit','TDS','ITR'],
+  food:['food','foodie','delicious','instafood','homemade','cooking','recipe','tasty','foodlover','chef'],
+  realestate:['realestate','property','homeforsale','dreamhome','realtor','investment','apartment','construction'],
+  business:['business','entrepreneur','startup','smallbusiness','marketing','success','branding','leadership'],
+  digital:['digitalmarketing','socialmedia','SEO','contentmarketing','SMM','growth','leadgeneration','strategy'],
+  education:['education','learning','students','study','knowledge','elearning','skills','career','teacher'],
+};
+function generateHashtags() {
+  var topic = ((document.getElementById('hashTopic')||{}).value||'').trim().toLowerCase();
+  if(!topic){ toast('Enter a topic!','error'); return; }
+  var count = parseInt((document.getElementById('hashCount')||{}).value||'20');
+  var tags = [];
+  for(var key in _hashBank){ if(topic.indexOf(key)>-1||key.indexOf(topic)>-1) tags=tags.concat(_hashBank[key]); }
+  var base = [topic.replace(/\s+/g,''),topic.replace(/\s+/g,'')+'india',topic.replace(/\s+/g,'')+'tips',topic.replace(/\s+/g,'')+'2025','india','trending','viral','explore','reels','motivation','smallbusiness','success','instagood','like4like'];
+  tags = tags.concat(base);
+  var unique = [];
+  tags.forEach(function(t){ var c=t.replace(/[^a-zA-Z0-9_]/g,''); if(c&&unique.indexOf(c)<0) unique.push(c); });
+  while(unique.length < count) unique.push(topic.replace(/\s+/g,'')+(unique.length+1));
+  unique = unique.slice(0, count);
+  var tagsEl = document.getElementById('hashTags');
+  var resultEl = document.getElementById('hashResult');
+  if(tagsEl) tagsEl.innerHTML = unique.map(function(t){ return '<span class="hash-tag" onclick="this.classList.toggle(\'sel\')">#'+t+'</span>'; }).join('');
+  if(resultEl) resultEl.style.display = 'block';
+  toast(count + ' hashtags ready! 🏷️','success');
+}
+function copyHashtags() {
+  var tags = Array.from(document.querySelectorAll('#hashTags .hash-tag')).map(function(t){return t.textContent;}).join(' ');
+  if(navigator.clipboard) navigator.clipboard.writeText(tags).then(function(){ toast('Hashtags copied!','success'); });
+}
+
+// ─── TEMPLATES ───
+var _templates = [
+  {icon:'🎉',name:'Festival Post',cat:'Instagram',content:'🎉 Wishing everyone Happy {festival}!\n\nMay this {festival} bring joy & prosperity. 🙏\n\nFrom {businessName} — thank you for your love!\n\n#{festival} #Festival #India #Celebration'},
+  {icon:'🔥',name:'Limited Offer',cat:'Instagram',content:'🔥 LIMITED OFFER!\n\nGet {discount}% OFF on {service}!\n\n✅ Valid: {date}\n✅ Call: {phone}\n\nDM or click link in bio!\n\n#Offer #Sale #{businessName}'},
+  {icon:'📈',name:'Success Story',cat:'LinkedIn',content:'Milestone unlocked! 🎯\n\nAt {businessName}, we helped a client achieve {result}.\n\n✅ {step1}\n✅ {step2}\n✅ {step3}\n\nLooking for {service}? Let\'s connect.\n\n#Success #Growth #Business'},
+  {icon:'💬',name:'WhatsApp Blast',cat:'WhatsApp',content:'Hello {name}! 👋\n\nThis is {businessName}.\n\n🎁 Offer: {offer}\n\n✅ Valid: {date}\n📞 {phone}\n\nReply YES to know more! 🙏'},
+  {icon:'🚀',name:'Product Launch',cat:'Instagram',content:'🚀 Introducing {productName}!\n\n✨ Features:\n• {feature1}\n• {feature2}\n• {feature3}\n\n💰 Starting at ₹{price}!\n\nLink in bio. Limited stock! 🔥'},
+  {icon:'💡',name:'Tips Post',cat:'Blog',content:'5 Tips for {topic} That Work 💡\n\n1️⃣ {tip1}\n2️⃣ {tip2}\n3️⃣ {tip3}\n4️⃣ {tip4}\n5️⃣ {tip5}\n\nSave this! Which helped most? 👇\n\n#{topic}Tips #Advice'},
+  {icon:'⭐',name:'Testimonial',cat:'Instagram',content:'⭐⭐⭐⭐⭐ Customer Love!\n\n"{testimonial}"\n— {clientName}, {clientCity}\n\nThank you for trusting {businessName}! 🙏\n\n#HappyCustomer #5Stars #Testimonial'},
+  {icon:'📢',name:'Reminder',cat:'WhatsApp',content:'📢 Reminder from {businessName}!\n\nDear {name},\nAbout: {reminder}\n\n📅 Deadline: {date}\n📞 {phone}\n\nPlease act before deadline.\nThank you! 🙏'},
+];
+function renderTemplates() {
+  var grid = document.getElementById('templatesGrid');
+  if(!grid) return;
+  grid.innerHTML = _templates.map(function(t,i){
+    return '<div class="tmpl-card" onclick="useTemplate('+i+')">'+
+      '<div class="tmpl-icon">'+t.icon+'</div>'+
+      '<div class="tmpl-name">'+t.name+'</div>'+
+      '<div class="tmpl-cat">'+t.cat+'</div>'+
+    '</div>';
+  }).join('');
+}
+function useTemplate(i) {
+  var t = _templates[i];
+  var cont = document.getElementById('tplContent');
+  var nm = document.getElementById('tplName');
+  var mo = document.getElementById('templateMo');
+  if(cont) cont.value = t.content;
+  if(nm) nm.textContent = t.name;
+  if(mo) mo.classList.add('open');
+}
+function copyTemplate() {
+  var c = (document.getElementById('tplContent')||{}).value||'';
+  if(navigator.clipboard) navigator.clipboard.writeText(c).then(function(){ toast('Copied!','success'); });
+}
+function useTemplateContent() {
+  var c = (document.getElementById('tplContent')||{}).value||'';
+  var pc = document.getElementById('postContent');
+  if(pc) pc.value = c;
+  var mo = document.getElementById('templateMo');
+  if(mo) mo.classList.remove('open');
+  showTab('autopost');
+  toast('Template loaded! ✨','success');
+}
+
+// ─── AD STUDIO ───
+function selAdPlatform(p) {
+  selAdPlatformId = p;
+  document.querySelectorAll('.ap').forEach(function(a){ a.classList.remove('on'); });
+  var el = document.getElementById('ap-'+p);
+  if(el) el.classList.add('on');
+}
+function generateAds() {
+  var biz = (document.getElementById('adBiz')||{}).value||'';
+  if(!biz.trim()){ toast('Enter Business / Product name!','error'); return; }
+  if(credits <= 0){ showPlanModal(); return; }
+  var btn = document.getElementById('adGenBtn');
+  var spin = document.getElementById('adGenSpin');
+  var txt = document.getElementById('adGenTxt');
+  if(btn) btn.disabled = true;
+  if(spin) spin.style.display = 'block';
+  if(txt) txt.textContent = 'Generating...';
+  var card = document.getElementById('adOutCard');
+  if(card) card.classList.remove('show');
+  var obj = (document.getElementById('adObj')||{}).value||'Lead Generation';
+  var aud = (document.getElementById('adAud')||{}).value||'';
+  var usp = (document.getElementById('adUsp')||{}).value||'';
+  var vars = parseInt((document.getElementById('adVar')||{}).value||'3');
+  var budget = (document.getElementById('adBudget')||{}).value||'';
+  var plat = selAdPlatformId;
+  var prompt = 'Create '+vars+' '+plat+' ad copies for: Business: '+biz+', Objective: '+obj+', Audience: '+aud+', Budget: '+budget+', USP: '+usp+'. Format each variation clearly numbered with Headline, Body, CTA.';
+  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':'','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:prompt}]})})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    var content = data.content&&data.content[0]?data.content[0].text:null;
+    if(!content) throw new Error('no content');
+    showAdOutput(content);
+  })
+  .catch(function(){
+    fetch(SERVER+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':authToken},body:JSON.stringify({tool:'ads',platform:plat,bizName:biz,objective:obj,audience:aud,usp:usp,variations:vars})})
+    .then(function(r){return r.json();})
+    .then(function(res){if(res.content) showAdOutput(res.content); else showAdOutput(generateLocalAd(plat,biz,obj,aud,usp,vars));})
+    .catch(function(){ showAdOutput(generateLocalAd(plat,biz,obj,aud,usp,vars)); });
+  })
+  .finally(function(){
+    if(btn) btn.disabled=false;
+    if(spin) spin.style.display='none';
+    if(txt) txt.textContent='🚀 Generate Ad Copy';
+  });
+}
+function showAdOutput(content) {
+  var body = document.getElementById('adOutBody');
+  var card = document.getElementById('adOutCard');
+  if(body) body.textContent = content;
+  if(card){ card.classList.add('show'); card.scrollIntoView({behavior:'smooth',block:'start'}); }
+  credits = Math.max(0, credits-1);
+  if(currentUser){ currentUser.credits=credits; localStorage.setItem('bs_user',JSON.stringify(currentUser)); }
+  updateUI();
+  toast('Ad copies ready! 🎯','success');
+}
+function generateLocalAd(plat,biz,obj,aud,usp,vars) {
+  var result = '';
+  for(var i=1;i<=parseInt(vars);i++){
+    result += '--- VARIATION '+i+' ---\n';
+    if(plat==='google'){
+      result += 'Headline: '+biz+' | Best '+obj+'\nDescription: '+usp+'. '+(aud?'For '+aud+'. ':'')+' Call now!\n\n';
+    } else {
+      result += 'Headline: '+['🔥 Limited Offer!','✅ Trusted Quality','🚀 Get Started!'][i-1]+'\nBody: '+biz+' delivers. '+(usp||'')+'\nCTA: '+['Learn More','Get Quote','Book Now'][i-1]+'\n\n';
+    }
+  }
+  return result;
+}
+function copyAdOut(){ var t=(document.getElementById('adOutBody')||{}).textContent||''; if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){toast('Copied!','success');}); }
+function saveAdOut(){
+  var c=(document.getElementById('adOutBody')||{}).textContent||'';
+  savedHistory.unshift({id:Date.now(),tool:'ads',toolName:'Ad Copy',content:c,at:new Date().toLocaleString('en-IN')});
   localStorage.setItem('bs_history',JSON.stringify(savedHistory));
   totalSaved++;localStorage.setItem('bs_saved',totalSaved);
-  updateUI();toast('Saved to History! 💾','success');
+  updateUI();toast('Saved!','success');
 }
-function dlPDF(){
+function dlAdPDF(){
+  var content=(document.getElementById('adOutBody')||{}).textContent||'';
   var w=window.open('','_blank');
-  var t=TOOLS[selTool]?TOOLS[selTool].n:'Content';
-  var body='<h1>'+t+'</h1><hr><pre style="white-space:pre-wrap;font-family:Arial;font-size:14px">'+lastContent.replace(/</g,'&lt;')+'</pre>';
-  w.document.open();w.document.write('<!DOCTYPE html><html><head><title>'+t+'</title></head>'+body+'<p><small>BrandSutra AI</small></p>');w.document.close();
-  setTimeout(function(){w.print();},400);
+  w.document.open();
+  var adParts=['<!DOCTYPE html>','<html>','<head><title>Ad Copies</title></head>',
+    '',
+    '<h2>Ad Copies</h2><hr>',
+    '<pre style="white-space:pre-wrap;font-size:14px">',content.replace(/</g,'&lt;'),'</pre>',
+    ''];
+  w.document.write(adParts.join(''));
+  w.document.close();setTimeout(function(){w.print();},400);
 }
 
-// ═══ PLATFORM DATA ═══
-var PLATFORMS={
-  instagram:{name:'Instagram',label:'Username',ph:'@username',color:'#E1306C',bg:'linear-gradient(135deg,#833AB4,#E1306C)',appUrl:'https://www.instagram.com/',icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><defs><radialGradient id="plt_ig" cx="30%" cy="107%" r="150%"><stop offset="0%" stop-color="#fdf497"/><stop offset="45%" stop-color="#fd5949"/><stop offset="60%" stop-color="#d6249f"/><stop offset="90%" stop-color="#285AEB"/></radialGradient></defs><rect width="28" height="28" rx="7" fill="url(#plt_ig)"/><rect x="7" y="7" width="14" height="14" rx="4" stroke="white" stroke-width="1.5" fill="none"/><circle cx="14" cy="14" r="3.5" stroke="white" stroke-width="1.5" fill="none"/><circle cx="19.2" cy="8.8" r="1" fill="white"/></svg>'},
-  facebook:{name:'Facebook',label:'Profile Name',ph:'Your Facebook name',color:'#1877F2',bg:'#1877F2',appUrl:'https://www.facebook.com/sharer/sharer.php?u=https://brandsutra.ai&quote=',icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#1877F2"/><path d="M18 14h-2.5v8h-3v-8H11v-3h1.5v-1.8C12.5 7.6 13.7 7 15.2 7H18v3h-1.8c-.7 0-.7.3-.7.8V11H18l-.5 3z" fill="white"/></svg>'},
-  whatsapp:{name:'WhatsApp',label:'Phone Number',ph:'+91 98765 43210',color:'#25D366',bg:'#25D366',appUrl:'https://wa.me/?text=',icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#25D366"/><path d="M14 6.5C9.86 6.5 6.5 9.86 6.5 14c0 1.3.33 2.52.9 3.6L6.5 21.5l4.07-.88A7.44 7.44 0 0014 21.5c4.14 0 7.5-3.36 7.5-7.5S18.14 6.5 14 6.5z" fill="white" opacity=".3"/><circle cx="14" cy="14" r="4" fill="white"/></svg>'},
-  twitter:{name:'X',label:'Username',ph:'@username',color:'#000',bg:'#000',appUrl:'https://twitter.com/intent/tweet?text=',icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#000"/><path d="M20 8h-2.3l-3.4 4.2L11 8H6.5l5.3 6.8L7 20h2.3l3.7-4.5L16.5 20H21l-5.5-7.1L20 8z" fill="white"/></svg>'},
-  linkedin:{name:'LinkedIn',label:'Profile URL',ph:'linkedin.com/in/name',color:'#0A66C2',bg:'#0A66C2',appUrl:'https://www.linkedin.com/shareArticle?mini=true&summary=',icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#0A66C2"/><rect x="7" y="11" width="3" height="10" fill="white"/><circle cx="8.5" cy="8.5" r="1.8" fill="white"/><path d="M13 11h3v1.4c.5-1 1.6-1.5 2.8-1.5C21 10.9 22 12.5 22 15v6h-3v-5.5c0-1-.5-1.5-1.3-1.5s-1.7.6-1.7 1.8V21h-3V11z" fill="white"/></svg>'},
-  youtube:{name:'YouTube',label:'Channel',ph:'Your channel',color:'#FF0000',bg:'#FF0000',appUrl:'https://studio.youtube.com',icon:'<svg width="22" height="22" viewBox="0 0 28 28" fill="none"><rect width="28" height="28" rx="7" fill="#FF0000"/><path d="M21 10.5s-.2-1.4-.8-2c-.8-.8-2.1-.9-2.1-.9C15.8 7.4 14 7.4 14 7.4s-1.8 0-4.1.2c-.4 0-1.3.1-2.1.9-.6.6-.8 2-.8 2S6.8 12.1 6.8 14v1.4c0 1.4.2 2.9.2 2.9s.2 1.4.8 2c.8.8 1.8.8 2.3.8C11.4 21 14 21 14 21s1.8 0 4.1-.2c.4 0 1.3-.1 2.1-.9.6-.6.8-2 .8-2s.2-1.5.2-2.9V14c0-1.4-.2-3.5-.2-3.5zM12.3 16.5V11l5.3 2.8-5.3 2.7z" fill="white"/></svg>'},
-};
-var PLAT_ORDER=['instagram','facebook','whatsapp','twitter','linkedin','youtube'];
-var selectedPlats=['instagram','facebook','whatsapp'];
-var postQueue=JSON.parse(localStorage.getItem('bs_postQueue')||'[]');
-var connectedAccounts=JSON.parse(localStorage.getItem('bs_connected')||'{}');
-var currentConnPlatform='';
-
-function renderConnectRow(){
-  var row=document.getElementById('connectRow');
-  if(!row)return;
-  row.innerHTML=PLAT_ORDER.map(function(p){
-    var pl=PLATFORMS[p];var conn=connectedAccounts[p];var isConn=!!conn;
+// ─── AUTO POST ───
+function renderConnectRow() {
+  var row = document.getElementById('connectRow');
+  if(!row) return;
+  row.innerHTML = PLAT_ORDER.map(function(p){
+    var pl = PLATFORMS[p]; var conn = connectedAccounts[p]; var isConn = !!conn;
     return '<div class="conn-card'+(isConn?' connected':'')+'" onclick="connectPlatform(\''+p+'\')">'+
       '<div class="conn-ico">'+pl.icon+'</div>'+
       '<div class="conn-name">'+pl.name+'</div>'+
@@ -1724,66 +1845,68 @@ function renderConnectRow(){
       '</div></div>';
   }).join('');
 }
-
-function renderPlatSelect(){
-  var row=document.getElementById('platSelectRow');
-  if(!row)return;
-  row.innerHTML=PLAT_ORDER.map(function(p){
-    var pl=PLATFORMS[p];var isSel=selectedPlats.indexOf(p)>-1;
+function renderPlatSelect() {
+  var row = document.getElementById('platSelectRow');
+  if(!row) return;
+  row.innerHTML = PLAT_ORDER.map(function(p){
+    var pl = PLATFORMS[p]; var isSel = selectedPlats.indexOf(p) > -1;
     return '<div class="plat-pill'+(isSel?' sel':'')+'" onclick="togglePlat(\''+p+'\')">'+
       pl.icon+'<span>'+pl.name.split(' ')[0]+'</span></div>';
   }).join('');
 }
-
-function togglePlat(p){
-  var idx=selectedPlats.indexOf(p);
-  if(idx>-1)selectedPlats.splice(idx,1);else selectedPlats.push(p);
+function togglePlat(p) {
+  var idx = selectedPlats.indexOf(p);
+  if(idx>-1) selectedPlats.splice(idx,1); else selectedPlats.push(p);
   renderPlatSelect();
 }
-
-function connectPlatform(p){
-  if(connectedAccounts[p]){toast(PLATFORMS[p].name+' already connected!','success');return;}
-  currentConnPlatform=p;
-  var pl=PLATFORMS[p];
-  document.getElementById('cmIcon').innerHTML=pl.icon;
-  document.getElementById('cmTitle').textContent='Connect '+pl.name;
-  document.getElementById('cmSub').textContent='Link your '+pl.name+' account';
-  document.getElementById('cmLabel').textContent=pl.label;
-  document.getElementById('cmInput').placeholder=pl.ph;
-  document.getElementById('cmInput').value='';
-  document.getElementById('cmProg').style.width='33%';
-  ['cmStep1','cmStep2','cmStep3'].forEach(function(id){document.getElementById(id).classList.remove('active');});
-  document.getElementById('cmStep1').classList.add('active');
-  document.getElementById('connectMo').classList.add('open');
+var currentConnPlatform = '';
+function connectPlatform(p) {
+  if(connectedAccounts[p]){ toast(PLATFORMS[p].name+' already connected! ✓','success'); return; }
+  currentConnPlatform = p;
+  var pl = PLATFORMS[p];
+  var icon=document.getElementById('cmIcon'), title=document.getElementById('cmTitle'), sub=document.getElementById('cmSub');
+  var label=document.getElementById('cmLabel'), input=document.getElementById('cmInput');
+  var prog=document.getElementById('cmProg'), btn=document.getElementById('cmConnectBtn');
+  if(icon) icon.innerHTML = pl.icon;
+  if(title) title.textContent = 'Connect '+pl.name;
+  if(sub) sub.textContent = 'Link your '+pl.name+' account';
+  if(label) label.textContent = pl.label;
+  if(input){ input.placeholder=pl.ph; input.value=''; }
+  if(prog) prog.style.width = '33%';
+  if(btn) btn.style.background = pl.bg;
+  ['cmStep1','cmStep2','cmStep3'].forEach(function(id){ var e=document.getElementById(id); if(e) e.classList.remove('active'); });
+  var s1=document.getElementById('cmStep1'); if(s1) s1.classList.add('active');
+  var mo=document.getElementById('connectMo'); if(mo) mo.classList.add('open');
 }
-
-function doConnect(){
-  var val=document.getElementById('cmInput').value.trim();
-  if(!val){toast('Please enter your '+PLATFORMS[currentConnPlatform].label,'error');return;}
-  document.getElementById('cmStep1').classList.remove('active');
-  document.getElementById('cmStep2').classList.add('active');
-  document.getElementById('cmProg').style.width='66%';
+function doConnect() {
+  var val=(document.getElementById('cmInput')||{}).value||'';
+  if(!val.trim()){ toast('Please enter your '+PLATFORMS[currentConnPlatform].label,'error'); return; }
+  var s1=document.getElementById('cmStep1'), s2=document.getElementById('cmStep2');
+  var prog=document.getElementById('cmProg');
+  if(s1) s1.classList.remove('active');
+  if(s2) s2.classList.add('active');
+  if(prog) prog.style.width = '66%';
   setTimeout(function(){
-    connectedAccounts[currentConnPlatform]={user:val,at:new Date().toISOString()};
+    connectedAccounts[currentConnPlatform] = {user:val.trim(),at:new Date().toISOString()};
     localStorage.setItem('bs_connected',JSON.stringify(connectedAccounts));
-    document.getElementById('cmStep2').classList.remove('active');
-    document.getElementById('cmStep3').classList.add('active');
-    document.getElementById('cmProg').style.width='100%';
-    document.getElementById('cmSuccessTitle').textContent=PLATFORMS[currentConnPlatform].name+' Connected!';
-    document.getElementById('cmSuccessUser').textContent=val;
+    var s3=document.getElementById('cmStep3');
+    if(s2) s2.classList.remove('active');
+    if(s3) s3.classList.add('active');
+    if(prog) prog.style.width = '100%';
+    var st=document.getElementById('cmSuccessTitle'),su=document.getElementById('cmSuccessUser');
+    if(st) st.textContent = PLATFORMS[currentConnPlatform].name+' Connected!';
+    if(su) su.textContent = val.trim();
     renderConnectRow();
-    toast(PLATFORMS[currentConnPlatform].name+' connected!','success');
-  },2200);
+    toast(PLATFORMS[currentConnPlatform].name+' connected! ✓','success');
+  }, 2200);
 }
-
-function closeConnMo(){document.getElementById('connectMo').classList.remove('open');}
-
-function postNow(){
-  var content=document.getElementById('postContent').value.trim();
-  if(!content){toast('Write something first!','error');return;}
-  if(!selectedPlats.length){toast('Select at least one platform','error');return;}
+function closeConnMo(){ var m=document.getElementById('connectMo'); if(m) m.classList.remove('open'); }
+function postNow() {
+  var content=(document.getElementById('postContent')||{}).value||'';
+  if(!content.trim()){ toast('Write something first!','error'); return; }
+  if(!selectedPlats.length){ toast('Select at least one platform','error'); return; }
   var notConn=selectedPlats.filter(function(p){return !connectedAccounts[p];});
-  if(notConn.length){toast('Connect '+notConn.map(function(p){return PLATFORMS[p].name;}).join(', ')+' first!','error');return;}
+  if(notConn.length){ toast('Connect '+notConn.map(function(p){return PLATFORMS[p].name;}).join(', ')+' first!','error'); return; }
   selectedPlats.forEach(function(p,i){
     setTimeout(function(){
       var pl=PLATFORMS[p];
@@ -1793,96 +1916,131 @@ function postNow(){
   });
   postQueue.unshift({id:Date.now(),platforms:selectedPlats.slice(),content:content,status:'posted',at:new Date().toLocaleString('en-IN')});
   localStorage.setItem('bs_postQueue',JSON.stringify(postQueue));
-  document.getElementById('postContent').value='';
+  var pc=document.getElementById('postContent'); if(pc) pc.value='';
   renderPostQueue();
-  toast('Opening '+selectedPlats.length+' platform(s)!','success');
+  toast('Opening '+selectedPlats.length+' platform(s)! 🚀','success');
 }
-
-function schedulePost(){
-  var content=document.getElementById('postContent').value.trim();
-  var date=document.getElementById('postDate').value;
-  var time=document.getElementById('postTime').value;
-  if(!content){toast('Write something first!','error');return;}
-  if(!date||!time){toast('Select date and time!','error');return;}
-  if(!selectedPlats.length){toast('Select at least one platform','error');return;}
+function schedulePost() {
+  var content=(document.getElementById('postContent')||{}).value||'';
+  var date=(document.getElementById('postDate')||{}).value||'';
+  var time=(document.getElementById('postTime')||{}).value||'';
+  if(!content.trim()){ toast('Write something first!','error'); return; }
+  if(!date||!time){ toast('Select date and time!','error'); return; }
+  if(!selectedPlats.length){ toast('Select at least one platform','error'); return; }
   postQueue.unshift({id:Date.now(),platforms:selectedPlats.slice(),content:content,status:'scheduled',date:date,time:time,at:new Date().toLocaleString('en-IN')});
   localStorage.setItem('bs_postQueue',JSON.stringify(postQueue));
-  document.getElementById('postContent').value='';
+  var pc=document.getElementById('postContent'); if(pc) pc.value='';
   renderPostQueue();
-  toast('Scheduled for '+date+' at '+time+'!','success');
+  toast('Scheduled for '+date+' at '+time+'! ✓','success');
 }
-
-function renderPostQueue(){
+function renderPostQueue() {
   var el=document.getElementById('postQueue');
-  if(!el)return;
+  if(!el) return;
   if(!postQueue.length){
-    el.innerHTML='<div class="hist-empty"><div class="hist-empty-icon">&#128269;</div><div class="hist-empty-text">No posts yet.<br>Create and schedule!</div></div>';
+    el.innerHTML='<div class="hist-empty"><div class="hist-empty-icon">📭</div><div class="hist-empty-text">No posts yet.<br>Create and schedule!</div></div>';
     return;
   }
   el.innerHTML=postQueue.map(function(item){
-    var plats=item.platforms.map(function(p){
-      var pl=PLATFORMS[p]||{};
-      return '<div class="q-plat" style="background:'+(pl.color||'#667eea')+'">'+pl.icon+'</div>';
-    }).join('');
-    var status=item.status==='posted'
-      ?'<span class="q-status posted">&#10003; Posted</span>'
-      :'<span class="q-status scheduled">&#9200; '+item.date+' '+item.time+'</span>';
-    return '<div class="queue-item"><div class="queue-plats">'+plats+'</div>'+
-      '<div class="queue-content">'+item.content.substring(0,120)+(item.content.length>120?'...':'')+'</div>'+
-      '<div class="queue-meta">'+status+'<button class="q-del" onclick="deleteQItem('+item.id+')">&#128465;</button></div></div>';
+    var plats=item.platforms.map(function(p){ var pl=PLATFORMS[p]||{}; return '<div class="q-plat" style="background:'+(pl.color||'#667eea')+'">'+pl.icon+'</div>'; }).join('');
+    var status=item.status==='posted'?'<span class="q-status posted">&#10003; Posted</span>':'<span class="q-status scheduled">&#9200; '+item.date+' '+item.time+'</span>';
+    return '<div class="queue-item"><div class="queue-plats">'+plats+'</div><div class="queue-content">'+item.content.substring(0,120)+(item.content.length>120?'...':'')+'</div><div class="queue-meta">'+status+'<button class="q-del" onclick="deleteQItem('+item.id+')">&#128465;</button></div></div>';
   }).join('');
 }
+function deleteQItem(id){ postQueue=postQueue.filter(function(i){return i.id!==id;}); localStorage.setItem('bs_postQueue',JSON.stringify(postQueue)); renderPostQueue(); }
 
-function deleteQItem(id){
-  postQueue=postQueue.filter(function(i){return i.id!==id;});
-  localStorage.setItem('bs_postQueue',JSON.stringify(postQueue));
-  renderPostQueue();
+// ─── HISTORY ───
+var histFilter = 'all';
+function renderHistory() {
+  var list=document.getElementById('histList');
+  if(!list) return;
+  var items=histFilter==='all'?savedHistory:savedHistory.filter(function(h){return h.tool===histFilter;});
+  if(!items.length){
+    list.innerHTML='<div class="hist-empty"><div class="hist-empty-icon">📂</div><div class="hist-empty-text">No saved content yet.<br>Generate and save content!</div></div>';
+    return;
+  }
+  list.innerHTML=items.map(function(h){
+    return '<div class="hist-item"><div class="hist-head"><div class="hist-tool">'+h.toolName+'</div><div class="hist-date">'+h.at+'</div></div><div class="hist-preview">'+h.content.substring(0,120)+(h.content.length>120?'...':'')+'</div><div class="hist-actions"><button class="hist-btn accent" onclick="copyHistItem('+h.id+')">📋 Copy</button><button class="hist-btn accent" onclick="useHistItem('+h.id+')">📤 Use</button><button class="hist-btn" onclick="deleteHistItem('+h.id+')" style="color:#fca5a5">🗑 Delete</button></div></div>';
+  }).join('');
+}
+function filterHist(cat,btn){ histFilter=cat; document.querySelectorAll('.hfilt').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); renderHistory(); }
+function copyHistItem(id){ var h=savedHistory.find(function(x){return x.id===id;}); if(h&&navigator.clipboard) navigator.clipboard.writeText(h.content).then(function(){toast('Copied!','success');}); }
+function useHistItem(id){ var h=savedHistory.find(function(x){return x.id===id;}); if(h){var pc=document.getElementById('postContent');if(pc)pc.value=h.content;showTab('autopost');toast('Content loaded!','success');} }
+function deleteHistItem(id){ savedHistory=savedHistory.filter(function(x){return x.id!==id;}); localStorage.setItem('bs_history',JSON.stringify(savedHistory)); totalSaved=savedHistory.length; localStorage.setItem('bs_saved',totalSaved); updateUI(); renderHistory(); }
+
+// ─── PROFILE ───
+function uploadPic(input) {
+  var file=input.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var src=e.target.result;
+    var av=document.getElementById('profAv'); if(av) av.innerHTML='<img src="'+src+'" style="width:100%;height:100%;object-fit:cover;border-radius:50%">';
+    var hav=document.getElementById('hdrAvatar'); if(hav) hav.innerHTML='<img src="'+src+'" style="width:100%;height:100%;object-fit:cover">';
+    if(currentUser){currentUser.picture=src;localStorage.setItem('bs_user',JSON.stringify(currentUser));}
+    toast('Photo updated!','success');
+  };
+  reader.readAsDataURL(file);
+}
+function showEditProfile() {
+  if(currentUser){
+    var en=document.getElementById('epName'),eb=document.getElementById('epBiz'),ep=document.getElementById('epPhone'),ec=document.getElementById('epCity');
+    if(en) en.value=currentUser.name||'';
+    if(eb) eb.value=currentUser.bizName||'';
+    if(ep) ep.value=currentUser.phone||'';
+    if(ec) ec.value=currentUser.city||'';
+  }
+  var mo=document.getElementById('editProfMo'); if(mo) mo.classList.add('open');
+}
+function saveEditProfile() {
+  var name=(document.getElementById('epName')||{}).value||'';
+  if(!name.trim()){toast('Name is required','error');return;}
+  if(currentUser){
+    currentUser.name=name.trim();
+    currentUser.bizName=(document.getElementById('epBiz')||{}).value||'';
+    currentUser.phone=(document.getElementById('epPhone')||{}).value||'';
+    currentUser.city=(document.getElementById('epCity')||{}).value||'';
+    localStorage.setItem('bs_user',JSON.stringify(currentUser));
+  }
+  updateUI();
+  var mo=document.getElementById('editProfMo'); if(mo) mo.classList.remove('open');
+  toast('Profile updated! ✓','success');
 }
 
-
-
-// ══════════════════════════════════════════
-// INIT - Runs on page load
-// ══════════════════════════════════════════
+// ─── INIT ───
 document.addEventListener('DOMContentLoaded', function(){
-  // Restore saved data
-  var token = localStorage.getItem('bs_token');
-  var savedUser = JSON.parse(localStorage.getItem('bs_user')||'null');
+  // Restore session
+  var token=localStorage.getItem('bs_token');
+  var savedUser=JSON.parse(localStorage.getItem('bs_user')||'null');
   if(token && savedUser){
-    authToken = token;
-    currentUser = savedUser;
-    credits = savedUser.credits||10;
-    totalGen = parseInt(localStorage.getItem('bs_gen')||'0');
+    authToken=token; currentUser=savedUser; credits=savedUser.credits||10;
+    totalGen=parseInt(localStorage.getItem('bs_gen')||'0');
+    totalSaved=parseInt(localStorage.getItem('bs_saved')||'0');
+    savedHistory=JSON.parse(localStorage.getItem('bs_history')||'[]');
+    postQueue=JSON.parse(localStorage.getItem('bs_postQueue')||'[]');
+    connectedAccounts=JSON.parse(localStorage.getItem('bs_connected')||'{}');
   }
-
-  // Set default date/time for post scheduler
-  try{
-    var now = new Date();
-    var di = document.getElementById('postDate');
-    var ti = document.getElementById('postTime');
-    if(di) di.value = now.toISOString().split('T')[0];
-    if(ti) ti.value = '10:00';
-  }catch(e){}
-
-  // Render templates
-  try{ renderTemplates(); }catch(e){}
-
-  // After splash animation (2.4s), show correct screen
+  // Default date/time
+  var now=new Date();
+  var di=document.getElementById('postDate'); if(di) di.value=now.toISOString().split('T')[0];
+  var ti=document.getElementById('postTime'); if(ti) ti.value='10:00';
+  // Setup Google Sign-In
+  if(typeof google!=='undefined' && google.accounts && google.accounts.id){
+    try{
+      google.accounts.id.initialize({client_id:'569411051375-io160ks712huh0fnq04frcca6sg9mfjb.apps.googleusercontent.com',callback:onGoogleCredential,auto_select:false});
+      google.accounts.id.renderButton(document.getElementById('google-signin-btn'),{theme:'outline',size:'large',width:'100%',text:'continue_with'});
+    }catch(e){}
+  }
+  // Splash → correct screen after 2.4s
   setTimeout(function(){
     try{
-      if(authToken && currentUser){
-        goTo('app');
-      } else {
-        goTo('login');
-      }
+      if(authToken && currentUser){ goTo('app'); }
+      else { goTo('login'); }
     }catch(e){
-      // Fallback: directly show login
-      var s = document.getElementById('splash');
-      var l = document.getElementById('loginScreen');
-      if(s) s.classList.remove('active');
-      if(l) l.classList.add('active');
+      var s=document.getElementById('splash'); if(s){s.classList.remove('active');s.style.display='none';}
+      var l=document.getElementById('loginScreen'); if(l){l.style.cssText='display:flex!important;position:fixed;inset:0;flex-direction:column;align-items:center;justify-content:center;z-index:100;background:#050810';l.classList.add('active');}
     }
   }, 2400);
-});</script>
+});
+
+</script>
 </body>
 </html>
