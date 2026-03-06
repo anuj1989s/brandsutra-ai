@@ -4,7 +4,330 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>BrandSutra AI</title>
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="https://checkout.razorpay.com/v1/checkout.js">
+// ═══ AI IMAGE GENERATOR ════════════════════════════════════
+var _lastImgPrompt='';
+function generateImage(){
+  var prompt=document.getElementById('imgPrompt').value.trim();
+  if(!prompt){toast('Enter image description!','error');return;}
+  var style=document.querySelector('#imgStyleG .on');
+  var styleVal=style?style.textContent.trim():'Realistic';
+  var fullPrompt=prompt+', '+styleVal+' style, high quality, professional, marketing image';
+  _lastImgPrompt=fullPrompt;
+  document.getElementById('imgGenTxt').textContent='Generating...';
+  document.getElementById('imgGenSpin').style.display='inline-block';
+  document.getElementById('imgGenBtn').disabled=true;
+  document.getElementById('imgResult').style.display='none';
+  // Use Pollinations.ai - free image generation API
+  var w=512,h=512;
+  var sizeEl=document.querySelector('#imgSizeG .on');
+  if(sizeEl){
+    var sz=sizeEl.textContent.trim();
+    if(sz.indexOf('Portrait')>-1){w=512;h=640;}
+    else if(sz.indexOf('Wide')>-1){w=768;h=432;}
+  }
+  var url='https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+Date.now();
+  var img=new Image();
+  img.onload=function(){
+    document.getElementById('genImgEl').src=url;
+    document.getElementById('imgResult').style.display='block';
+    document.getElementById('imgGenTxt').textContent='&#127912; Generate Image';
+    document.getElementById('imgGenSpin').style.display='none';
+    document.getElementById('imgGenBtn').disabled=false;
+    toast('Image generated!','success');
+  };
+  img.onerror=function(){
+    document.getElementById('imgGenTxt').textContent='&#127912; Generate Image';
+    document.getElementById('imgGenSpin').style.display='none';
+    document.getElementById('imgGenBtn').disabled=false;
+    toast('Generation failed. Try again!','error');
+  };
+  img.src=url;
+}
+function downloadGenImg(){
+  var src=document.getElementById('genImgEl').src;
+  if(!src){toast('No image to download!','error');return;}
+  fetch(src)
+    .then(function(r){return r.blob();})
+    .then(function(blob){
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='brandsutra-image-'+Date.now()+'.jpg';
+      a.click();
+      toast('Image downloaded!','success');
+    })
+    .catch(function(){
+      var a=document.createElement('a');
+      a.href=src;a.target='_blank';a.click();
+    });
+}
+function useImgForPost(){
+  var src=document.getElementById('genImgEl').src;
+  if(!src){return;}
+  toast('Image copied to post!','success');
+  showTab('autopost');
+}
+
+// ═══ HASHTAG GENERATOR ════════════════════════════════════
+var _hashtagBank={
+  fitness:['fitness','gym','workout','fitlife','health','exercise','motivation','fitnessgoals','bodybuilding','healthylifestyle','weightloss','fitnessmotivation','personaltrainer','yoga','wellness'],
+  ca:['CA','charteredaccountant','taxation','gst','incometax','finance','accounting','financemanager','audit','tds','itr','businessfinance','startup','investment','moneytips'],
+  food:['food','foodie','delicious','yummy','instafood','homemade','cooking','recipe','foodphotography','tasty','foodlover','chef','restaurant','streetfood','indianfood'],
+  realestate:['realestate','property','homeforsale','dreamhome','newhome','realtor','investment','apartment','house','luxuryhomes','propertyinvestment','buyingahome','realestateindia','construction','architecture'],
+  business:['business','entrepreneur','startup','smallbusiness','marketing','success','motivation','branding','digital','growyourbusiness','businessowner','leadership','innovation','hustle','goals'],
+  digital:['digitalmarketing','socialmedia','seo','contentmarketing','marketing','onlinemarketing','instagram','facebook','branding','smm','growth','growthhacking','leadgeneration','ads','strategy'],
+  education:['education','learning','students','study','knowledge','school','college','university','elearning','onlinecourses','skills','career','teacher','edtech','future'],
+  fashion:['fashion','style','ootd','outfit','clothes','trendy','fashionista','lifestyle','beauty','shopping','luxury','accessories','instafashion','streetstyle','designer']
+};
+function generateHashtags(){
+  var topic=document.getElementById('hashTopic').value.trim().toLowerCase();
+  if(!topic){toast('Enter a topic first!','error');return;}
+  var plat=document.getElementById('hashPlat').value;
+  var count=parseInt(document.getElementById('hashCount').value)||20;
+  var tags=[];
+  // Match topic to bank
+  for(var key in _hashtagBank){
+    if(topic.indexOf(key)>-1||key.indexOf(topic)>-1){
+      tags=tags.concat(_hashtagBank[key]);
+    }
+  }
+  // Add generic + topic-based tags
+  var topicTag=topic.replace(/\s+/g,'');
+  var extraTags=[topicTag,topicTag+'india',topicTag+'tips',topicTag+'life',topicTag+'expert',
+    'india','trending','viral','like','share','follow','instagram','explore','reels','motivated',
+    'smallbusiness','entrepreneur','success','growthmindset','dailymotivation','brandsutra'];
+  tags=tags.concat(extraTags);
+  // Remove dupes + limit
+  var unique=[];
+  tags.forEach(function(t){
+    var clean=t.replace(/[^a-zA-Z0-9_]/g,'');
+    if(clean&&unique.indexOf(clean)<0)unique.push(clean);
+  });
+  while(unique.length<count)unique.push(topicTag+(unique.length+1));
+  unique=unique.slice(0,count);
+  // Render
+  var container=document.getElementById('hashTags');
+  container.innerHTML=unique.map(function(t){
+    return '<span onclick="this.classList.toggle('sel')" style="display:inline-block;padding:5px 11px;background:rgba(102,126,234,.12);border:1px solid rgba(102,126,234,.25);border-radius:50px;font-size:.7rem;color:var(--violet-l);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s">#'+t+'</span>';
+  }).join('');
+  document.getElementById('hashResult').style.display='block';
+  toast(count+' hashtags generated!','success');
+}
+function copyHashtags(){
+  var tags=document.querySelectorAll('#hashTags span');
+  var text=Array.from(tags).map(function(t){return t.textContent;}).join(' ');
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){toast('Hashtags copied!','success');});
+  }else{
+    var ta=document.createElement('textarea');
+    ta.value=text;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    toast('Hashtags copied!','success');
+  }
+}
+
+// ═══ CONTENT TEMPLATES ════════════════════════════════════
+var _templates=[
+  {icon:'&#128248;',name:'Festival Post',cat:'instagram',content:'🎉 Wishing you all a very Happy {festival}!
+
+May this {festival} bring joy, prosperity & success to you and your family. 🙏
+
+From all of us at {businessName}, we thank you for your continued love and support.
+
+#Happy{festival} #Festival #Celebration #India'},
+  {icon:'&#128176;',name:'Offer Post',cat:'instagram',content:'🔥 LIMITED TIME OFFER!
+
+Get {discount}% OFF on {service}!
+
+✅ Valid till {date}
+✅ Call now: {phone}
+✅ Location: {location}
+
+Don't miss out! DM us or click the link in bio.
+
+#Offer #Sale #Discount #{businessName}'},
+  {icon:'&#128200;',name:'Success Story',cat:'linkedin',content:'Excited to share a milestone! 🎯
+
+At {businessName}, we recently helped a client achieve {result}.
+
+Here's what we did:
+✅ Step 1: {step1}
+✅ Step 2: {step2}
+✅ Step 3: {step3}
+
+Proud of our team's dedication! If you're looking for {service}, let's connect.
+
+#Success #CaseStudy #BusinessGrowth'},
+  {icon:'&#128232;',name:'WhatsApp Broadcast',cat:'whatsapp',content:'Hello {name}! 👋
+
+This is {businessName}.
+
+🎁 Special offer for you:
+{offer}
+
+✅ Valid till: {date}
+📞 Call/WhatsApp: {phone}
+
+Reply YES to know more! 🙏'},
+  {icon:'&#9732;',name:'Product Launch',cat:'instagram',content:'🚀 Introducing {productName}!
+
+We're thrilled to launch our newest {category}.
+
+✨ Key Features:
+• {feature1}
+• {feature2}
+• {feature3}
+
+💰 Starting at just ₹{price}!
+
+Link in bio to order. Limited stock! 🔥
+
+#NewLaunch #Product #{businessName} #MustHave'},
+  {icon:'&#129504;',name:'Tips Post',cat:'blog',content:'5 Tips for {topic} That Actually Work 💡
+
+1️⃣ {tip1}
+
+2️⃣ {tip2}
+
+3️⃣ {tip3}
+
+4️⃣ {tip4}
+
+5️⃣ {tip5}
+
+Save this post for later! Which tip was most helpful? Comment below 👇
+
+#Tips #{topic}Tips #Advice #Learning'},
+  {icon:'&#127775;',name:'Testimonial',cat:'instagram',content:'⭐⭐⭐⭐⭐ Customer Love!
+
+"{testimonial}"
+
+— {clientName}, {clientCity}
+
+Thank you for trusting {businessName}! Your satisfaction is our greatest reward. 🙏
+
+Want similar results? DM us today!
+
+#Testimonial #HappyCustomer #5Stars #Review'},
+  {icon:'&#128336;',name:'Reminder Post',cat:'whatsapp',content:'📢 Important Reminder from {businessName}!
+
+Dear {name},
+
+This is a gentle reminder about {reminder}.
+
+📅 Deadline: {date}
+📞 Contact us: {phone}
+
+Please take action before the deadline to avoid any inconvenience.
+
+Thank you! 🙏'}
+];
+function renderTemplates(){
+  var grid=document.getElementById('templatesGrid');
+  if(!grid)return;
+  grid.innerHTML=_templates.map(function(t,i){
+    return '<div onclick="useTemplate('+i+')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;active:scale(.95)" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'">'
+      +'<div style="font-size:1.4rem;margin-bottom:8px">'+t.icon+'</div>'
+      +'<div style="font-size:.75rem;font-weight:700;color:#f0f4ff;margin-bottom:4px;font-family:'Syne',sans-serif">'+t.name+'</div>'
+      +'<div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">'+t.cat+'</div>'
+      +'</div>';
+  }).join('');
+}
+function useTemplate(i){
+  var t=_templates[i];
+  if(!t)return;
+  // Show template fill modal
+  document.getElementById('tplContent').value=t.content;
+  document.getElementById('tplName').textContent=t.name;
+  document.getElementById('templateMo').style.display='flex';
+}
+function useTemplateContent(){
+  var content=document.getElementById('tplContent').value;
+  document.getElementById('postContent').value=content;
+  document.getElementById('templateMo').style.display='none';
+  showTab('autopost');
+  toast('Template loaded in Auto Post!','success');
+}
+function copyTemplate(){
+  var content=document.getElementById('tplContent').value;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(content).then(function(){toast('Template copied!','success');});
+  }else{
+    var ta=document.createElement('textarea');
+    ta.value=content;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    toast('Copied!','success');
+  }
+}
+
+// ═══ CONTENT HISTORY - ENHANCED ════════════════════════════
+var _histFilter='all';
+function filterHist(cat){
+  _histFilter=cat;
+  document.querySelectorAll('[id^="hf-"]').forEach(function(b){
+    b.style.background='rgba(255,255,255,.07)';
+    b.style.border='1px solid rgba(255,255,255,.12)';
+    b.style.color='var(--muted)';
+  });
+  var active=document.getElementById('hf-'+cat);
+  if(active){active.style.background='linear-gradient(135deg,#667eea,#764ba2)';active.style.border='none';active.style.color='white';}
+  renderHistory();
+}
+function clearAllHistory(){
+  if(!confirm('Clear all saved content history?'))return;
+  savedHistory=[];
+  localStorage.removeItem('bs_history');
+  renderHistory();
+  toast('History cleared!','success');
+}
+// ═══ DOWNLOAD IMAGE from content ════════════════════════════
+function downloadContentAsImage(){
+  var content=document.getElementById('outBody').textContent||'';
+  if(!content){toast('No content to download!','error');return;}
+  var canvas=document.createElement('canvas');
+  canvas.width=1080;canvas.height=1080;
+  var ctx=canvas.getContext('2d');
+  // BG gradient
+  var grd=ctx.createLinearGradient(0,0,1080,1080);
+  grd.addColorStop(0,'#0f0f23');
+  grd.addColorStop(1,'#1a1a35');
+  ctx.fillStyle=grd;ctx.fillRect(0,0,1080,1080);
+  // Logo text
+  ctx.fillStyle='rgba(102,126,234,.4)';ctx.font='bold 28px Arial';ctx.fillText('BrandSutra AI',40,60);
+  // Content text
+  ctx.fillStyle='#f0f4ff';ctx.font='32px Arial';
+  var lines=content.split('
+').slice(0,14);
+  var y=140;
+  lines.forEach(function(line){
+    var wrapped=wrapText(ctx,line,40,1000);
+    wrapped.forEach(function(wl){ctx.fillText(wl,40,y);y+=46;});
+  });
+  // Download
+  canvas.toBlob(function(blob){
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='content-'+Date.now()+'.png';
+    a.click();
+    toast('Image downloaded!','success');
+  });
+}
+function wrapText(ctx,text,x,maxW){
+  var words=text.split(' ');var lines=[];var line='';
+  words.forEach(function(w){
+    var test=line+w+' ';
+    if(ctx.measureText(test).width>maxW&&line!=''){lines.push(line.trim());line=w+' ';}
+    else{line=test;}
+  });
+  if(line)lines.push(line.trim());
+  return lines.length?lines:[''];
+}
+
+// ═══ INIT CALLS ════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+  renderTemplates();
+});
+</script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -690,14 +1013,103 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--ink);color
         <div class="oc-h"><div class="oc-t">✅ <span id="outNm">Content</span></div><button class="oc-x" onclick="closeOut()">✕</button></div>
         <div class="oc-body" id="outBody"></div>
         <div class="oc-acts">
-          <button class="oc-btn teal" onclick="copyOut()">📋 Copy</button>
-          <button class="oc-btn" onclick="regenOut()">↺ Again</button>
-          <button class="oc-btn blue" onclick="saveOut()">💾 Save</button>
-          <button class="oc-btn" onclick="dlPDF()">📄 PDF</button>
-          <button class="oc-btn" onclick="dlDOC()">📝 DOC</button>
-          <button class="oc-btn" onclick="shareOut()">📤 Share</button>
+          <button class="oc-btn teal" onclick="copyOut()">&#128203; Copy</button>
+          <button class="oc-btn" onclick="regenOut()">&#8635; Again</button>
+          <button class="oc-btn blue" onclick="saveOut()">&#128190; Save</button>
+          <button class="oc-btn" onclick="dlPDF()">&#128196; PDF</button>
+          <button class="oc-btn" onclick="dlDOC()">&#128196; DOC</button>
+          <button class="oc-btn" onclick="downloadContentAsImage()" style="background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.3);color:#6ee7b7">&#11015; IMG</button>
+          <button class="oc-btn" onclick="shareOut()">&#128228; Share</button>
         </div>
       </div>
+    <!-- AI IMAGE GENERATOR -->
+      <div class="sec-t" style="margin-top:16px">&#127912; AI Image Generator</div>
+      <div class="gen-card" id="imgGenCard">
+        <div class="ig2">
+          <div class="ig1">
+            <label class="il">Image Description</label>
+            <textarea class="ii" id="imgPrompt" rows="3" placeholder="e.g. A professional CA office in Mumbai, modern design, blue tones..." style="resize:none;line-height:1.5"></textarea>
+          </div>
+        </div>
+        <div class="ig1" style="margin-bottom:11px">
+          <label class="il">Style</label>
+          <div class="chips" id="imgStyleG">
+            <button class="chip on" onclick="sc(this,'imgStyleG')">Realistic</button>
+            <button class="chip" onclick="sc(this,'imgStyleG')">Minimalist</button>
+            <button class="chip" onclick="sc(this,'imgStyleG')">Vibrant</button>
+            <button class="chip" onclick="sc(this,'imgStyleG')">3D Art</button>
+          </div>
+        </div>
+        <div class="ig1" style="margin-bottom:14px">
+          <label class="il">Size</label>
+          <div class="chips" id="imgSizeG">
+            <button class="chip on" onclick="sc(this,'imgSizeG')">1:1 Square</button>
+            <button class="chip" onclick="sc(this,'imgSizeG')">4:5 Portrait</button>
+            <button class="chip" onclick="sc(this,'imgSizeG')">16:9 Wide</button>
+          </div>
+        </div>
+        <button class="gen-btn" onclick="generateImage()" id="imgGenBtn">
+          <span id="imgGenTxt">&#127912; Generate Image</span>
+          <div class="spin" id="imgGenSpin" style="display:none"></div>
+        </button>
+        <div id="imgResult" style="display:none;margin-top:16px">
+          <div style="position:relative;border-radius:14px;overflow:hidden;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1)">
+            <img id="genImgEl" src="" alt="Generated" style="width:100%;display:block;border-radius:14px">
+            <div style="position:absolute;top:0;left:0;right:0;bottom:0;background:linear-gradient(to bottom,transparent 60%,rgba(0,0,0,.7))"></div>
+            <div style="position:absolute;bottom:0;left:0;right:0;padding:12px;display:flex;gap:8px;justify-content:center">
+              <button onclick="downloadGenImg()" style="padding:9px 16px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.25);color:white;border-radius:50px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">&#11015; Download</button>
+              <button onclick="generateImage()" style="padding:9px 16px;background:rgba(255,255,255,.15);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.25);color:white;border-radius:50px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">&#8635; Regenerate</button>
+              <button onclick="useImgForPost()" style="padding:9px 16px;background:linear-gradient(135deg,#667eea,#764ba2);border:none;color:white;border-radius:50px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">&#128247; Use in Post</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- HASHTAG GENERATOR -->
+      <div class="sec-t" style="margin-top:4px">&#35; Hashtag Generator</div>
+      <div class="gen-card">
+        <div class="ig1" style="margin-bottom:11px">
+          <label class="il">Topic or Keyword</label>
+          <input class="ii" id="hashTopic" placeholder="e.g. fitness, CA, real estate, food...">
+        </div>
+        <div class="ig2" style="margin-bottom:11px">
+          <div class="ig1">
+            <label class="il">Platform</label>
+            <select class="ii" id="hashPlat">
+              <option>Instagram</option>
+              <option>LinkedIn</option>
+              <option>Twitter/X</option>
+              <option>YouTube</option>
+              <option>Facebook</option>
+            </select>
+          </div>
+          <div class="ig1">
+            <label class="il">Count</label>
+            <select class="ii" id="hashCount">
+              <option value="10">10 tags</option>
+              <option value="20" selected>20 tags</option>
+              <option value="30">30 tags</option>
+            </select>
+          </div>
+        </div>
+        <button class="gen-btn" onclick="generateHashtags()">
+          <span>&#35; Generate Hashtags</span>
+        </button>
+        <div id="hashResult" style="display:none;margin-top:14px">
+          <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px">
+            <div id="hashTags" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+            <div style="display:flex;gap:8px">
+              <button onclick="copyHashtags()" style="flex:1;padding:9px;background:rgba(102,126,234,.15);border:1px solid rgba(102,126,234,.3);color:var(--violet-l);border-radius:50px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">&#128203; Copy All</button>
+              <button onclick="generateHashtags()" style="flex:1;padding:9px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--muted);border-radius:50px;font-size:.75rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">&#8635; Regenerate</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTENT TEMPLATES -->
+      <div class="sec-t" style="margin-top:4px">&#128196; Content Templates</div>
+      <div id="templatesGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"></div>
+
     </div>
 
     <!-- VIDEO GENERATE -->
@@ -966,14 +1378,25 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--ink);color
 
     <!-- HISTORY -->
     <div class="panel" id="tab-history">
-      <div class="page-t">Saved Content 📁</div>
+      <div class="page-t">&#128193; Content History</div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+        <button onclick="filterHist('all')" id="hf-all" style="padding:6px 14px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:50px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">All</button>
+        <button onclick="filterHist('instagram')" id="hf-instagram" style="padding:6px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--muted);border-radius:50px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">Instagram</button>
+        <button onclick="filterHist('blog')" id="hf-blog" style="padding:6px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--muted);border-radius:50px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">Blog</button>
+        <button onclick="filterHist('whatsapp')" id="hf-whatsapp" style="padding:6px 14px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:var(--muted);border-radius:50px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif">WhatsApp</button>
+        <button onclick="clearAllHistory()" style="padding:6px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);color:#fca5a5;border-radius:50px;font-size:.68rem;font-weight:700;cursor:pointer;font-family:'Syne',sans-serif;margin-left:auto">&#128465; Clear All</button>
+      </div>
       <div id="histList"></div>
     </div>
 
     <!-- PROFILE -->
     <div class="panel" id="tab-profile">
       <div class="prof-card">
-        <div class="pav" id="profAv">?</div>
+        <div style="position:relative;display:inline-block;margin-bottom:4px">
+          <div class="pav" id="profAv" style="cursor:pointer" onclick="document.getElementById('profPicInp').click()">?</div>
+          <div onclick="document.getElementById('profPicInp').click()" style="position:absolute;bottom:2px;right:2px;width:26px;height:26px;background:linear-gradient(135deg,#667eea,#764ba2);border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid #0f0f23;font-size:.7rem">&#128247;</div>
+          <input type="file" id="profPicInp" accept="image/*" style="display:none" onchange="uploadPic(this)">
+        </div>
         <div class="pname" id="profNm">--</div>
         <div class="pemail" id="profEmail">--</div>
         <div class="pplan" id="profPlan">Free Plan</div>
@@ -1307,6 +1730,20 @@ function dlPDF(){
     <button onclick="document.getElementById('editProfMo').style.display='none'" style="width:100%;padding:12px;background:transparent;color:#8892b0;border:1px solid rgba(255,255,255,.1);border-radius:50px;font-family:'Syne',sans-serif;font-size:.85rem;cursor:pointer">Cancel</button>
   </div>
 </div>
+
+<!-- TEMPLATE MODAL -->
+<div id="templateMo" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.86);backdrop-filter:blur(12px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#16162e;border:1px solid rgba(255,255,255,.15);border-radius:26px 26px 0 0;padding:22px 18px 44px;width:100%;max-width:480px;animation:sheetUp .4s cubic-bezier(.34,1.2,.64,1)">
+    <div style="width:36px;height:4px;background:rgba(255,255,255,.18);border-radius:4px;margin:0 auto 18px"></div>
+    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;text-align:center;margin-bottom:16px;color:#f0f4ff">&#128196; <span id="tplName">Template</span></div>
+    <textarea id="tplContent" rows="10" style="width:100%;padding:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#f0f4ff;font-size:.82rem;outline:none;font-family:'Inter',sans-serif;line-height:1.65;resize:vertical;box-sizing:border-box;margin-bottom:14px"></textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <button onclick="copyTemplate()" style="padding:13px;background:rgba(102,126,234,.15);border:1px solid rgba(102,126,234,.3);color:var(--violet-l);border-radius:50px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer">&#128203; Copy</button>
+      <button onclick="useTemplateContent()" style="padding:13px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:50px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer">&#9889; Use in Post</button>
+    </div>
+    <button onclick="document.getElementById('templateMo').style.display='none'" style="width:100%;padding:12px;background:transparent;color:#8892b0;border:1px solid rgba(255,255,255,.1);border-radius:50px;font-family:'Syne',sans-serif;font-size:.85rem;cursor:pointer">Cancel</button>
+  </div>
+</div>
 </body></html>`;
   const url=URL.createObjectURL(new Blob([h],{type:'text/html'}));
   const a=document.createElement('a');a.href=url;a.download=`BrandSutra_${lastTool.replace(/\s/g,'_')}.html`;a.click();URL.revokeObjectURL(url);toast('Downloading PDF...','success');
@@ -1372,6 +1809,20 @@ function dlDOC(){
     <div style="margin-bottom:18px"><label style="display:block;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#8892b0;margin-bottom:6px">City</label><input id="epCity" type="text" placeholder="Mumbai" style="width:100%;padding:11px 13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#f0f4ff;font-size:.88rem;outline:none;font-family:'Inter',sans-serif;box-sizing:border-box"></div>
     <button onclick="saveEditProfile()" style="width:100%;padding:14px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:50px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;margin-bottom:10px">&#128190; Save Profile</button>
     <button onclick="document.getElementById('editProfMo').style.display='none'" style="width:100%;padding:12px;background:transparent;color:#8892b0;border:1px solid rgba(255,255,255,.1);border-radius:50px;font-family:'Syne',sans-serif;font-size:.85rem;cursor:pointer">Cancel</button>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div id="templateMo" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.86);backdrop-filter:blur(12px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#16162e;border:1px solid rgba(255,255,255,.15);border-radius:26px 26px 0 0;padding:22px 18px 44px;width:100%;max-width:480px;animation:sheetUp .4s cubic-bezier(.34,1.2,.64,1)">
+    <div style="width:36px;height:4px;background:rgba(255,255,255,.18);border-radius:4px;margin:0 auto 18px"></div>
+    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;text-align:center;margin-bottom:16px;color:#f0f4ff">&#128196; <span id="tplName">Template</span></div>
+    <textarea id="tplContent" rows="10" style="width:100%;padding:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#f0f4ff;font-size:.82rem;outline:none;font-family:'Inter',sans-serif;line-height:1.65;resize:vertical;box-sizing:border-box;margin-bottom:14px"></textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <button onclick="copyTemplate()" style="padding:13px;background:rgba(102,126,234,.15);border:1px solid rgba(102,126,234,.3);color:var(--violet-l);border-radius:50px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer">&#128203; Copy</button>
+      <button onclick="useTemplateContent()" style="padding:13px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:50px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer">&#9889; Use in Post</button>
+    </div>
+    <button onclick="document.getElementById('templateMo').style.display='none'" style="width:100%;padding:12px;background:transparent;color:#8892b0;border:1px solid rgba(255,255,255,.1);border-radius:50px;font-family:'Syne',sans-serif;font-size:.85rem;cursor:pointer">Cancel</button>
   </div>
 </div>
 </body></html>`;
@@ -1725,6 +2176,20 @@ renderHistory();renderQueue();
     <div style="margin-bottom:18px"><label style="display:block;font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:#8892b0;margin-bottom:6px">City</label><input id="epCity" type="text" placeholder="Mumbai" style="width:100%;padding:11px 13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;color:#f0f4ff;font-size:.88rem;outline:none;font-family:'Inter',sans-serif;box-sizing:border-box"></div>
     <button onclick="saveEditProfile()" style="width:100%;padding:14px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:50px;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;margin-bottom:10px">&#128190; Save Profile</button>
     <button onclick="document.getElementById('editProfMo').style.display='none'" style="width:100%;padding:12px;background:transparent;color:#8892b0;border:1px solid rgba(255,255,255,.1);border-radius:50px;font-family:'Syne',sans-serif;font-size:.85rem;cursor:pointer">Cancel</button>
+  </div>
+</div>
+
+<!-- TEMPLATE MODAL -->
+<div id="templateMo" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.86);backdrop-filter:blur(12px);align-items:flex-end;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:#16162e;border:1px solid rgba(255,255,255,.15);border-radius:26px 26px 0 0;padding:22px 18px 44px;width:100%;max-width:480px;animation:sheetUp .4s cubic-bezier(.34,1.2,.64,1)">
+    <div style="width:36px;height:4px;background:rgba(255,255,255,.18);border-radius:4px;margin:0 auto 18px"></div>
+    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;text-align:center;margin-bottom:16px;color:#f0f4ff">&#128196; <span id="tplName">Template</span></div>
+    <textarea id="tplContent" rows="10" style="width:100%;padding:13px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#f0f4ff;font-size:.82rem;outline:none;font-family:'Inter',sans-serif;line-height:1.65;resize:vertical;box-sizing:border-box;margin-bottom:14px"></textarea>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <button onclick="copyTemplate()" style="padding:13px;background:rgba(102,126,234,.15);border:1px solid rgba(102,126,234,.3);color:var(--violet-l);border-radius:50px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer">&#128203; Copy</button>
+      <button onclick="useTemplateContent()" style="padding:13px;background:linear-gradient(135deg,#667eea,#764ba2);color:white;border:none;border-radius:50px;font-family:'Syne',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer">&#9889; Use in Post</button>
+    </div>
+    <button onclick="document.getElementById('templateMo').style.display='none'" style="width:100%;padding:12px;background:transparent;color:#8892b0;border:1px solid rgba(255,255,255,.1);border-radius:50px;font-family:'Syne',sans-serif;font-size:.85rem;cursor:pointer">Cancel</button>
   </div>
 </div>
 </body>
