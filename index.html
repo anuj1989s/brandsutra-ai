@@ -4,332 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>BrandSutra AI</title>
-<script src="https://checkout.razorpay.com/v1/checkout.js">
-// ═══ AI IMAGE GENERATOR ════════════════════════════════════
-var _lastImgPrompt='';
-function generateImage(){
-  var prompt=document.getElementById('imgPrompt').value.trim();
-  if(!prompt){toast('Enter image description!','error');return;}
-  var style=document.querySelector('#imgStyleG .on');
-  var styleVal=style?style.textContent.trim():'Realistic';
-  var fullPrompt=prompt+', '+styleVal+' style, high quality, professional, marketing image';
-  _lastImgPrompt=fullPrompt;
-  document.getElementById('imgGenTxt').textContent='Generating...';
-  document.getElementById('imgGenSpin').style.display='inline-block';
-  document.getElementById('imgGenBtn').disabled=true;
-  document.getElementById('imgResult').style.display='none';
-  // Use Pollinations.ai - free image generation API
-  var w=512,h=512;
-  var sizeEl=document.querySelector('#imgSizeG .on');
-  if(sizeEl){
-    var sz=sizeEl.textContent.trim();
-    if(sz.indexOf('Portrait')>-1){w=512;h=640;}
-    else if(sz.indexOf('Wide')>-1){w=768;h=432;}
-  }
-  var url='https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+Date.now();
-  var img=new Image();
-  img.onload=function(){
-    document.getElementById('genImgEl').src=url;
-    document.getElementById('imgResult').style.display='block';
-    document.getElementById('imgGenTxt').textContent='&#127912; Generate Image';
-    document.getElementById('imgGenSpin').style.display='none';
-    document.getElementById('imgGenBtn').disabled=false;
-    toast('Image generated!','success');
-  };
-  img.onerror=function(){
-    document.getElementById('imgGenTxt').textContent='&#127912; Generate Image';
-    document.getElementById('imgGenSpin').style.display='none';
-    document.getElementById('imgGenBtn').disabled=false;
-    toast('Generation failed. Try again!','error');
-  };
-  img.src=url;
-}
-function downloadGenImg(){
-  var src=document.getElementById('genImgEl').src;
-  if(!src){toast('No image to download!','error');return;}
-  fetch(src)
-    .then(function(r){return r.blob();})
-    .then(function(blob){
-      var a=document.createElement('a');
-      a.href=URL.createObjectURL(blob);
-      a.download='brandsutra-image-'+Date.now()+'.jpg';
-      a.click();
-      toast('Image downloaded!','success');
-    })
-    .catch(function(){
-      var a=document.createElement('a');
-      a.href=src;a.target='_blank';a.click();
-    });
-}
-function useImgForPost(){
-  var src=document.getElementById('genImgEl').src;
-  if(!src){return;}
-  toast('Image copied to post!','success');
-  showTab('autopost');
-}
-
-// ═══ HASHTAG GENERATOR ════════════════════════════════════
-var _hashtagBank={
-  fitness:['fitness','gym','workout','fitlife','health','exercise','motivation','fitnessgoals','bodybuilding','healthylifestyle','weightloss','fitnessmotivation','personaltrainer','yoga','wellness'],
-  ca:['CA','charteredaccountant','taxation','gst','incometax','finance','accounting','financemanager','audit','tds','itr','businessfinance','startup','investment','moneytips'],
-  food:['food','foodie','delicious','yummy','instafood','homemade','cooking','recipe','foodphotography','tasty','foodlover','chef','restaurant','streetfood','indianfood'],
-  realestate:['realestate','property','homeforsale','dreamhome','newhome','realtor','investment','apartment','house','luxuryhomes','propertyinvestment','buyingahome','realestateindia','construction','architecture'],
-  business:['business','entrepreneur','startup','smallbusiness','marketing','success','motivation','branding','digital','growyourbusiness','businessowner','leadership','innovation','hustle','goals'],
-  digital:['digitalmarketing','socialmedia','seo','contentmarketing','marketing','onlinemarketing','instagram','facebook','branding','smm','growth','growthhacking','leadgeneration','ads','strategy'],
-  education:['education','learning','students','study','knowledge','school','college','university','elearning','onlinecourses','skills','career','teacher','edtech','future'],
-  fashion:['fashion','style','ootd','outfit','clothes','trendy','fashionista','lifestyle','beauty','shopping','luxury','accessories','instafashion','streetstyle','designer']
-};
-function generateHashtags(){
-  var topic=document.getElementById('hashTopic').value.trim().toLowerCase();
-  if(!topic){toast('Enter a topic first!','error');return;}
-  var plat=document.getElementById('hashPlat').value;
-  var count=parseInt(document.getElementById('hashCount').value)||20;
-  var tags=[];
-  // Match topic to bank
-  for(var key in _hashtagBank){
-    if(topic.indexOf(key)>-1||key.indexOf(topic)>-1){
-      tags=tags.concat(_hashtagBank[key]);
-    }
-  }
-  // Add generic + topic-based tags
-  var topicTag=topic.replace(/\s+/g,'');
-  var extraTags=[topicTag,topicTag+'india',topicTag+'tips',topicTag+'life',topicTag+'expert',
-    'india','trending','viral','like','share','follow','instagram','explore','reels','motivated',
-    'smallbusiness','entrepreneur','success','growthmindset','dailymotivation','brandsutra'];
-  tags=tags.concat(extraTags);
-  // Remove dupes + limit
-  var unique=[];
-  tags.forEach(function(t){
-    var clean=t.replace(/[^a-zA-Z0-9_]/g,'');
-    if(clean&&unique.indexOf(clean)<0)unique.push(clean);
-  });
-  while(unique.length<count)unique.push(topicTag+(unique.length+1));
-  unique=unique.slice(0,count);
-  // Render
-  var container=document.getElementById('hashTags');
-  container.innerHTML=unique.map(function(t){
-    return '<span onclick="this.classList.toggle('sel')" style="display:inline-block;padding:5px 11px;background:rgba(102,126,234,.12);border:1px solid rgba(102,126,234,.25);border-radius:50px;font-size:.7rem;color:var(--violet-l);cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s">#'+t+'</span>';
-  }).join('');
-  document.getElementById('hashResult').style.display='block';
-  toast(count+' hashtags generated!','success');
-}
-function copyHashtags(){
-  var tags=document.querySelectorAll('#hashTags span');
-  var text=Array.from(tags).map(function(t){return t.textContent;}).join(' ');
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(text).then(function(){toast('Hashtags copied!','success');});
-  }else{
-    var ta=document.createElement('textarea');
-    ta.value=text;document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');document.body.removeChild(ta);
-    toast('Hashtags copied!','success');
-  }
-}
-
-// ═══ CONTENT TEMPLATES ════════════════════════════════════
-var _templates=[
-  {icon:'&#128248;',name:'Festival Post',cat:'instagram',content:'🎉 Wishing you all a very Happy {festival}!
-
-May this {festival} bring joy, prosperity & success to you and your family. 🙏
-
-From all of us at {businessName}, we thank you for your continued love and support.
-
-#Happy{festival} #Festival #Celebration #India'},
-  {icon:'&#128176;',name:'Offer Post',cat:'instagram',content:'🔥 LIMITED TIME OFFER!
-
-Get {discount}% OFF on {service}!
-
-✅ Valid till {date}
-✅ Call now: {phone}
-✅ Location: {location}
-
-Don't miss out! DM us or click the link in bio.
-
-#Offer #Sale #Discount #{businessName}'},
-  {icon:'&#128200;',name:'Success Story',cat:'linkedin',content:'Excited to share a milestone! 🎯
-
-At {businessName}, we recently helped a client achieve {result}.
-
-Here's what we did:
-✅ Step 1: {step1}
-✅ Step 2: {step2}
-✅ Step 3: {step3}
-
-Proud of our team's dedication! If you're looking for {service}, let's connect.
-
-#Success #CaseStudy #BusinessGrowth'},
-  {icon:'&#128232;',name:'WhatsApp Broadcast',cat:'whatsapp',content:'Hello {name}! 👋
-
-This is {businessName}.
-
-🎁 Special offer for you:
-{offer}
-
-✅ Valid till: {date}
-📞 Call/WhatsApp: {phone}
-
-Reply YES to know more! 🙏'},
-  {icon:'&#9732;',name:'Product Launch',cat:'instagram',content:'🚀 Introducing {productName}!
-
-We're thrilled to launch our newest {category}.
-
-✨ Key Features:
-• {feature1}
-• {feature2}
-• {feature3}
-
-💰 Starting at just ₹{price}!
-
-Link in bio to order. Limited stock! 🔥
-
-#NewLaunch #Product #{businessName} #MustHave'},
-  {icon:'&#129504;',name:'Tips Post',cat:'blog',content:'5 Tips for {topic} That Actually Work 💡
-
-1️⃣ {tip1}
-
-2️⃣ {tip2}
-
-3️⃣ {tip3}
-
-4️⃣ {tip4}
-
-5️⃣ {tip5}
-
-Save this post for later! Which tip was most helpful? Comment below 👇
-
-#Tips #{topic}Tips #Advice #Learning'},
-  {icon:'&#127775;',name:'Testimonial',cat:'instagram',content:'⭐⭐⭐⭐⭐ Customer Love!
-
-"{testimonial}"
-
-— {clientName}, {clientCity}
-
-Thank you for trusting {businessName}! Your satisfaction is our greatest reward. 🙏
-
-Want similar results? DM us today!
-
-#Testimonial #HappyCustomer #5Stars #Review'},
-  {icon:'&#128336;',name:'Reminder Post',cat:'whatsapp',content:'📢 Important Reminder from {businessName}!
-
-Dear {name},
-
-This is a gentle reminder about {reminder}.
-
-📅 Deadline: {date}
-📞 Contact us: {phone}
-
-Please take action before the deadline to avoid any inconvenience.
-
-Thank you! 🙏'}
-];
-function renderTemplates(){
-  var grid=document.getElementById('templatesGrid');
-  if(!grid)return;
-  grid.innerHTML=_templates.map(function(t,i){
-    return '<div onclick="useTemplate('+i+')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:14px;cursor:pointer;transition:all .2s;active:scale(.95)" onmousedown="this.style.transform='scale(.96)'" onmouseup="this.style.transform='scale(1)'">'
-      +'<div style="font-size:1.4rem;margin-bottom:8px">'+t.icon+'</div>'
-      +'<div style="font-size:.75rem;font-weight:700;color:#f0f4ff;margin-bottom:4px;font-family:'Syne',sans-serif">'+t.name+'</div>'
-      +'<div style="font-size:.62rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">'+t.cat+'</div>'
-      +'</div>';
-  }).join('');
-}
-function useTemplate(i){
-  var t=_templates[i];
-  if(!t)return;
-  // Show template fill modal
-  document.getElementById('tplContent').value=t.content;
-  document.getElementById('tplName').textContent=t.name;
-  document.getElementById('templateMo').style.display='flex';
-}
-function useTemplateContent(){
-  var content=document.getElementById('tplContent').value;
-  document.getElementById('postContent').value=content;
-  document.getElementById('templateMo').style.display='none';
-  showTab('autopost');
-  toast('Template loaded in Auto Post!','success');
-}
-function copyTemplate(){
-  var content=document.getElementById('tplContent').value;
-  if(navigator.clipboard){
-    navigator.clipboard.writeText(content).then(function(){toast('Template copied!','success');});
-  }else{
-    var ta=document.createElement('textarea');
-    ta.value=content;document.body.appendChild(ta);ta.select();
-    document.execCommand('copy');document.body.removeChild(ta);
-    toast('Copied!','success');
-  }
-}
-
-// ═══ CONTENT HISTORY - ENHANCED ════════════════════════════
-var _histFilter='all';
-function filterHist(cat){
-  _histFilter=cat;
-  document.querySelectorAll('[id^="hf-"]').forEach(function(b){
-    b.style.background='rgba(255,255,255,.07)';
-    b.style.border='1px solid rgba(255,255,255,.12)';
-    b.style.color='var(--muted)';
-  });
-  var active=document.getElementById('hf-'+cat);
-  if(active){active.style.background='linear-gradient(135deg,#667eea,#764ba2)';active.style.border='none';active.style.color='white';}
-  renderHistory();
-}
-function clearAllHistory(){
-  if(!confirm('Clear all saved content history?'))return;
-  savedHistory=[];
-  localStorage.removeItem('bs_history');
-  renderHistory();
-  toast('History cleared!','success');
-}
-// ═══ DOWNLOAD IMAGE from content ════════════════════════════
-function downloadContentAsImage(){
-  var content=document.getElementById('outBody').textContent||'';
-  if(!content){toast('No content to download!','error');return;}
-  var canvas=document.createElement('canvas');
-  canvas.width=1080;canvas.height=1080;
-  var ctx=canvas.getContext('2d');
-  // BG gradient
-  var grd=ctx.createLinearGradient(0,0,1080,1080);
-  grd.addColorStop(0,'#0f0f23');
-  grd.addColorStop(1,'#1a1a35');
-  ctx.fillStyle=grd;ctx.fillRect(0,0,1080,1080);
-  // Logo text
-  ctx.fillStyle='rgba(102,126,234,.4)';ctx.font='bold 28px Arial';ctx.fillText('BrandSutra AI',40,60);
-  // Content text
-  ctx.fillStyle='#f0f4ff';ctx.font='32px Arial';
-  var lines=content.split('
-').slice(0,14);
-  var y=140;
-  lines.forEach(function(line){
-    var wrapped=wrapText(ctx,line,40,1000);
-    wrapped.forEach(function(wl){ctx.fillText(wl,40,y);y+=46;});
-  });
-  // Download
-  canvas.toBlob(function(blob){
-    var a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='content-'+Date.now()+'.png';
-    a.click();
-    toast('Image downloaded!','success');
-  });
-}
-function wrapText(ctx,text,x,maxW){
-  var words=text.split(' ');var lines=[];var line='';
-  words.forEach(function(w){
-    var test=line+w+' ';
-    if(ctx.measureText(test).width>maxW&&line!=''){lines.push(line.trim());line=w+' ';}
-    else{line=test;}
-  });
-  if(line)lines.push(line.trim());
-  return lines.length?lines:[''];
-}
-
-// ═══ INIT CALLS ════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded',function(){
-  renderTemplates();
-});
-// Also call immediately in case DOM already loaded
-if(document.readyState!=='loading'){renderTemplates();}
-</script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -1466,6 +1141,245 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--ink);color
 </div>
 
 <script>
+// ═══ AI IMAGE GENERATOR ════════════════════════════════════
+var _lastImgPrompt='';
+function generateImage(){
+  var prompt=document.getElementById('imgPrompt').value.trim();
+  if(!prompt){toast('Enter image description!','error');return;}
+  var style=document.querySelector('#imgStyleG .on');
+  var styleVal=style?style.textContent.trim():'Realistic';
+  var fullPrompt=prompt+', '+styleVal+' style, high quality, professional, marketing image';
+  _lastImgPrompt=fullPrompt;
+  document.getElementById('imgGenTxt').textContent='Generating...';
+  document.getElementById('imgGenSpin').style.display='inline-block';
+  document.getElementById('imgGenBtn').disabled=true;
+  document.getElementById('imgResult').style.display='none';
+  // Use Pollinations.ai - free image generation API
+  var w=512,h=512;
+  var sizeEl=document.querySelector('#imgSizeG .on');
+  if(sizeEl){
+    var sz=sizeEl.textContent.trim();
+    if(sz.indexOf('Portrait')>-1){w=512;h=640;}
+    else if(sz.indexOf('Wide')>-1){w=768;h=432;}
+  }
+  var url='https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+Date.now();
+  var img=new Image();
+  img.onload=function(){
+    document.getElementById('genImgEl').src=url;
+    document.getElementById('imgResult').style.display='block';
+    document.getElementById('imgGenTxt').textContent='&#127912; Generate Image';
+    document.getElementById('imgGenSpin').style.display='none';
+    document.getElementById('imgGenBtn').disabled=false;
+    toast('Image generated!','success');
+  };
+  img.onerror=function(){
+    document.getElementById('imgGenTxt').textContent='&#127912; Generate Image';
+    document.getElementById('imgGenSpin').style.display='none';
+    document.getElementById('imgGenBtn').disabled=false;
+    toast('Generation failed. Try again!','error');
+  };
+  img.src=url;
+}
+function downloadGenImg(){
+  var src=document.getElementById('genImgEl').src;
+  if(!src){toast('No image to download!','error');return;}
+  fetch(src)
+    .then(function(r){return r.blob();})
+    .then(function(blob){
+      var a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='brandsutra-image-'+Date.now()+'.jpg';
+      a.click();
+      toast('Image downloaded!','success');
+    })
+    .catch(function(){
+      var a=document.createElement('a');
+      a.href=src;a.target='_blank';a.click();
+    });
+}
+function useImgForPost(){
+  var src=document.getElementById('genImgEl').src;
+  if(!src){return;}
+  toast('Image copied to post!','success');
+  showTab('autopost');
+}
+
+// ═══ HASHTAG GENERATOR ════════════════════════════════════
+var _hashtagBank={
+  fitness:['fitness','gym','workout','fitlife','health','exercise','motivation','fitnessgoals','bodybuilding','healthylifestyle','weightloss','fitnessmotivation','personaltrainer','yoga','wellness'],
+  ca:['CA','charteredaccountant','taxation','gst','incometax','finance','accounting','financemanager','audit','tds','itr','businessfinance','startup','investment','moneytips'],
+  food:['food','foodie','delicious','yummy','instafood','homemade','cooking','recipe','foodphotography','tasty','foodlover','chef','restaurant','streetfood','indianfood'],
+  realestate:['realestate','property','homeforsale','dreamhome','newhome','realtor','investment','apartment','house','luxuryhomes','propertyinvestment','buyingahome','realestateindia','construction','architecture'],
+  business:['business','entrepreneur','startup','smallbusiness','marketing','success','motivation','branding','digital','growyourbusiness','businessowner','leadership','innovation','hustle','goals'],
+  digital:['digitalmarketing','socialmedia','seo','contentmarketing','marketing','onlinemarketing','instagram','facebook','branding','smm','growth','growthhacking','leadgeneration','ads','strategy'],
+  education:['education','learning','students','study','knowledge','school','college','university','elearning','onlinecourses','skills','career','teacher','edtech','future'],
+  fashion:['fashion','style','ootd','outfit','clothes','trendy','fashionista','lifestyle','beauty','shopping','luxury','accessories','instafashion','streetstyle','designer']
+};
+function generateHashtags(){
+  var topic=document.getElementById('hashTopic').value.trim().toLowerCase();
+  if(!topic){toast('Enter a topic first!','error');return;}
+  var plat=document.getElementById('hashPlat').value;
+  var count=parseInt(document.getElementById('hashCount').value)||20;
+  var tags=[];
+  // Match topic to bank
+  for(var key in _hashtagBank){
+    if(topic.indexOf(key)>-1||key.indexOf(topic)>-1){
+      tags=tags.concat(_hashtagBank[key]);
+    }
+  }
+  // Add generic + topic-based tags
+  var topicTag=topic.replace(/\s+/g,'');
+  var extraTags=[topicTag,topicTag+'india',topicTag+'tips',topicTag+'life',topicTag+'expert',
+    'india','trending','viral','like','share','follow','instagram','explore','reels','motivated',
+    'smallbusiness','entrepreneur','success','growthmindset','dailymotivation','brandsutra'];
+  tags=tags.concat(extraTags);
+  // Remove dupes + limit
+  var unique=[];
+  tags.forEach(function(t){
+    var clean=t.replace(/[^a-zA-Z0-9_]/g,'');
+    if(clean&&unique.indexOf(clean)<0)unique.push(clean);
+  });
+  while(unique.length<count)unique.push(topicTag+(unique.length+1));
+  unique=unique.slice(0,count);
+  // Render
+  var container=document.getElementById('hashTags');
+  container.innerHTML=unique.map(function(t){
+    return '<span onclick="this.classList.toggle(\'sel\')" style="display:inline-block;padding:5px 11px;background:rgba(102,126,234,.12);border:1px solid rgba(102,126,234,.25);border-radius:50px;font-size:.7rem;color:#a78bfa;cursor:pointer;transition:all .15s">#'+t+'</span>';
+  }).join('');
+  document.getElementById('hashResult').style.display='block';
+  toast(count+' hashtags generated!','success');
+}
+function copyHashtags(){
+  var tags=document.querySelectorAll('#hashTags span');
+  var text=Array.from(tags).map(function(t){return t.textContent;}).join(' ');
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){toast('Hashtags copied!','success');});
+  }else{
+    var ta=document.createElement('textarea');
+    ta.value=text;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    toast('Hashtags copied!','success');
+  }
+}
+
+// ═══ CONTENT TEMPLATES ════════════════════════════════════
+var _templates=[
+  {icon:'&#127912;',name:'Festival Post',cat:'Instagram',content:'&#127881; Wishing you all a very Happy {festival}!\n\nMay this {festival} bring joy, prosperity & success to you and your family. &#128591;\n\nFrom all of us at {businessName} - thank you for your continued support!\n\n#{festival} #Festival #Celebration #India'},
+  {icon:'&#128176;',name:'Offer Post',cat:'Instagram',content:'&#128293; LIMITED TIME OFFER!\n\nGet {discount}% OFF on {service}!\n\n&#10003; Valid till {date}\n&#10003; Call: {phone}\n&#10003; Location: {location}\n\nDM us or click link in bio!\n\n#Offer #Sale #{businessName}'},
+  {icon:'&#128200;',name:'Success Story',cat:'LinkedIn',content:'Excited to share a milestone! &#127919;\n\nAt {businessName}, we recently helped a client achieve {result}.\n\nHere\'s what we did:\n&#10003; Step 1: {step1}\n&#10003; Step 2: {step2}\n&#10003; Step 3: {step3}\n\nLooking for {service}? Let\'s connect!\n\n#Success #BusinessGrowth'},
+  {icon:'&#128232;',name:'WhatsApp Broadcast',cat:'WhatsApp',content:'Hello {name}! &#128075;\n\nThis is {businessName}.\n\n&#127873; Special offer for you:\n{offer}\n\n&#10003; Valid till: {date}\n&#128222; Call/WhatsApp: {phone}\n\nReply YES to know more! &#128591;'},
+  {icon:'&#128640;',name:'Product Launch',cat:'Instagram',content:'&#128640; Introducing {productName}!\n\nWe\'re thrilled to launch our newest {category}.\n\n&#10024; Key Features:\n- {feature1}\n- {feature2}\n- {feature3}\n\n&#128176; Starting at just {price}!\n\nLink in bio to order. Limited stock! &#128293;\n\n#NewLaunch #{businessName}'},
+  {icon:'&#128161;',name:'Tips Post',cat:'Blog',content:'5 Tips for {topic} That Actually Work &#128161;\n\n1&#65039;&#8419; {tip1}\n\n2&#65039;&#8419; {tip2}\n\n3&#65039;&#8419; {tip3}\n\n4&#65039;&#8419; {tip4}\n\n5&#65039;&#8419; {tip5}\n\nSave this post! Which tip helped most? Comment below &#128071;\n\n#Tips #{topic}Tips'},
+  {icon:'&#11088;',name:'Testimonial',cat:'Instagram',content:'&#11088;&#11088;&#11088;&#11088;&#11088; Customer Love!\n\n"{testimonial}"\n\n- {clientName}, {clientCity}\n\nThank you for trusting {businessName}! &#128591;\n\nWant similar results? DM us today!\n\n#HappyCustomer #5Stars #Review'},
+  {icon:'&#128336;',name:'Reminder',cat:'WhatsApp',content:'&#128226; Reminder from {businessName}!\n\nDear {name},\n\nGentle reminder about: {reminder}\n\n&#128197; Deadline: {date}\n&#128222; Contact: {phone}\n\nPlease act before deadline.\n\nThank you! &#128591;'}
+];
+function renderTemplates(){
+  var grid=document.getElementById('templatesGrid');
+  if(!grid)return;
+  grid.innerHTML=_templates.map(function(t,i){
+    return '<div onclick="useTemplate('+i+')" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;cursor:pointer;transition:all .2s" ontouchstart="this.style.transform=\'scale(.96)\'" ontouchend="this.style.transform=\'scale(1)\'">'
+      +'<div style="font-size:1.6rem;margin-bottom:8px">'+t.icon+'</div>'
+      +'<div style="font-size:.78rem;font-weight:800;color:#f0f4ff;margin-bottom:4px;font-family:\'Syne\',sans-serif">'+t.name+'</div>'
+      +'<div style="font-size:.64rem;color:#8892b0;background:rgba(102,126,234,.1);border:1px solid rgba(102,126,234,.2);padding:2px 8px;border-radius:50px;display:inline-block">'+t.cat+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function useTemplate(i){
+  var t=_templates[i];
+  if(!t)return;
+  // Show template fill modal
+  document.getElementById('tplContent').value=t.content;
+  document.getElementById('tplName').textContent=t.name;
+  document.getElementById('templateMo').style.display='flex';
+}
+function useTemplateContent(){
+  var content=document.getElementById('tplContent').value;
+  document.getElementById('postContent').value=content;
+  document.getElementById('templateMo').style.display='none';
+  showTab('autopost');
+  toast('Template loaded in Auto Post!','success');
+}
+function copyTemplate(){
+  var content=document.getElementById('tplContent').value;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(content).then(function(){toast('Template copied!','success');});
+  }else{
+    var ta=document.createElement('textarea');
+    ta.value=content;document.body.appendChild(ta);ta.select();
+    document.execCommand('copy');document.body.removeChild(ta);
+    toast('Copied!','success');
+  }
+}
+
+// ═══ CONTENT HISTORY - ENHANCED ════════════════════════════
+var _histFilter='all';
+function filterHist(cat){
+  _histFilter=cat;
+  document.querySelectorAll('[id^="hf-"]').forEach(function(b){
+    b.style.background='rgba(255,255,255,.07)';
+    b.style.border='1px solid rgba(255,255,255,.12)';
+    b.style.color='var(--muted)';
+  });
+  var active=document.getElementById('hf-'+cat);
+  if(active){active.style.background='linear-gradient(135deg,#667eea,#764ba2)';active.style.border='none';active.style.color='white';}
+  renderHistory();
+}
+function clearAllHistory(){
+  if(!confirm('Clear all saved content history?'))return;
+  savedHistory=[];
+  localStorage.removeItem('bs_history');
+  renderHistory();
+  toast('History cleared!','success');
+}
+// ═══ DOWNLOAD IMAGE from content ════════════════════════════
+function downloadContentAsImage(){
+  var content=document.getElementById('outBody').textContent||'';
+  if(!content){toast('No content to download!','error');return;}
+  var canvas=document.createElement('canvas');
+  canvas.width=1080;canvas.height=1080;
+  var ctx=canvas.getContext('2d');
+  // BG gradient
+  var grd=ctx.createLinearGradient(0,0,1080,1080);
+  grd.addColorStop(0,'#0f0f23');
+  grd.addColorStop(1,'#1a1a35');
+  ctx.fillStyle=grd;ctx.fillRect(0,0,1080,1080);
+  // Logo text
+  ctx.fillStyle='rgba(102,126,234,.4)';ctx.font='bold 28px Arial';ctx.fillText('BrandSutra AI',40,60);
+  // Content text
+  ctx.fillStyle='#f0f4ff';ctx.font='32px Arial';
+  var lines=content.split('\n').slice(0,14);
+  var y=140;
+  lines.forEach(function(line){
+    var wrapped=wrapText(ctx,line,40,1000);
+    wrapped.forEach(function(wl){ctx.fillText(wl,40,y);y+=46;});
+  });
+  // Download
+  canvas.toBlob(function(blob){
+    var a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='content-'+Date.now()+'.png';
+    a.click();
+    toast('Image downloaded!','success');
+  });
+}
+function wrapText(ctx,text,x,maxW){
+  var words=text.split(' ');var lines=[];var line='';
+  words.forEach(function(w){
+    var test=line+w+' ';
+    if(ctx.measureText(test).width>maxW&&line!=''){lines.push(line.trim());line=w+' ';}
+    else{line=test;}
+  });
+  if(line)lines.push(line.trim());
+  return lines.length?lines:[''];
+}
+
+// ═══ INIT CALLS ════════════════════════════════════════════
+document.addEventListener('DOMContentLoaded',function(){
+  renderTemplates();
+});
+// Also call immediately in case DOM already loaded
+if(document.readyState!=='loading'){renderTemplates();}
 const SERVER='https://brandsutra-backend-production.up.railway.app';
 const GID='569411051375-io160ks712huh0fnq04frcca6sg9mfjb.apps.googleusercontent.com';
 const RZP_PLANS={pro:'plan_SNDjIwfxc1JJWW',agency:'plan_SNDlAsEe5YKyLo'};
