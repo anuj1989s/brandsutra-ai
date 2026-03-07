@@ -2360,6 +2360,17 @@ function showAdOutput(raw) {
       +'<div style="padding:14px 16px 16px">'
       +(f.body ? '<p style="font-size:.85rem;color:#374151;line-height:1.75;margin:0 0 12px">'+f.body+'</p>' : '')
       +(f.cta  ? '<span style="display:inline-block;background:'+color+';color:#fff;font-size:.75rem;font-weight:800;padding:9px 22px;border-radius:50px;font-family:Syne,sans-serif">'+f.cta+' →</span>' : '')
+      // Action buttons row — use adCount as key, store data in JS object
+      +(function(){
+        var key = 'ad_'+adCount+'_'+Date.now();
+        window._adData = window._adData || {};
+        window._adData[key] = {h:f.headline, b:f.body, c:f.cta, color:color, platform:plat.toUpperCase()+' AD '+adCount, plat:plat};
+        return '<div style="display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid #f3f4f6">'
+          +'<button onclick="copyAdCard(\''+key+'\')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#f0f4ff;border:1px solid rgba(79,70,229,.2);border-radius:10px;padding:9px 8px;font-size:.72rem;font-weight:700;color:#4f46e5;cursor:pointer;font-family:Syne,sans-serif">📋 Copy</button>'
+          +'<button onclick="downloadAdCard(\''+key+'\')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:#f0f4ff;border:1px solid rgba(79,70,229,.2);border-radius:10px;padding:9px 8px;font-size:.72rem;font-weight:700;color:#4f46e5;cursor:pointer;font-family:Syne,sans-serif">⬇ Image</button>'
+          +'<button onclick="openPlatform(\''+plat+'\')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:'+color+';border:none;border-radius:10px;padding:9px 8px;font-size:.72rem;font-weight:700;color:#fff;cursor:pointer;font-family:Syne,sans-serif">🚀 Post</button>'
+          +'</div>';
+      })()
       +'</div></div>';
   });
 
@@ -2372,6 +2383,134 @@ function showAdOutput(raw) {
   toast('Ad copies ready! 🎯','success');
 }
 
+
+function copyAdCard(key) {
+  var d = (window._adData||{})[key];
+  if(!d) return;
+  var text = (d.h ? 'Headline: '+d.h+'\n' : '') + (d.b ? 'Body: '+d.b+'\n' : '') + (d.c ? 'CTA: '+d.c : '');
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function(){
+      toast('Ad copy copied! 📋','success');
+    });
+  } else {
+    toast('Copy: '+text,'success');
+  }
+}
+
+function downloadAdCard(key) {
+  var d = (window._adData||{})[key];
+  if(!d) return;
+  var h = d.h||'';
+  var b = d.b||'';
+  var c = d.c||'';
+  var color = d.color||'#4f46e5';
+  var platform = d.platform||'AD';
+
+  var canvas = document.createElement('canvas');
+  canvas.width = 1080;
+  canvas.height = 1080;
+  var ctx = canvas.getContext('2d');
+
+  // Background gradient
+  var grd = ctx.createLinearGradient(0, 0, 1080, 1080);
+  grd.addColorStop(0, color);
+  grd.addColorStop(1, color + '99');
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, 1080, 1080);
+
+  // White card overlay
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath();
+  ctx.roundRect(60, 60, 960, 960, 30);
+  ctx.fill();
+
+  // Platform badge
+  ctx.fillStyle = 'rgba(255,255,255,0.25)';
+  ctx.beginPath();
+  ctx.roundRect(80, 80, platform.length*14+40, 50, 25);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 22px Arial';
+  ctx.fillText(platform, 100, 114);
+
+  // Headline
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 68px Arial';
+  var hWords = h.split(' ');
+  var hLines = [];
+  var hLine = '';
+  hWords.forEach(function(w){
+    var test = hLine + (hLine?' ':'') + w;
+    if(ctx.measureText(test).width > 900) { hLines.push(hLine); hLine = w; }
+    else hLine = test;
+  });
+  if(hLine) hLines.push(hLine);
+  var hY = 320;
+  hLines.forEach(function(l){ ctx.fillText(l, 90, hY); hY += 80; });
+
+  // Divider line
+  ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(90, hY + 20);
+  ctx.lineTo(990, hY + 20);
+  ctx.stroke();
+
+  // Body text
+  ctx.fillStyle = 'rgba(255,255,255,0.9)';
+  ctx.font = '34px Arial';
+  var bWords = b.split(' ');
+  var bLines = [];
+  var bLine = '';
+  bWords.forEach(function(w){
+    var test = bLine + (bLine?' ':'') + w;
+    if(ctx.measureText(test).width > 900) { bLines.push(bLine); bLine = w; }
+    else bLine = test;
+  });
+  if(bLine) bLines.push(bLine);
+  var bY = hY + 70;
+  bLines.slice(0,4).forEach(function(l){ ctx.fillText(l, 90, bY); bY += 50; });
+
+  // CTA button
+  if(c) {
+    var ctaW = ctx.measureText(c + ' →').width + 80;
+    ctx.fillStyle = 'rgba(255,255,255,0.25)';
+    ctx.beginPath();
+    ctx.roundRect(90, 900, ctaW, 70, 35);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 32px Arial';
+    ctx.fillText(c + ' →', 130, 943);
+  }
+
+  // BrandSutra watermark
+  ctx.fillStyle = 'rgba(255,255,255,0.5)';
+  ctx.font = '24px Arial';
+  ctx.fillText('Made with BrandSutra AI', 90, 1030);
+
+  // Download
+  canvas.toBlob(function(blob){
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'ad-' + platform.replace(/\s+/g,'-').toLowerCase() + '-' + Date.now() + '.png';
+    a.click();
+    toast('Ad image downloaded! 🎨','success');
+  });
+}
+
+function openPlatform(plat) {
+  var urls = {
+    google: 'https://ads.google.com/home/',
+    facebook: 'https://www.facebook.com/adsmanager',
+    instagram: 'https://www.facebook.com/adsmanager',
+    linkedin: 'https://www.linkedin.com/campaignmanager/',
+    twitter: 'https://ads.twitter.com/',
+    youtube: 'https://ads.google.com/home/'
+  };
+  var url = urls[plat] || 'https://ads.google.com/home/';
+  window.open(url, '_blank');
+  toast('Opening ' + plat + ' Ads Manager...','success');
+}
 
 function generateLocalAd(plat,biz,obj,aud,usp,vars) {
   var result = '';
