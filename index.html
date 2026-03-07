@@ -1106,7 +1106,7 @@ html,body{height:100%;background:var(--ink);color:var(--text);font-family:'DM Sa
 
 <!-- ══ CONNECT MODAL ══ -->
 <div class="modal-overlay" id="connectMo" onclick="if(event.target===this)closeConnMo()">
-  <div class="modal-sheet">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
     <div style="text-align:center;margin-bottom:20px">
       <div id="cmIcon" style="width:56px;height:56px;border-radius:16px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;overflow:hidden"></div>
@@ -1136,16 +1136,17 @@ html,body{height:100%;background:var(--ink);color:var(--text);font-family:'DM Sa
 </div>
 
 <!-- ══ TEMPLATE MODAL ══ -->
-<div class="modal-overlay" id="templateMo" onclick="if(event.target===this)this.style.display='none'">
-  <div class="modal-sheet">
+<div class="modal-overlay" id="templateMo" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
-    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;text-align:center;margin-bottom:16px">📋 <span id="tplName">Template</span></div>
-    <textarea id="tplContent" rows="10" class="fi" style="resize:vertical;line-height:1.65;margin-bottom:16px"></textarea>
+    <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;text-align:center;margin-bottom:16px"><span id="tplName">Template</span></div>
+    <div id="tplFields" style="display:none;background:rgba(102,126,234,.06);border:1px solid rgba(102,126,234,.2);border-radius:12px;padding:12px;margin-bottom:12px"></div>
+    <textarea id="tplContent" rows="8" class="fi" style="resize:vertical;line-height:1.65;margin-bottom:16px"></textarea>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
       <button class="oab accent" style="padding:13px" onclick="copyTemplate()">📋 Copy</button>
       <button class="btn-login" style="margin:0" onclick="useTemplateContent()">⚡ Use in Post</button>
     </div>
-    <button onclick="document.getElementById('templateMo').style.display='none'" style="width:100%;padding:12px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:12px;font-size:.82rem;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel</button>
+    <button onclick="document.getElementById('templateMo').classList.remove('open')" style="width:100%;padding:12px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:12px;font-size:.82rem;cursor:pointer;font-family:'DM Sans',sans-serif">Cancel</button>
   </div>
 </div>
 
@@ -1861,9 +1862,66 @@ function useTemplate(i) {
   var cont = document.getElementById('tplContent');
   var nm = document.getElementById('tplName');
   var mo = document.getElementById('templateMo');
-  if(cont) cont.value = t.content;
-  if(nm) nm.textContent = t.name;
+  var tplFields = document.getElementById('tplFields');
+
+  // Auto-fill businessName
+  var raw = t.content;
+  var bizName = currentUser ? (currentUser.bizName || currentUser.name || '') : '';
+  if(bizName) raw = raw.replace(/{businessName}/g, bizName);
+
+  if(cont) cont.value = raw;
+  if(nm) nm.textContent = t.icon + ' ' + t.name;
+
+  // Find remaining placeholders
+  var remaining = [];
+  var seen = {};
+  var regex = /{([^}]+)}/g;
+  var m;
+  while((m = regex.exec(raw)) !== null){
+    if(!seen[m[0]]){ seen[m[0]]=true; remaining.push(m[0]); }
+  }
+
+  if(tplFields){
+    if(remaining.length){
+      tplFields.style.display = 'block';
+      tplFields.innerHTML = '<div style="font-size:.68rem;font-weight:700;color:var(--violet-l);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px">✏️ Fill in the blanks</div>' +
+        remaining.map(function(ph){
+          var key = ph.replace(/[{}]/g,'');
+          var label = key.replace(/([A-Z])/g,' $1').replace(/^./,function(s){return s.toUpperCase();});
+          return '<div style="margin-bottom:8px">' +
+            '<label style="font-size:.68rem;color:var(--muted);display:block;margin-bottom:4px">' + label + '</label>' +
+            '<input class="inp" data-ph="' + ph + '" data-tpl="' + i + '" placeholder="Enter ' + label + '" oninput="fillTplPh(this)" style="font-size:.82rem;padding:10px 12px">' +
+          '</div>';
+        }).join('');
+    } else {
+      tplFields.style.display = 'none';
+      tplFields.innerHTML = '';
+    }
+  }
+
   if(mo) mo.classList.add('open');
+}
+
+function fillTplPh(inp) {
+  var tplIdx = parseInt(inp.dataset.tpl);
+  var t = _templates[tplIdx];
+  var cont = document.getElementById('tplContent');
+  if(!cont || !t) return;
+
+  var raw = t.content;
+  var bizName = currentUser ? (currentUser.bizName || currentUser.name || '') : '';
+  if(bizName) raw = raw.replace(/{businessName}/g, bizName);
+
+  // Apply all filled inputs for this template
+  var allInputs = document.querySelectorAll('#tplFields input[data-ph]');
+  allInputs.forEach(function(el){
+    if(el.value.trim()){
+      var ph = el.dataset.ph.replace(/[{}]/g,'');
+      var re = new RegExp('{' + ph + '}', 'g');
+      raw = raw.replace(re, el.value.trim());
+    }
+  });
+  cont.value = raw;
 }
 function copyTemplate() {
   var c = (document.getElementById('tplContent')||{}).value||'';
@@ -1997,7 +2055,16 @@ function togglePlat(p) {
 }
 var currentConnPlatform = '';
 function connectPlatform(p) {
-  if(connectedAccounts[p]){ toast(PLATFORMS[p].name+' already connected! ✓','success'); return; }
+  // Allow reconnect - if already connected show option to disconnect
+  if(connectedAccounts[p]){
+    if(confirm('Disconnect '+PLATFORMS[p].name+'?')){
+      delete connectedAccounts[p];
+      localStorage.setItem('bs_connected',JSON.stringify(connectedAccounts));
+      renderConnectRow();
+      toast(PLATFORMS[p].name+' disconnected','success');
+    }
+    return;
+  }
   currentConnPlatform = p;
   var pl = PLATFORMS[p];
   var icon=document.getElementById('cmIcon'), title=document.getElementById('cmTitle'), sub=document.getElementById('cmSub');
@@ -2012,7 +2079,7 @@ function connectPlatform(p) {
   if(btn) btn.style.background = pl.bg;
   ['cmStep1','cmStep2','cmStep3'].forEach(function(id){ var e=document.getElementById(id); if(e) e.classList.remove('active'); });
   var s1=document.getElementById('cmStep1'); if(s1) s1.classList.add('active');
-  var mo=document.getElementById('connectMo'); if(mo) mo.classList.add('open');
+  var mo=document.getElementById('connectMo'); if(mo){ mo.style.display='flex'; mo.classList.add('open'); }
 }
 function doConnect() {
   var val=(document.getElementById('cmInput')||{}).value||'';
@@ -2124,7 +2191,7 @@ function showEditProfile() {
     if(ep) ep.value=currentUser.phone||'';
     if(ec) ec.value=currentUser.city||'';
   }
-  var mo=document.getElementById('editProfMo'); if(mo) mo.classList.add('open');
+  var mo=document.getElementById('editProfMo'); if(mo){ mo.style.display='flex'; mo.classList.add('open'); }
 }
 function saveEditProfile() {
   var name=(document.getElementById('epName')||{}).value||'';
