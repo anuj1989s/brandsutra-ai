@@ -1766,57 +1766,40 @@ function generate() {
 function autoGenImageForPost(content) {
   var el = document.getElementById('genImgEl');
   var result = document.getElementById('imgResult');
-  var imgBtn = document.getElementById('imgGenBtn');
   var imgTxt = document.getElementById('imgGenTxt');
   var imgSpin = document.getElementById('imgGenSpin');
+  var imgBtn = document.getElementById('imgGenBtn');
   if(!el) return;
   var biz = (document.getElementById('bizName')||{}).value||'business';
   var svc = (document.getElementById('service')||{}).value||'services';
   var loc = (document.getElementById('location')||{}).value||'India';
-  var tool = TOOLS[selTool] ? TOOLS[selTool].n : 'marketing';
+  var styleMap = {'Realistic':'professional photography, natural lighting','Minimalist':'minimal clean design, white background','Vibrant':'vibrant colors, bold, eye-catching','3D Art':'3d render, cinematic'};
   var style = (document.querySelector('#imgStyleG .on')||{textContent:'Realistic'}).textContent.trim();
-  var styleMap = {
-    'Realistic':'photorealistic professional photography, 4k sharp, natural lighting',
-    'Minimalist':'clean minimal design, soft background, elegant composition',
-    'Vibrant':'vibrant colorful digital art, bold punchy colors, eye-catching',
-    '3D Art':'3d render, octane render, cinematic lighting, professional'
-  };
-  var styleStr = styleMap[style] || 'professional high quality';
-  var imgPrompt = biz + ' ' + svc + ' in ' + loc + ', ' + styleStr + ', Indian business marketing visual, no text, commercial photography';
+  var styleStr = styleMap[style]||'professional';
+  var p = encodeURIComponent(biz+' '+svc+' '+loc+' business, '+styleStr+', marketing image, no text');
   var seed = Math.floor(Math.random()*99999);
+  var url = 'https://image.pollinations.ai/prompt/'+p+'?width=512&height=512&nologo=true&seed='+seed;
   
   if(result) result.style.display = 'none';
-  if(imgBtn) imgBtn.disabled = true;
-  if(imgTxt) imgTxt.textContent = 'Generating image...';
+  if(imgTxt) imgTxt.textContent = 'AI image loading...';
   if(imgSpin) imgSpin.style.display = 'block';
-
-  // Set a timeout — pollinations can be slow
-  var loaded = false;
-  var timer = setTimeout(function(){
-    if(!loaded) {
-      // Try without enhance flag on timeout
-      var url2 = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(imgPrompt)+'?width=512&height=512&nologo=true&seed='+(seed+1);
-      el.src = url2;
-    }
-  }, 8000);
+  if(imgBtn) imgBtn.disabled = true;
 
   el.onload = function(){
-    loaded = true;
-    clearTimeout(timer);
     if(result) result.style.display = 'block';
-    if(imgBtn) imgBtn.disabled = false;
     if(imgTxt) imgTxt.textContent = '🎨 Generate Image';
     if(imgSpin) imgSpin.style.display = 'none';
+    if(imgBtn) imgBtn.disabled = false;
   };
   el.onerror = function(){
-    loaded = true;
-    clearTimeout(timer);
-    if(imgBtn) imgBtn.disabled = false;
     if(imgTxt) imgTxt.textContent = '🎨 Generate Image';
     if(imgSpin) imgSpin.style.display = 'none';
+    if(imgBtn) imgBtn.disabled = false;
+    // silent fail on auto-gen — user can manually retry
   };
-  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(imgPrompt)+'?width=512&height=512&nologo=true&model=flux&seed='+seed;
-  el.src = url;
+  // Add cache buster + use simpler URL (no model param = faster)
+  el.src = '';
+  setTimeout(function(){ el.src = url; }, 100);
 }
 
 function finishGenerate(content) {
@@ -2010,20 +1993,9 @@ function generateImage() {
   if(result) result.style.display = 'none';
 
   var seed = Math.floor(Math.random()*99999);
-  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&model=flux&seed='+seed;
-  
-  var loaded2 = false;
-  var timer2 = setTimeout(function(){
-    if(!loaded2 && el) {
-      var url2 = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+(seed+1);
-      el.src = url2;
-    }
-  }, 10000);
-
+  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+seed;
   if(el) {
     el.onload = function(){
-      loaded2 = true;
-      clearTimeout(timer2);
       if(result) result.style.display = 'block';
       if(btn) btn.disabled = false;
       if(spin) spin.style.display = 'none';
@@ -2031,14 +2003,18 @@ function generateImage() {
       toast('Image ready! 🎨','success');
     };
     el.onerror = function(){
-      loaded2 = true;
-      clearTimeout(timer2);
       if(btn) btn.disabled = false;
       if(spin) spin.style.display = 'none';
       if(txt) txt.textContent = '🎨 Generate Image';
-      toast('Image server busy — try again!','error');
+      // Retry with different seed
+      var url2 = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+(seed+111);
+      el.onerror = function(){
+        toast('Image server busy — try again in a moment!','error');
+      };
+      el.src = url2;
     };
-    el.src = url;
+    el.src = '';
+    setTimeout(function(){ el.src = url; }, 50);
   }
 }
 function downloadGenImg() {
@@ -2240,9 +2216,18 @@ function parseAdCards(text) {
 
 function extractField(block, keys) {
   for(var i=0;i<keys.length;i++){
-    var re = new RegExp(keys[i]+'\\s*[:\-]?\\s*(.+)', 'i');
-    var m = block.match(re);
-    if(m) return m[1].replace(/\*\*/g,'').trim();
+    var key = keys[i];
+    // Try direct line match: "Key: value" or "**Key:** value"
+    var lines = block.split('\n');
+    for(var j=0;j<lines.length;j++){
+      var line = lines[j].replace(/\*\*/g,'').trim();
+      var lc = line.toLowerCase();
+      var kc = key.toLowerCase();
+      if(lc.indexOf(kc) === 0) {
+        var val = line.substring(key.length).replace(/^[:\-\s]+/,'').trim();
+        if(val) return val;
+      }
+    }
   }
   return '';
 }
@@ -2267,54 +2252,96 @@ function adPlatIcon(plat) {
   return icons[plat] || '📣';
 }
 
-function showAdOutput(content) {
+function showAdOutput(raw) {
   var wrap = document.getElementById('adCardsWrap');
   var card = document.getElementById('adOutCard');
   if(!wrap||!card) return;
 
   var plat = selAdPlatformId || 'google';
-  var color = platformColor(plat);
-  var icon = adPlatIcon(plat);
-  var blocks = parseAdCards(content);
-  var lastAdContent = content;
+  var colors = {google:'#4285F4',facebook:'#1877F2',instagram:'#E1306C',linkedin:'#0A66C2',twitter:'#1DA1F2',youtube:'#FF0000'};
+  var icons  = {google:'🔍',facebook:'📘',instagram:'📸',linkedin:'💼',twitter:'🐦',youtube:'▶️'};
+  var color  = colors[plat] || '#4f46e5';
+  var icon   = icons[plat]  || '📣';
+
+  // ── Smart parser: split into variation blocks ──
+  var blocks = [];
+  // Try splitting on ## Variation N or Variation N: patterns
+  var parts = raw.split(/(?=\n\s*##\s*Variation|\n\s*Variation\s*\d|\n---+)/i);
+  parts.forEach(function(p){ if(p.trim().length > 20) blocks.push(p.trim()); });
+  if(blocks.length < 2) {
+    // Fallback: split on double newline + Headline
+    blocks = raw.split(/\n\n(?=\*?\*?Headline)/i);
+    if(blocks.length < 2) blocks = [raw]; // just show as one
+  }
+
+  var bizName = (document.getElementById('adBiz')||{}).value || 'Business';
 
   var html2 = '';
   blocks.forEach(function(block, idx) {
-    var headline = extractField(block, ['\\*\\*Headline\\*\\*','Headline']);
-    var body     = extractField(block, ['\\*\\*Body\\*\\*','\\*\\*Description\\*\\*','Body','Description']);
-    var cta      = extractField(block, ['\\*\\*CTA\\*\\*','\\*\\*Call to Action\\*\\*','CTA','Call to Action']);
-    var why      = extractField(block, ['\\*\\*Why it works\\*\\*','Why it works','Why']);
+    // Parse fields with simple line scanner
+    var lines = block.split('\n');
+    var headline='', body='', cta='', why='';
+    lines.forEach(function(line){
+      var clean = line.replace(/\*\*/g,'').replace(/^#+\s*/,'').trim();
+      var lc = clean.toLowerCase();
+      if(!headline && (lc.startsWith('headline:') || lc.startsWith('headline ')))
+        headline = clean.replace(/^headline[:\s]*/i,'').trim();
+      else if(!body && (lc.startsWith('body:') || lc.startsWith('description:') || lc.startsWith('body ') || lc.startsWith('description ')))
+        body = clean.replace(/^(body|description)[:\s]*/i,'').trim();
+      else if(!cta && (lc.startsWith('cta:') || lc.startsWith('call to action:') || lc.startsWith('cta ')))
+        cta = clean.replace(/^(cta|call to action)[:\s]*/i,'').trim();
+      else if(!why && (lc.startsWith('why') && lc.includes(':')))
+        why = clean.replace(/^why[^:]*:[\s]*/i,'').trim();
+    });
 
-    if(!headline && !body) {
-      // Fallback: show raw block nicely
-      html2 += '<div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid var(--border)"><div style="font-size:.82rem;color:var(--text);line-height:1.7">' + mdToHtml(block) + '</div></div>';
-      return;
+    // If still no headline found, use first non-empty non-header line
+    if(!headline) {
+      for(var k=0;k<lines.length;k++){
+        var l=lines[k].replace(/\*\*/g,'').replace(/^#+\s*/,'').replace(/^Variation\s*\d+:?/i,'').trim();
+        if(l.length>5 && !l.toLowerCase().startsWith('body') && !l.toLowerCase().startsWith('cta') && !l.toLowerCase().startsWith('why')){
+          headline=l; break;
+        }
+      }
+    }
+    if(!body) {
+      // grab second substantial line
+      var count=0;
+      for(var k=0;k<lines.length;k++){
+        var l=lines[k].replace(/\*\*/g,'').trim();
+        if(l.length>10){
+          count++;
+          if(count===2){body=l;break;}
+        }
+      }
     }
 
-    // Generate a matching background image via Pollinations for each ad
-    var bizName = (document.getElementById('adBiz')||{}).value || 'Business';
-    var imgQ = encodeURIComponent('professional ' + plat + ' advertisement visual for ' + bizName + ', ' + (headline||'') + ', modern marketing, vibrant, high quality');
-    var imgUrl = 'https://image.pollinations.ai/prompt/' + imgQ + '?width=600&height=280&nologo=true&seed=' + (idx+1) * 777;
+    if(!headline && !body) return; // skip empty
 
-    html2 += '<div class="adcard" style="background:var(--surface);border-radius:18px;overflow:hidden;margin-bottom:16px;box-shadow:0 4px 20px rgba(79,70,229,.1);border:1px solid var(--border)">'
-      // Image banner
-      + '<div style="height:160px;background:linear-gradient(135deg,'+color+'22,'+color+'44);position:relative;overflow:hidden">'
-      + '<img src="' + imgUrl + '" id="adimg'+idx+'" style="width:100%;height:100%;object-fit:cover;opacity:.85" onload="this.style.opacity=1" onerror="this.remove()">'
-      + '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,.5))">'
-      + '<div style="position:absolute;top:12px;left:12px;background:'+color+';color:white;font-size:.65rem;font-weight:800;padding:4px 10px;border-radius:50px;font-family:Syne,sans-serif">' + icon + ' ' + plat.toUpperCase() + ' AD</div>'
-      + '<div style="position:absolute;bottom:12px;left:12px;right:12px;color:white;font-family:Syne,sans-serif;font-size:1rem;font-weight:900;line-height:1.3;text-shadow:0 1px 4px rgba(0,0,0,.5)">' + (headline||'') + '</div>'
-      + '</div></div>'
-      // Body
-      + '<div style="padding:14px 16px">'
-      + (body ? '<p style="font-size:.82rem;color:#4b5563;line-height:1.65;margin:0 0 10px">' + body + '</p>' : '')
-      + (cta ? '<div style="display:inline-block;background:'+color+';color:white;font-size:.72rem;font-weight:800;padding:7px 18px;border-radius:50px;font-family:Syne,sans-serif;margin-bottom:10px">' + cta + ' →</div>' : '')
-      + (why ? '<div style="background:rgba(79,70,229,.05);border-left:3px solid '+color+';padding:8px 12px;border-radius:0 8px 8px 0;font-size:.72rem;color:#6b7280;line-height:1.5"><b style="color:'+color+'">💡 Why it works:</b> ' + why + '</div>' : '')
-      + '</div></div>';
+    // Build image URL per ad
+    var imgSeed = (idx+1)*1337 + Math.floor(Math.random()*500);
+    var imgQ = encodeURIComponent(bizName+' '+plat+' advertisement, professional marketing visual, '+color+' theme, modern, Indian business, no text');
+    var imgUrl = 'https://image.pollinations.ai/prompt/'+imgQ+'?width=600&height=240&nologo=true&seed='+imgSeed;
+
+    html2 +=
+      '<div style="background:var(--surface);border-radius:18px;overflow:hidden;margin-bottom:18px;box-shadow:0 4px 24px rgba(79,70,229,.10);border:1px solid var(--border)">'
+      // Banner with gradient + image
+      +'<div style="height:150px;background:linear-gradient(135deg,'+color+'40,'+color+'80);position:relative;overflow:hidden">'
+      +'<img src="'+imgUrl+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6" onerror="this.remove()">'
+      +'<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 20%,rgba(0,0,0,.65))">'
+      +'<span style="position:absolute;top:10px;left:12px;background:'+color+';color:#fff;font-size:.6rem;font-weight:800;padding:3px 10px;border-radius:50px;font-family:Syne,sans-serif;letter-spacing:.06em">'+icon+' '+plat.toUpperCase()+' AD</span>'
+      +(headline?'<div style="position:absolute;bottom:12px;left:12px;right:12px;color:#fff;font-family:Syne,sans-serif;font-size:.95rem;font-weight:900;line-height:1.35;text-shadow:0 2px 8px rgba(0,0,0,.7)">'+headline+'</div>':'')
+      +'</div></div>'
+      // Content
+      +'<div style="padding:14px 16px">'
+      +(body?'<p style="font-size:.83rem;color:#4b5563;line-height:1.7;margin:0 0 12px">'+body+'</p>':'')
+      +(cta?'<a style="display:inline-block;background:'+color+';color:#fff;font-size:.72rem;font-weight:800;padding:8px 20px;border-radius:50px;font-family:Syne,sans-serif;text-decoration:none;margin-bottom:10px">'+cta+' →</a>':'')
+      +(why?'<div style="background:rgba(79,70,229,.05);border-left:3px solid '+color+';padding:8px 12px;border-radius:0 8px 8px 0;font-size:.72rem;color:#6b7280;margin-top:4px"><b style="color:'+color+'">💡 </b>'+why+'</div>':'')
+      +'</div></div>';
   });
 
-  wrap.innerHTML = html2 || '<div style="padding:16px;color:var(--muted);font-size:.82rem">' + mdToHtml(content) + '</div>';
+  wrap.innerHTML = html2 || '<div style="padding:16px;font-size:.83rem;line-height:1.7;color:var(--text)">'+raw.replace(/\n/g,'<br>')+'</div>';
   card.style.display = 'block';
-  card.scrollIntoView({behavior:'smooth',block:'start'});
+  card.scrollIntoView({behavior:'smooth', block:'start'});
   credits = Math.max(0, credits-1);
   if(currentUser){ currentUser.credits=credits; localStorage.setItem('bs_user',JSON.stringify(currentUser)); }
   updateUI();
