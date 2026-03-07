@@ -1040,25 +1040,66 @@ html,body{height:100%;background:var(--ink);color:var(--text);font-family:'DM Sa
 
 <!-- ══ PLAN MODAL ══ -->
 <div class="modal-overlay" id="planModal" onclick="if(event.target===this)this.classList.remove('open')">
-  <div class="modal-sheet">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
     <div class="sheet-handle"></div>
-    <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:900;text-align:center;margin-bottom:20px">Choose Your Plan 🚀</div>
-    <div class="plan-card" onclick="selectPlan('free')">
-      <div class="plan-name">Free</div>
+    <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:900;text-align:center;margin-bottom:6px">Choose Your Plan 🚀</div>
+    <div style="font-size:.75rem;color:var(--muted);text-align:center;margin-bottom:20px">Upgrade to unlock more credits & features</div>
+
+    <!-- FREE PLAN -->
+    <div class="plan-card" id="plan-free" onclick="highlightPlan('free')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="plan-name">Free</div>
+        <div id="check-free" style="display:none;width:22px;height:22px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:.7rem;color:white">✓</div>
+      </div>
       <div class="plan-price">₹0 <small>/ month</small></div>
-      <ul class="plan-features"><li>10 credits / month</li><li>All 9 content types</li><li>Hashtag generator</li><li>Content templates</li><li>AI Image generator</li></ul>
+      <ul class="plan-features">
+        <li>10 credits / month</li>
+        <li>All 9 content types</li>
+        <li>Hashtag generator</li>
+        <li>Content templates</li>
+        <li>AI Image generator</li>
+      </ul>
     </div>
-    <div class="plan-card popular" onclick="selectPlan('pro')">
-      <div class="plan-badge">Most Popular ⭐</div>
-      <div class="plan-name">Pro</div>
-      <div class="plan-price">₹999 <small>/ month</small></div>
-      <ul class="plan-features"><li>200 credits / month</li><li>Everything in Free</li><li>Ad Studio access</li><li>Auto Post scheduler</li><li>Priority AI generation</li><li>Download as PDF/Image</li></ul>
+
+    <!-- PRO PLAN -->
+    <div class="plan-card popular" id="plan-pro" onclick="highlightPlan('pro')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div>
+          <div class="plan-badge">Most Popular ⭐</div>
+          <div class="plan-name">Pro</div>
+        </div>
+        <div id="check-pro" style="display:none;width:22px;height:22px;border-radius:50%;background:var(--grad);align-items:center;justify-content:center;font-size:.7rem;color:white">✓</div>
+      </div>
+      <div class="plan-price">₹499 <small>/ month</small></div>
+      <ul class="plan-features">
+        <li>200 credits / month</li>
+        <li>Everything in Free</li>
+        <li>Ad Studio access</li>
+        <li>Auto Post scheduler</li>
+        <li>Priority AI generation</li>
+        <li>Download as PDF/Image</li>
+      </ul>
     </div>
-    <div class="plan-card" onclick="selectPlan('agency')">
-      <div class="plan-name">Agency</div>
-      <div class="plan-price">₹2,499 <small>/ month</small></div>
-      <ul class="plan-features"><li>Unlimited credits</li><li>Everything in Pro</li><li>5 team members</li><li>White-label reports</li><li>Dedicated support</li><li>Custom branding</li></ul>
+
+    <!-- AGENCY PLAN -->
+    <div class="plan-card" id="plan-agency" onclick="highlightPlan('agency')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="plan-name">Agency</div>
+        <div id="check-agency" style="display:none;width:22px;height:22px;border-radius:50%;background:var(--grad);align-items:center;justify-content:center;font-size:.7rem;color:white">✓</div>
+      </div>
+      <div class="plan-price">₹1,499 <small>/ month</small></div>
+      <ul class="plan-features">
+        <li>Unlimited credits</li>
+        <li>Everything in Pro</li>
+        <li>5 team members</li>
+        <li>White-label reports</li>
+        <li>Dedicated support</li>
+        <li>Custom branding</li>
+      </ul>
     </div>
+
+    <!-- CTA Buttons -->
+    <button id="planUpgradeBtn" onclick="confirmPlanSelect()" style="width:100%;padding:15px;background:var(--grad);border:none;border-radius:14px;color:white;font-family:'Syne',sans-serif;font-size:.9rem;font-weight:800;cursor:pointer;margin-top:12px;display:none">Get Started →</button>
     <button onclick="document.getElementById('planModal').classList.remove('open')" style="width:100%;padding:14px;background:transparent;color:var(--muted);border:1px solid var(--border);border-radius:14px;font-family:'Syne',sans-serif;font-size:.85rem;cursor:pointer;margin-top:10px">Maybe Later</button>
   </div>
 </div>
@@ -1398,32 +1439,106 @@ function showPlanModal() {
   if(m) m.classList.add('open');
 }
 
-function selectPlan(plan) {
+var _selectedPlan = null;
+
+function highlightPlan(plan) {
+  _selectedPlan = plan;
+  // Reset all cards
+  ['free','pro','agency'].forEach(function(p){
+    var card = document.getElementById('plan-'+p);
+    var chk  = document.getElementById('check-'+p);
+    if(card){ card.style.outline = 'none'; card.style.transform = ''; }
+    if(chk)  chk.style.display = 'none';
+  });
+  // Highlight selected
+  var sel = document.getElementById('plan-'+plan);
+  var selChk = document.getElementById('check-'+plan);
+  if(sel){ sel.style.outline = '2px solid #a78bfa'; sel.style.transform = 'scale(1.01)'; }
+  if(selChk){ selChk.style.display = 'flex'; }
+  // Show CTA button
+  var btn = document.getElementById('planUpgradeBtn');
+  if(btn){
+    btn.style.display = 'block';
+    if(plan === 'free') btn.textContent = 'Continue with Free';
+    else if(plan === 'pro') btn.textContent = 'Upgrade to Pro — ₹499/mo →';
+    else btn.textContent = 'Upgrade to Agency — ₹1,499/mo →';
+  }
+}
+
+function confirmPlanSelect() {
+  var plan = _selectedPlan;
+  if(!plan) return;
   var PLANS = {
-    free:   {label:'Free Plan',   credits:10,   price:0},
-    pro:    {label:'Pro Plan',    credits:200,  price:999},
-    agency: {label:'Agency Plan', credits:9999, price:2499},
+    free:   {label:'Free Plan',   credits:10,   price:0,    planId: null},
+    pro:    {label:'Pro Plan',    credits:200,  price:499,  planId: 'plan_SNDjlwfxc1JJWW'},
+    agency: {label:'Agency Plan', credits:9999, price:1499, planId: 'plan_SNDIAsEe5YKyLo'},
   };
   var p = PLANS[plan];
-  if(plan === 'free'){ document.getElementById('planModal').classList.remove('open'); return; }
+  if(plan === 'free'){
+    document.getElementById('planModal').classList.remove('open');
+    toast('You are on Free Plan','success');
+    return;
+  }
   var opts = {
     key: 'rzp_live_your_key',
-    amount: p.price * 100,
-    currency: 'INR',
+    plan_id: p.planId,
     name: 'BrandSutra AI',
-    description: p.label,
+    description: p.label + ' — ₹' + p.price + '/month',
+    currency: 'INR',
     theme: {color:'#667eea'},
+    prefill: {
+      name: currentUser ? currentUser.name : '',
+      contact: currentUser ? (currentUser.phone||'') : '',
+      email: currentUser ? (currentUser.email||'') : '',
+    },
     handler: function(resp){
       credits = p.credits;
-      if(currentUser){ currentUser.credits=p.credits; currentUser.plan=plan; currentUser.planLabel=p.label; localStorage.setItem('bs_user',JSON.stringify(currentUser)); }
+      if(currentUser){
+        currentUser.credits = p.credits;
+        currentUser.plan = plan;
+        currentUser.planLabel = p.label;
+        currentUser.razorpay_payment_id = resp.razorpay_payment_id || '';
+        currentUser.razorpay_subscription_id = resp.razorpay_subscription_id || '';
+        localStorage.setItem('bs_user', JSON.stringify(currentUser));
+      }
+      fetch(SERVER+'/api/payment/verify', {
+        method:'POST',
+        headers:{'Content-Type':'application/json','x-auth-token':authToken},
+        body: JSON.stringify({
+          razorpay_payment_id: resp.razorpay_payment_id,
+          razorpay_subscription_id: resp.razorpay_subscription_id,
+          razorpay_signature: resp.razorpay_signature,
+          plan: plan
+        })
+      }).catch(function(){});
       updateUI();
       document.getElementById('planModal').classList.remove('open');
       toast('Welcome to ' + p.label + '! 🎉','success');
-    }
+    },
+    modal: { ondismiss: function(){ toast('Payment cancelled','error'); } }
   };
-  if(typeof Razorpay !== 'undefined'){ new Razorpay(opts).open(); }
-  else { toast('Payment coming soon!','success'); document.getElementById('planModal').classList.remove('open'); }
+  fetch(SERVER+'/api/payment/create-subscription', {
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-auth-token':authToken},
+    body: JSON.stringify({plan_id: p.planId, plan: plan})
+  })
+  .then(function(r){return r.json();})
+  .then(function(res){
+    if(res.subscription_id){
+      opts.subscription_id = res.subscription_id;
+      delete opts.plan_id;
+    }
+    if(typeof Razorpay !== 'undefined'){ new Razorpay(opts).open(); }
+    else { toast('Payment coming soon! 🚀','success'); document.getElementById('planModal').classList.remove('open'); }
+  })
+  .catch(function(){
+    if(typeof Razorpay !== 'undefined'){ new Razorpay(opts).open(); }
+    else { toast('Payment coming soon! 🚀','success'); document.getElementById('planModal').classList.remove('open'); }
+  });
 }
+
+// Keep backward compat
+function selectPlan(plan){ highlightPlan(plan); }
 
 // ─── CONTENT GENERATION ───
 function getData() {
