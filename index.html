@@ -1732,7 +1732,19 @@ function generate() {
   var langMap = {'English':'English','Hindi':'Hindi','Hinglish':'Hinglish (mix of Hindi and English)'};
   var langStr = langMap[lang] || lang || 'English';
   var customInstr = (document.getElementById('customPrompt')||{}).value||'';
-  var prompt = 'You are a world-class Indian digital marketing expert and copywriter. Your content is viral, conversion-focused, and deeply resonates with Indian audiences.\n\nCreate a HIGH-QUALITY ' + tool + ' with these details:\n- Business Name: ' + (d.bizName||'Business') + '\n- Industry: ' + (d.industry||'General') + '\n- Product/Service: ' + (d.service||'Products/Services') + '\n- Target Audience: ' + (d.audience||'General Indian audience') + '\n- City/Location: ' + (d.location||'India') + '\n- Goal: ' + (d.goal||'Brand awareness & lead generation') + '\n- Tone: ' + tone + '\n- Language: ' + langStr + (customInstr ? '\n- Special Instructions: ' + customInstr : '') + '\n\nWrite COMPLETE, ready-to-post content. Format with these sections:\n\n## Hook\n[Attention-grabbing opening line with emoji]\n\n## Problem\n[Pain point the audience faces]\n\n## Solution\n[How your business solves it]\n\n## Benefits\n- [Benefit 1]\n- [Benefit 2]\n- [Benefit 3]\n\n## Call to Action\n[Strong, specific CTA with urgency]\n\n## Hashtags\n[15-20 relevant hashtags including trending Indian ones]\n\nMake it authentic, engaging, emotionally resonant, and perfectly crafted for Indian audience. Use emojis appropriately.';
+  var toolFormats = {
+    instagram: 'an Instagram post (max 300 words, 5-8 emojis, conversational, ending with 15 hashtags on one line)',
+    fb_ad: 'a Facebook ad (headline + 2-3 short paragraphs, strong CTA button text at end)',
+    whatsapp: 'a WhatsApp broadcast message (casual, friendly, max 150 words, 2-3 emojis, ends with contact/offer)',
+    blog: 'an SEO blog post (title, intro paragraph, 4-5 subheadings with content, conclusion, meta description)',
+    google_ad: 'a Google Search ad (Headline 1 | Headline 2 | Headline 3, then Description 1, Description 2 — strictly within character limits)',
+    email: 'a marketing email (Subject line, Preview text, then full email body with greeting, value prop, benefits, CTA)',
+    youtube: 'a YouTube video script (Hook: first 5 seconds, Intro, Main content in 3 parts, CTA, Outro)',
+    linkedin: 'a LinkedIn post (professional insight hook, story/data, key takeaways, engagement question, 5 hashtags)',
+    landing: 'landing page copy (Hero headline + subheadline, 3 benefit cards, social proof line, FAQ section, final CTA)'
+  };
+  var fmt = toolFormats[selTool] || ('a ' + tool);
+  var prompt = 'You are an expert Indian marketing copywriter. Write ' + fmt + '.\n\nDetails:\nBusiness: ' + (d.bizName||'Business') + '\nIndustry: ' + (d.industry||'General') + '\nProduct/Service: ' + (d.service||'Services') + '\nAudience: ' + (d.audience||'Indian customers') + '\nCity: ' + (d.location||'India') + '\nGoal: ' + (d.goal||'Generate leads') + '\nTone: ' + tone + '\nLanguage: ' + langStr + (customInstr ? '\nExtra instructions: ' + customInstr : '') + '\n\nIMPORTANT RULES:\n- Write the content directly — NO labels like "Hook:", "Problem:", "Solution:", "CTA:", "Benefits:" — just write the actual content naturally\n- Do NOT write section headers — just write the post as it would appear on the platform\n- Use emojis naturally within text\n- For hashtags: write them all together at the end on one line, no "Hashtags:" label\n- Make it sound human, authentic, NOT like a template\n- Match the exact style of top Indian brands on this platform\n\nWrite only the final post content. Nothing else.';
 
   callGemini(prompt)
   .then(function(content){ finishGenerate(content); })
@@ -1754,19 +1766,56 @@ function generate() {
 function autoGenImageForPost(content) {
   var el = document.getElementById('genImgEl');
   var result = document.getElementById('imgResult');
+  var imgBtn = document.getElementById('imgGenBtn');
+  var imgTxt = document.getElementById('imgGenTxt');
+  var imgSpin = document.getElementById('imgGenSpin');
   if(!el) return;
   var biz = (document.getElementById('bizName')||{}).value||'business';
-  var svc = (document.getElementById('service')||{}).value||'product';
+  var svc = (document.getElementById('service')||{}).value||'services';
+  var loc = (document.getElementById('location')||{}).value||'India';
   var tool = TOOLS[selTool] ? TOOLS[selTool].n : 'marketing';
   var style = (document.querySelector('#imgStyleG .on')||{textContent:'Realistic'}).textContent.trim();
-  var styleMap = {'Realistic':'photorealistic, 8k, professional photography','Minimalist':'clean minimal, white space, elegant','Vibrant':'vibrant colorful, bold, eye-catching','3D Art':'3d render, cinematic, octane render'};
-  var styleStr = styleMap[style] || 'professional, high quality';
-  var imgPrompt = 'Professional marketing image for ' + biz + ' ' + tool + ', ' + svc + ', Indian business, ' + styleStr + ', commercial photography, no text overlay';
+  var styleMap = {
+    'Realistic':'photorealistic professional photography, 4k sharp, natural lighting',
+    'Minimalist':'clean minimal design, soft background, elegant composition',
+    'Vibrant':'vibrant colorful digital art, bold punchy colors, eye-catching',
+    '3D Art':'3d render, octane render, cinematic lighting, professional'
+  };
+  var styleStr = styleMap[style] || 'professional high quality';
+  var imgPrompt = biz + ' ' + svc + ' in ' + loc + ', ' + styleStr + ', Indian business marketing visual, no text, commercial photography';
   var seed = Math.floor(Math.random()*99999);
-  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(imgPrompt)+'?width=512&height=512&nologo=true&enhance=true&model=flux&seed='+seed;
+  
   if(result) result.style.display = 'none';
-  el.onload = function(){ if(result) result.style.display = 'block'; };
-  el.onerror = null;
+  if(imgBtn) imgBtn.disabled = true;
+  if(imgTxt) imgTxt.textContent = 'Generating image...';
+  if(imgSpin) imgSpin.style.display = 'block';
+
+  // Set a timeout — pollinations can be slow
+  var loaded = false;
+  var timer = setTimeout(function(){
+    if(!loaded) {
+      // Try without enhance flag on timeout
+      var url2 = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(imgPrompt)+'?width=512&height=512&nologo=true&seed='+(seed+1);
+      el.src = url2;
+    }
+  }, 8000);
+
+  el.onload = function(){
+    loaded = true;
+    clearTimeout(timer);
+    if(result) result.style.display = 'block';
+    if(imgBtn) imgBtn.disabled = false;
+    if(imgTxt) imgTxt.textContent = '🎨 Generate Image';
+    if(imgSpin) imgSpin.style.display = 'none';
+  };
+  el.onerror = function(){
+    loaded = true;
+    clearTimeout(timer);
+    if(imgBtn) imgBtn.disabled = false;
+    if(imgTxt) imgTxt.textContent = '🎨 Generate Image';
+    if(imgSpin) imgSpin.style.display = 'none';
+  };
+  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(imgPrompt)+'?width=512&height=512&nologo=true&model=flux&seed='+seed;
   el.src = url;
 }
 
@@ -1788,21 +1837,26 @@ function generateLocal(tool, d, tone, lang) {
   var svc = d.service||'our services';
   var loc = d.location||'India';
   var ind = d.industry||'Business';
+  var aud = d.audience||'customers';
   var m = {};
-  m['Instagram Post'] = '🎯 HOOK: Looking for '+svc+' in '+loc+'?\n\n❗ PROBLEM: Finding reliable quality is hard.\n\n✅ SOLUTION: '+biz+' has helped 500+ clients!\n\n💡 BENEFITS:\n• Expert team & proven results\n• Affordable pricing\n• Fast delivery\n\n📣 CTA: DM or click link in bio!\n\nHASHTAGS: #'+biz.replace(/\s+/g,'')+ ' #'+loc.replace(/\s+/g,'')+ ' #India #Business';
-  m['Facebook Ad'] = '🔥 '+biz+' — Special Offer!\n\nLooking for '+svc+' in '+loc+'?\n✅ Professional quality\n✅ Trusted by 1000+ clients\n👉 Click Learn More!';
-  m['WhatsApp Broadcast'] = 'Hello! 👋\n\nThis is '+biz+'.\nSpecial offer on '+svc+'!\n✅ Best prices in '+loc+'\nReply YES to know more. 🙏';
-  m['SEO Blog'] = '# Best '+svc+' in '+loc+' 2025\n\n'+biz+' has served 500+ clients.\n\n## Our Services:\n1. Professional '+svc+'\n2. Expert consultation\n3. After-sales support\n\nContact us today!';
-  m['Google Ad Copy'] = biz+' | '+svc+' in '+loc+'\nExpert solutions. Trusted by 1000+ clients.\nFree consultation — Call now.';
-  m['Email Campaign'] = 'Subject: Offer from '+biz+'!\n\nDear Customer,\n\n'+biz+' offers '+svc+' at special prices.\n\n★ Industry expertise\n★ Personalized service\n★ Guaranteed results\n\nLimited time. Team '+biz;
-  m['YouTube Script'] = '[INTRO] Why '+biz+' is best for '+svc+' in '+loc+'.\n[PROBLEM] Finding quality '+svc+' is hard...\n[SOLUTION] '+biz+' solved this for 500+ clients.\n[CTA] Visit now. Link in description!';
-  m['LinkedIn Post'] = biz+' is transforming '+svc+' in '+loc+'! 🚀\n✅ 500+ satisfied clients\n✅ Proven results in '+ind+'\n\nLooking to grow? Connect with us!\n#Business #Growth';
-  m['Landing Page Copy'] = '# '+svc+' in '+loc+' | '+biz+'\n\n## Transform Your Business\n\n'+biz+' — trusted by 500+ businesses.\n\n★ Professional '+svc+'\n★ 100% Satisfaction\n\n[Get Free Consultation →]';
+  m['Instagram Post'] = 'Tired of searching for the best '+svc+' in '+loc+'? 😤\n\nWe get it — you deserve quality, reliability, and results. That\'s exactly what '+biz+' delivers every single time. 💪\n\n500+ happy clients in '+loc+' can\'t be wrong!\n\n✅ Expert team with proven results\n✅ Affordable pricing, no hidden costs\n✅ Fast turnaround & dedicated support\n\nDM us today or tap the link in bio to get started! 👆\n\n#'+biz.replace(/\s+/g,'')+'AI #'+loc.replace(/\s+/g,'')+'Business #'+ind.replace(/\s+/g,'')+'India #SmallBusiness #IndianBusiness #Startup #Marketing #Growth #Business2024 #'+loc.replace(/\s+/g,'')+'Startup';
+  m['Facebook Ad'] = biz+' — The #1 '+svc+' service trusted by businesses in '+loc+'.\n\nGet professional results without breaking the bank. Our team has helped 500+ clients achieve their goals.\n\n👉 Click "Learn More" to get your FREE consultation today!\n\nLimited slots available this month.';
+  m['WhatsApp Broadcast'] = 'Hey! 👋\n\nQuick heads up from '+biz+'!\n\n🎉 Special offer on '+svc+' — only for this week!\n\n💰 Best rates in '+loc+'\n⚡ Quick delivery\n🏆 Trusted by 500+ clients\n\nReply "YES" and we\'ll share the offer details with you! 😊';
+  m['SEO Blog'] = 'Best '+svc+' in '+loc+' — Complete Guide 2025\n\nLooking for reliable '+svc+' in '+loc+'? You\'ve come to the right place. In this guide, we\'ll walk you through everything you need to know.\n\nWhy '+biz+' Stands Out\n\nWith over 500 clients served across '+loc+', '+biz+' has built a reputation for quality and trust. Here\'s what sets us apart:\n\nExpert team with 10+ years of experience\nTransparent pricing with no hidden costs\nDedicated after-sales support\nProven results across multiple industries\n\nReady to get started? Contact '+biz+' today for a free consultation!';
+  m['Google Ad Copy'] = biz+' | Best '+svc+' in '+loc+' | Free Consultation\nTrusted by 500+ clients. Expert team. Fast results. No hidden costs.\nCall now for your FREE consultation — Limited slots available!';
+  m['Email Campaign'] = 'Subject: Exclusive offer just for you from '+biz+'!\n\nHi there,\n\nWe have some exciting news!\n\n'+biz+' is offering special rates on '+svc+' this month — and we wanted you to be the first to know.\n\nHere\'s what you get:\n★ Professional quality you can trust\n★ Personalized service for your needs\n★ Guaranteed results or money back\n\nThis offer expires soon. Reply to this email or call us to claim yours.\n\nWarm regards,\nTeam '+biz;
+  m['YouTube Script'] = '(HOOK — 0-5 sec)\nDid you know 90% of businesses in '+loc+' are leaving money on the table? Let me show you what '+biz+' does differently.\n\n(INTRO)\nHey, welcome back! Today we\'re talking about '+svc+' and why it matters for your business growth in '+loc+'.\n\n(MAIN CONTENT)\nFirst, the problem most businesses face... [explain pain point]\nHere\'s what we found after working with 500+ clients... [insight]\nThe solution that actually works... ['+biz+' approach]\n\n(CTA)\nIf this helped you, hit like and subscribe. Drop your questions below — I personally reply to every comment. See you in the next one! 🚀';
+  m['LinkedIn Post'] = 'After working with 500+ businesses in '+loc+', I noticed one pattern that separates growing companies from struggling ones in the '+ind+' space.\n\nThey invest in '+svc+' — and they do it right.\n\nHere\'s what the top performers do differently:\n→ They focus on consistency over shortcuts\n→ They measure what matters\n→ They partner with experts who know their industry\n\nAt '+biz+', we\'ve helped businesses across '+loc+' do exactly this.\n\nWhat\'s your biggest challenge with '+svc+' right now? Drop it in the comments 👇\n\n#'+ind.replace(/\s+/g,'')+'India #BusinessGrowth #'+loc.replace(/\s+/g,'')+'Business #Entrepreneurs #B2B';
+  m['Landing Page Copy'] = biz+' — The #1 '+svc+' Solution in '+loc+'\n\nDouble Your Results in 90 Days — Guaranteed.\n\n500+ businesses in '+loc+' already trust us. Here\'s why:\n\n🏆 Proven Results — Avg 40% improvement in 60 days\n⚡ Fast Execution — We move as fast as you do\n💰 ROI Focused — Every rupee spent, tracked and justified\n\n"'+biz+' transformed how we approach '+svc+'."\n— Happy client, '+loc+'\n\nReady to grow? Book your FREE strategy call today →';
   return m[tool] || m['Instagram Post'];
 }
 
 function mdToHtml(text) {
   return text
+    // Strip any HOOK/PROBLEM/SOLUTION/BENEFITS/CTA labels — never show these
+    .replace(/^(🎯\s*HOOK|❗\s*PROBLEM|✅\s*SOLUTION|💡\s*BENEFITS?|📣\s*CTA|HOOK|PROBLEM|SOLUTION|BENEFITS?|CTA)\s*:?\s*/gim, '')
+    // Strip "HASHTAGS:" label but keep the tags
+    .replace(/^HASHTAGS?\s*:?\s*/gim, '')
     // Headings
     .replace(/^### (.+)$/gm,'<h4 style="font-family:Syne,sans-serif;font-size:.85rem;font-weight:800;color:#4f46e5;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.06em">$1</h4>')
     .replace(/^## (.+)$/gm,'<h3 style="font-family:Syne,sans-serif;font-size:.95rem;font-weight:900;color:#1a1a2e;margin:16px 0 8px;padding-bottom:6px;border-bottom:2px solid rgba(79,70,229,.15)">$1</h3>')
@@ -1956,11 +2010,20 @@ function generateImage() {
   if(result) result.style.display = 'none';
 
   var seed = Math.floor(Math.random()*99999);
-  // Use pollinations directly - most reliable for browser
-  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&enhance=true&model=flux&seed='+seed;
+  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&model=flux&seed='+seed;
   
+  var loaded2 = false;
+  var timer2 = setTimeout(function(){
+    if(!loaded2 && el) {
+      var url2 = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+(seed+1);
+      el.src = url2;
+    }
+  }, 10000);
+
   if(el) {
     el.onload = function(){
+      loaded2 = true;
+      clearTimeout(timer2);
       if(result) result.style.display = 'block';
       if(btn) btn.disabled = false;
       if(spin) spin.style.display = 'none';
@@ -1968,15 +2031,12 @@ function generateImage() {
       toast('Image ready! 🎨','success');
     };
     el.onerror = function(){
-      // Try without enhance param
-      var url2 = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+seed;
-      el.onerror = function(){
-        if(btn) btn.disabled = false;
-        if(spin) spin.style.display = 'none';
-        if(txt) txt.textContent = '🎨 Generate Image';
-        toast('Try again — AI is busy!','error');
-      };
-      el.src = url2;
+      loaded2 = true;
+      clearTimeout(timer2);
+      if(btn) btn.disabled = false;
+      if(spin) spin.style.display = 'none';
+      if(txt) txt.textContent = '🎨 Generate Image';
+      toast('Image server busy — try again!','error');
     };
     el.src = url;
   }
