@@ -2079,7 +2079,7 @@ function connectPlatform(p) {
   if(btn) btn.style.background = pl.bg;
   ['cmStep1','cmStep2','cmStep3'].forEach(function(id){ var e=document.getElementById(id); if(e) e.classList.remove('active'); });
   var s1=document.getElementById('cmStep1'); if(s1) s1.classList.add('active');
-  var mo=document.getElementById('connectMo'); if(mo){ mo.style.display='flex'; mo.classList.add('open'); }
+  var mo=document.getElementById('connectMo'); if(mo){ mo.style.display=''; mo.classList.add('open'); }
 }
 function doConnect() {
   var val=(document.getElementById('cmInput')||{}).value||'';
@@ -2103,7 +2103,7 @@ function doConnect() {
     toast(PLATFORMS[currentConnPlatform].name+' connected! ✓','success');
   }, 2200);
 }
-function closeConnMo(){ var m=document.getElementById('connectMo'); if(m) m.classList.remove('open'); }
+function closeConnMo(){ var m=document.getElementById('connectMo'); if(m){ m.classList.remove('open'); m.style.display=''; } }
 function postNow() {
   var content=(document.getElementById('postContent')||{}).value||'';
   if(!content.trim()){ toast('Write something first!','error'); return; }
@@ -2191,7 +2191,7 @@ function showEditProfile() {
     if(ep) ep.value=currentUser.phone||'';
     if(ec) ec.value=currentUser.city||'';
   }
-  var mo=document.getElementById('editProfMo'); if(mo){ mo.style.display='flex'; mo.classList.add('open'); }
+  var mo=document.getElementById('editProfMo'); if(mo){ mo.style.display=''; mo.classList.add('open'); }
 }
 function saveEditProfile() {
   var name=(document.getElementById('epName')||{}).value||'';
