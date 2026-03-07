@@ -387,6 +387,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 .toast.success{background:#059669;border-color:transparent;color:#fff}
 .toast.error{background:#dc2626;border-color:transparent;color:#fff}
 
+/* ── OUTPUT FORMATTING ── */
+.stag-block{margin:14px 0 4px}
+.stag{display:inline-block;font-family:'Syne',sans-serif;font-size:.68rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:#4f46e5;background:rgba(79,70,229,.08);border:1px solid rgba(79,70,229,.2);padding:3px 10px;border-radius:50px;margin-bottom:4px}
+.htag{display:inline-block;color:#4f46e5;font-weight:600;font-size:.78rem;margin:2px 3px 2px 0;cursor:pointer}
+.htag:hover{text-decoration:underline}
+.out-bullet{padding:4px 0 4px 20px;position:relative;font-size:.84rem;color:#374151;line-height:1.6}
+.out-bullet::before{content:'•';position:absolute;left:6px;color:#4f46e5;font-weight:900}
+.out-num{display:flex;gap:10px;padding:4px 0;font-size:.84rem;color:#374151;line-height:1.6}
+.out-num-n{min-width:20px;height:20px;border-radius:50%;background:#4f46e5;color:white;font-size:.65rem;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;font-family:'Syne',sans-serif}
+.var-head{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:white;font-family:'Syne',sans-serif;font-size:.75rem;font-weight:800;padding:7px 14px;border-radius:8px;margin:16px 0 10px;letter-spacing:.05em;text-transform:uppercase}
+.out-card.show{display:block}
+
 /* ── UTILS ── */
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 @keyframes pulse{0%,100%{box-shadow:0 0 20px rgba(79,70,229,.3)}50%{box-shadow:0 0 40px rgba(79,70,229,.55)}}
@@ -759,10 +771,21 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
             <button class="chip" onclick="sc(this,'langG')">Hinglish</button>
           </div>
         </div>
-        <button class="gen-btn" id="genBtn" onclick="generate()">
-          <span id="genTxt">✨ Generate Content</span>
-          <div class="spin" id="genSpin"></div>
-        </button>
+        <!-- Custom Prompt -->
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="fl" style="display:flex;align-items:center;justify-content:space-between">
+            <span>✍️ Custom Instructions <span style="color:#9ca3af;font-weight:400;font-size:.62rem">(optional)</span></span>
+            <button onclick="clearPrompt()" style="font-size:.6rem;color:#9ca3af;background:none;border:none;cursor:pointer;font-family:inherit">Clear</button>
+          </label>
+          <textarea class="fi" id="customPrompt" rows="3" placeholder="Add specific instructions... e.g. 'Use festive Diwali theme', 'Mention 50% discount offer', 'Write in a funny tone', 'Focus on trust and credibility'" style="resize:none;line-height:1.6;font-size:.82rem"></textarea>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="gen-btn" id="genBtn" onclick="generate()" style="flex:1;margin-top:0">
+            <span id="genTxt">✨ Generate</span>
+            <div class="spin" id="genSpin"></div>
+          </button>
+          <button onclick="generate()" id="genIdeasBtn" style="padding:14px 16px;background:#f0f4ff;border:1px solid rgba(79,70,229,.2);border-radius:14px;font-size:.75rem;font-weight:700;color:#4f46e5;cursor:pointer;font-family:'Syne',sans-serif;white-space:nowrap" title="Get 3 ideas">💡 Ideas</button>
+        </div>
       </div>
 
       <!-- Output -->
@@ -921,6 +944,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
             <label class="fl">USP / Key Message</label>
             <input class="fi" id="adUsp" placeholder="e.g. 10,000+ students, job guarantee">
           </div>
+        </div>
+        <!-- Custom Prompt for Ads -->
+        <div class="form-group" style="margin-bottom:14px">
+          <label class="fl" style="display:flex;align-items:center;justify-content:space-between">
+            <span>✍️ Custom Instructions <span style="color:#9ca3af;font-weight:400;font-size:.62rem">(optional)</span></span>
+            <button onclick="document.getElementById('adCustomPrompt').value=''" style="font-size:.6rem;color:#9ca3af;background:none;border:none;cursor:pointer;font-family:inherit">Clear</button>
+          </label>
+          <textarea class="fi" id="adCustomPrompt" rows="3" placeholder="e.g. 'Use urgency - limited time offer', 'Mention free trial', 'Target working professionals', 'Add price ₹999'" style="resize:none;line-height:1.6;font-size:.82rem"></textarea>
         </div>
         <button class="gen-btn" id="adGenBtn" onclick="generateAds()">
           <span id="adGenTxt">🚀 Generate Ad Copy</span>
@@ -1699,7 +1730,8 @@ function generate() {
   var lang = (document.querySelector('#langG .on')||{textContent:'English'}).textContent.trim();
   var langMap = {'English':'English','Hindi':'Hindi','Hinglish':'Hinglish (mix of Hindi and English)'};
   var langStr = langMap[lang] || lang || 'English';
-  var prompt = 'You are an expert Indian digital marketing copywriter.\n\nCreate a ' + tool + ' for:\n- Business: ' + (d.bizName||'Business') + '\n- Industry: ' + (d.industry||'General') + '\n- Product/Service: ' + (d.service||'Products') + '\n- Target Audience: ' + (d.audience||'General') + '\n- City/Location: ' + (d.location||'India') + '\n- Goal: ' + (d.goal||'Brand awareness') + '\n- Tone: ' + tone + '\n- Language: ' + langStr + '\n\nWrite complete ready-to-post content. Include:\n1. Attention-grabbing HOOK\n2. PROBLEM the audience faces\n3. SOLUTION your business provides\n4. Key BENEFITS (3-4 bullet points)\n5. Strong CTA\n6. 10-15 relevant HASHTAGS\n\nMake it authentic, engaging, and perfectly suited for Indian audience.';
+  var customInstr = (document.getElementById('customPrompt')||{}).value||'';
+  var prompt = 'You are a world-class Indian digital marketing expert and copywriter. Your content is viral, conversion-focused, and deeply resonates with Indian audiences.\n\nCreate a HIGH-QUALITY ' + tool + ' with these details:\n- Business Name: ' + (d.bizName||'Business') + '\n- Industry: ' + (d.industry||'General') + '\n- Product/Service: ' + (d.service||'Products/Services') + '\n- Target Audience: ' + (d.audience||'General Indian audience') + '\n- City/Location: ' + (d.location||'India') + '\n- Goal: ' + (d.goal||'Brand awareness & lead generation') + '\n- Tone: ' + tone + '\n- Language: ' + langStr + (customInstr ? '\n- Special Instructions: ' + customInstr : '') + '\n\nWrite COMPLETE, ready-to-post content. Format with these sections:\n\n## Hook\n[Attention-grabbing opening line with emoji]\n\n## Problem\n[Pain point the audience faces]\n\n## Solution\n[How your business solves it]\n\n## Benefits\n- [Benefit 1]\n- [Benefit 2]\n- [Benefit 3]\n\n## Call to Action\n[Strong, specific CTA with urgency]\n\n## Hashtags\n[15-20 relevant hashtags including trending Indian ones]\n\nMake it authentic, engaging, emotionally resonant, and perfectly crafted for Indian audience. Use emojis appropriately.';
 
   callGemini(prompt)
   .then(function(content){ finishGenerate(content); })
@@ -1748,19 +1780,41 @@ function generateLocal(tool, d, tone, lang) {
   return m[tool] || m['Instagram Post'];
 }
 
+function mdToHtml(text) {
+  return text
+    // Headings
+    .replace(/^### (.+)$/gm,'<h4 style="font-family:Syne,sans-serif;font-size:.85rem;font-weight:800;color:#4f46e5;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.06em">$1</h4>')
+    .replace(/^## (.+)$/gm,'<h3 style="font-family:Syne,sans-serif;font-size:.95rem;font-weight:900;color:#1a1a2e;margin:16px 0 8px;padding-bottom:6px;border-bottom:2px solid rgba(79,70,229,.15)">$1</h3>')
+    .replace(/^# (.+)$/gm,'<h2 style="font-family:Syne,sans-serif;font-size:1.05rem;font-weight:900;color:#1a1a2e;margin:0 0 12px">$1</h2>')
+    // Bold
+    .replace(/\*\*(.+?)\*\*/g,'<strong style="font-weight:700;color:#1a1a2e">$1</strong>')
+    // Italic
+    .replace(/\*(.+?)\*/g,'<em style="color:#4f46e5;font-style:normal;font-weight:600">$1</em>')
+    // Section labels (HOOK, CTA etc)
+    .replace(/^(🎯 HOOK|❗ PROBLEM|✅ SOLUTION|💡 BENEFITS?|📣 CTA|HOOK|PROBLEM|SOLUTION|BENEFITS?|CTA)\s*:?/gim,
+      '<div class="stag-block"><span class="stag">$1</span></div>')
+    // Hashtags
+    .replace(/(#[\wऀ-ॿа-яА-Я]+)/g,'<span class="htag">$1</span>')
+    // Bullet points
+    .replace(/^[\-\*•] (.+)$/gm,'<div class="out-bullet">$1</div>')
+    // Numbered lists
+    .replace(/^(\d+)\. (.+)$/gm,'<div class="out-num"><span class="out-num-n">$1</span>$2</div>')
+    // Variation headers
+    .replace(/^---+ ?(VARIATION|Variation) ?(\d+) ?---+$/gm,'<div class="var-head">Variation $2</div>')
+    .replace(/^## (Variation \d+)$/gm,'<div class="var-head">$1</div>')
+    // Horizontal rules
+    .replace(/^---+$/gm,'<hr style="border:none;border-top:1px solid rgba(79,70,229,.1);margin:12px 0">')
+    // Line breaks
+    .replace(/\n\n/g,'</p><p style="margin:0 0 8px">')
+    .replace(/\n/g,'<br>');
+}
+
 function displayOutput(text) {
   var body = document.getElementById('outBody');
   var nm = document.getElementById('outNm');
   var card = document.getElementById('outCard');
   if(!body||!nm||!card) return;
-  body.innerHTML = text
-    .replace(/🎯 HOOK:/g,'<span class="stag">🎯 HOOK</span>')
-    .replace(/❗ PROBLEM:/g,'<span class="stag">❗ PROBLEM</span>')
-    .replace(/✅ SOLUTION:/g,'<span class="stag">✅ SOLUTION</span>')
-    .replace(/💡 BENEFITS:/g,'<span class="stag">💡 BENEFITS</span>')
-    .replace(/📣 CTA:/g,'<span class="stag">📣 CTA</span>')
-    .replace(/HASHTAGS?:/gi,'<span class="stag">🏷️ HASHTAGS</span>')
-    .replace(/(#\w+)/g,'<span class="htag">$1</span>');
+  body.innerHTML = '<p style="margin:0 0 8px">' + mdToHtml(text) + '</p>';
   nm.textContent = TOOLS[selTool] ? TOOLS[selTool].n : selTool;
   card.classList.add('show');
   card.scrollIntoView({behavior:'smooth',block:'start'});
@@ -1773,6 +1827,7 @@ function copyOut() {
   if(navigator.clipboard) navigator.clipboard.writeText(lastContent).then(function(){ toast('Copied! 📋','success'); });
   else { toast('Copied!','success'); }
 }
+function clearPrompt(){ var el=document.getElementById('customPrompt'); if(el) el.value=''; }
 function regenOut() { generate(); }
 function saveOut() {
   if(!lastContent){ toast('Nothing to save','error'); return; }
@@ -2077,7 +2132,8 @@ function generateAds() {
   var vars = parseInt((document.getElementById('adVar')||{}).value||'3');
   var budget = (document.getElementById('adBudget')||{}).value||'';
   var plat = selAdPlatformId;
-  var prompt = 'You are an expert Indian digital marketing specialist.\n\nCreate ' + vars + ' high-converting ' + plat + ' ad copy variations for:\n- Business/Product: ' + biz + '\n- Objective: ' + obj + '\n- Target Audience: ' + (aud||'General Indian audience') + '\n- Budget: ' + (budget||'Not specified') + '\n- Unique Selling Point: ' + (usp||'Best quality') + '\n\nFor each variation, provide:\n## Variation [N]\n**Headline:** [punchy, max 30 chars for Google]\n**Body:** [compelling copy, max 90 chars for Google]\n**CTA:** [action-oriented button text]\n\nMake them conversion-focused, authentic for Indian market, and platform-optimized.';
+  var adCustom = (document.getElementById('adCustomPrompt')||{}).value||'';
+  var prompt = 'You are a world-class performance marketing expert specializing in Indian market.\n\nCreate ' + vars + ' HIGH-CONVERTING ' + plat + ' ad copy variations for:\n- Business/Product: ' + biz + '\n- Campaign Objective: ' + (obj||'Lead Generation') + '\n- Target Audience: ' + (aud||'Indian professionals and business owners') + '\n- Budget: ' + (budget||'Medium budget') + '\n- Unique Selling Point: ' + (usp||'Best quality at best price') + (adCustom ? '\n- Special Instructions: ' + adCustom : '') + '\n\nFor EACH variation write:\n\n## Variation [N]\n**Headline:** [max 30 chars — punchy, benefit-driven]\n**Body:** [max 90 chars — problem-solution format]\n**CTA:** [strong action button text]\n**Why it works:** [1 line explanation]\n\nMake each variation distinctly different — vary the angle (fear, desire, social proof, urgency, curiosity). Optimize specifically for ' + plat + ' platform best practices.';
   callGemini(prompt)
   .then(function(content){ showAdOutput(content); })
   .catch(function(err){
@@ -2096,7 +2152,7 @@ function generateAds() {
 function showAdOutput(content) {
   var body = document.getElementById('adOutBody');
   var card = document.getElementById('adOutCard');
-  if(body) body.textContent = content;
+  if(body) body.innerHTML = '<p style="margin:0 0 8px">' + mdToHtml(content) + '</p>';
   if(card){ card.classList.add('show'); card.scrollIntoView({behavior:'smooth',block:'start'}); }
   credits = Math.max(0, credits-1);
   if(currentUser){ currentUser.credits=credits; localStorage.setItem('bs_user',JSON.stringify(currentUser)); }
