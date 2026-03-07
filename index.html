@@ -958,14 +958,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
           <div class="spin" id="adGenSpin" style="display:none"></div>
         </button>
       </div>
-      <div class="out-card" id="adOutCard">
-        <div class="out-head">
-          <div class="out-title">✅ Ad Copies Ready</div>
-          <button class="out-close" onclick="document.getElementById('adOutCard').classList.remove('show')">✕</button>
+      <!-- Ad Output — rendered by JS into adCardsWrap -->
+      <div id="adOutCard" style="display:none;margin-bottom:16px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-family:'Syne',sans-serif;font-size:.95rem;font-weight:900;color:#1a1a2e">🎯 Ad Copies Ready</div>
+          <button onclick="document.getElementById('adOutCard').style.display='none'" style="width:30px;height:30px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);font-size:.75rem;cursor:pointer;color:var(--muted)">✕</button>
         </div>
-        <div class="out-body" id="adOutBody"></div>
-        <div class="out-actions">
-          <button class="oab accent" onclick="copyAdOut()">📋 Copy</button>
+        <div id="adCardsWrap"></div>
+        <div class="out-actions" style="margin-top:12px">
+          <button class="oab accent" onclick="copyAdOut()">📋 Copy All</button>
           <button class="oab" onclick="generateAds()">↺ Again</button>
           <button class="oab accent" onclick="saveAdOut()">💾 Save</button>
           <button class="oab" onclick="dlAdPDF()">📄 PDF</button>
@@ -1750,6 +1751,25 @@ function generate() {
   });
 }
 
+function autoGenImageForPost(content) {
+  var el = document.getElementById('genImgEl');
+  var result = document.getElementById('imgResult');
+  if(!el) return;
+  var biz = (document.getElementById('bizName')||{}).value||'business';
+  var svc = (document.getElementById('service')||{}).value||'product';
+  var tool = TOOLS[selTool] ? TOOLS[selTool].n : 'marketing';
+  var style = (document.querySelector('#imgStyleG .on')||{textContent:'Realistic'}).textContent.trim();
+  var styleMap = {'Realistic':'photorealistic, 8k, professional photography','Minimalist':'clean minimal, white space, elegant','Vibrant':'vibrant colorful, bold, eye-catching','3D Art':'3d render, cinematic, octane render'};
+  var styleStr = styleMap[style] || 'professional, high quality';
+  var imgPrompt = 'Professional marketing image for ' + biz + ' ' + tool + ', ' + svc + ', Indian business, ' + styleStr + ', commercial photography, no text overlay';
+  var seed = Math.floor(Math.random()*99999);
+  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(imgPrompt)+'?width=512&height=512&nologo=true&enhance=true&model=flux&seed='+seed;
+  if(result) result.style.display = 'none';
+  el.onload = function(){ if(result) result.style.display = 'block'; };
+  el.onerror = null;
+  el.src = url;
+}
+
 function finishGenerate(content) {
   lastContent = content;
   lastTool = TOOLS[selTool] ? TOOLS[selTool].n : selTool;
@@ -1759,6 +1779,7 @@ function finishGenerate(content) {
   if(currentUser){ currentUser.credits = credits; localStorage.setItem('bs_user', JSON.stringify(currentUser)); }
   updateUI();
   displayOutput(content);
+  autoGenImageForPost(content);
   toast('Content ready! ✨','success');
 }
 
@@ -1919,48 +1940,46 @@ function generateImage() {
   var style = (document.querySelector('#imgStyleG .on')||{textContent:'Realistic'}).textContent.trim();
   var size = (document.querySelector('#imgSizeG .on')||{textContent:'1:1'}).textContent.trim();
   var w=512, h=512;
-  if(size.indexOf('Portrait')>-1){h=640;}
+  if(size.indexOf('Portrait')>-1){w=512;h=640;}
   else if(size.indexOf('Wide')>-1){w=768;h=432;}
-  var fullPrompt = prompt + ', ' + style + ' style, professional marketing image, vibrant colors, high quality, commercial photography';
+  var styleMap = {'Realistic':'photorealistic professional photography, 8k, sharp','Minimalist':'clean minimal design, white background, simple elegant','Vibrant':'vibrant colorful illustration, bold colors, eye-catching','3D Art':'3d render, octane render, professional 3d art, cinematic lighting'};
+  var styleStr = styleMap[style] || style;
+  var fullPrompt = prompt + ', ' + styleStr + ', marketing material, commercial quality';
   var btn = document.getElementById('imgGenBtn');
   var spin = document.getElementById('imgGenSpin');
   var txt = document.getElementById('imgGenTxt');
   var result = document.getElementById('imgResult');
+  var el = document.getElementById('genImgEl');
   if(btn) btn.disabled = true;
   if(spin) spin.style.display = 'block';
   if(txt) txt.textContent = 'Generating...';
   if(result) result.style.display = 'none';
 
-  // Try Gemini Image first, fallback to Pollinations
-  callGeminiImage(fullPrompt)
-  .then(function(dataUrl) {
-    var el = document.getElementById('genImgEl');
-    if(el) el.src = dataUrl;
-    if(result) result.style.display = 'block';
-    toast('Image generated! 🎨','success');
-  })
-  .catch(function(err) {
-    console.warn('Gemini image failed:', err.message, '— trying Pollinations...');
-    // Fallback: Pollinations
-    var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&enhance=true&seed='+Date.now();
-    var img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = function(){
-      var el = document.getElementById('genImgEl');
-      if(el) el.src = url;
+  var seed = Math.floor(Math.random()*99999);
+  // Use pollinations directly - most reliable for browser
+  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&enhance=true&model=flux&seed='+seed;
+  
+  if(el) {
+    el.onload = function(){
       if(result) result.style.display = 'block';
-      toast('Image generated! 🎨','success');
+      if(btn) btn.disabled = false;
+      if(spin) spin.style.display = 'none';
+      if(txt) txt.textContent = '🎨 Generate Image';
+      toast('Image ready! 🎨','success');
     };
-    img.onerror = function(){
-      toast('Image generation failed. Check internet!','error');
+    el.onerror = function(){
+      // Try without enhance param
+      var url2 = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+seed;
+      el.onerror = function(){
+        if(btn) btn.disabled = false;
+        if(spin) spin.style.display = 'none';
+        if(txt) txt.textContent = '🎨 Generate Image';
+        toast('Try again — AI is busy!','error');
+      };
+      el.src = url2;
     };
-    img.src = url;
-  })
-  .finally(function(){
-    if(btn) btn.disabled = false;
-    if(spin) spin.style.display = 'none';
-    if(txt) txt.textContent = '🎨 Generate Image';
-  });
+    el.src = url;
+  }
 }
 function downloadGenImg() {
   var src = (document.getElementById('genImgEl')||{}).src||'';
@@ -2149,11 +2168,93 @@ function generateAds() {
     if(txt) txt.textContent='🚀 Generate Ad Copy';
   });
 }
+function parseAdCards(text) {
+  // Split by ## Variation or --- VARIATION
+  var blocks = text.split(/\n(?=##\s*Variation|---+\s*VARIATION)/i).filter(function(b){ return b.trim(); });
+  if(blocks.length <= 1) {
+    // Try splitting by **Headline** occurrences
+    blocks = text.split(/\n(?=\*\*Headline)/).filter(function(b){ return b.trim(); });
+  }
+  return blocks;
+}
+
+function extractField(block, keys) {
+  for(var i=0;i<keys.length;i++){
+    var re = new RegExp(keys[i]+'\\s*[:\-]?\\s*(.+)', 'i');
+    var m = block.match(re);
+    if(m) return m[1].replace(/\*\*/g,'').trim();
+  }
+  return '';
+}
+
+function platformColor(plat) {
+  var map = {
+    google:   ['#4285F4','#34A853','#EA4335','#FBBC05'],
+    facebook: ['#1877F2','#166FE5'],
+    instagram:['#E1306C','#833AB4','#F77737'],
+    linkedin: ['#0A66C2','#0077B5'],
+    twitter:  ['#1DA1F2','#0d8bd9'],
+    youtube:  ['#FF0000','#cc0000'],
+  };
+  var c = map[plat] || ['#4f46e5','#7c3aed'];
+  return c[0];
+}
+
+function adPlatIcon(plat) {
+  var icons = {
+    google:'🔍', facebook:'📘', instagram:'📸', linkedin:'💼', twitter:'🐦', youtube:'▶️'
+  };
+  return icons[plat] || '📣';
+}
+
 function showAdOutput(content) {
-  var body = document.getElementById('adOutBody');
+  var wrap = document.getElementById('adCardsWrap');
   var card = document.getElementById('adOutCard');
-  if(body) body.innerHTML = '<p style="margin:0 0 8px">' + mdToHtml(content) + '</p>';
-  if(card){ card.classList.add('show'); card.scrollIntoView({behavior:'smooth',block:'start'}); }
+  if(!wrap||!card) return;
+
+  var plat = selAdPlatformId || 'google';
+  var color = platformColor(plat);
+  var icon = adPlatIcon(plat);
+  var blocks = parseAdCards(content);
+  var lastAdContent = content;
+
+  var html2 = '';
+  blocks.forEach(function(block, idx) {
+    var headline = extractField(block, ['\\*\\*Headline\\*\\*','Headline']);
+    var body     = extractField(block, ['\\*\\*Body\\*\\*','\\*\\*Description\\*\\*','Body','Description']);
+    var cta      = extractField(block, ['\\*\\*CTA\\*\\*','\\*\\*Call to Action\\*\\*','CTA','Call to Action']);
+    var why      = extractField(block, ['\\*\\*Why it works\\*\\*','Why it works','Why']);
+
+    if(!headline && !body) {
+      // Fallback: show raw block nicely
+      html2 += '<div style="background:var(--surface2);border-radius:14px;padding:16px;margin-bottom:12px;border:1px solid var(--border)"><div style="font-size:.82rem;color:var(--text);line-height:1.7">' + mdToHtml(block) + '</div></div>';
+      return;
+    }
+
+    // Generate a matching background image via Pollinations for each ad
+    var bizName = (document.getElementById('adBiz')||{}).value || 'Business';
+    var imgQ = encodeURIComponent('professional ' + plat + ' advertisement visual for ' + bizName + ', ' + (headline||'') + ', modern marketing, vibrant, high quality');
+    var imgUrl = 'https://image.pollinations.ai/prompt/' + imgQ + '?width=600&height=280&nologo=true&seed=' + (idx+1) * 777;
+
+    html2 += '<div class="adcard" style="background:var(--surface);border-radius:18px;overflow:hidden;margin-bottom:16px;box-shadow:0 4px 20px rgba(79,70,229,.1);border:1px solid var(--border)">'
+      // Image banner
+      + '<div style="height:160px;background:linear-gradient(135deg,'+color+'22,'+color+'44);position:relative;overflow:hidden">'
+      + '<img src="' + imgUrl + '" id="adimg'+idx+'" style="width:100%;height:100%;object-fit:cover;opacity:.85" onload="this.style.opacity=1" onerror="this.remove()">'
+      + '<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(0,0,0,.5))">'
+      + '<div style="position:absolute;top:12px;left:12px;background:'+color+';color:white;font-size:.65rem;font-weight:800;padding:4px 10px;border-radius:50px;font-family:Syne,sans-serif">' + icon + ' ' + plat.toUpperCase() + ' AD</div>'
+      + '<div style="position:absolute;bottom:12px;left:12px;right:12px;color:white;font-family:Syne,sans-serif;font-size:1rem;font-weight:900;line-height:1.3;text-shadow:0 1px 4px rgba(0,0,0,.5)">' + (headline||'') + '</div>'
+      + '</div></div>'
+      // Body
+      + '<div style="padding:14px 16px">'
+      + (body ? '<p style="font-size:.82rem;color:#4b5563;line-height:1.65;margin:0 0 10px">' + body + '</p>' : '')
+      + (cta ? '<div style="display:inline-block;background:'+color+';color:white;font-size:.72rem;font-weight:800;padding:7px 18px;border-radius:50px;font-family:Syne,sans-serif;margin-bottom:10px">' + cta + ' →</div>' : '')
+      + (why ? '<div style="background:rgba(79,70,229,.05);border-left:3px solid '+color+';padding:8px 12px;border-radius:0 8px 8px 0;font-size:.72rem;color:#6b7280;line-height:1.5"><b style="color:'+color+'">💡 Why it works:</b> ' + why + '</div>' : '')
+      + '</div></div>';
+  });
+
+  wrap.innerHTML = html2 || '<div style="padding:16px;color:var(--muted);font-size:.82rem">' + mdToHtml(content) + '</div>';
+  card.style.display = 'block';
+  card.scrollIntoView({behavior:'smooth',block:'start'});
   credits = Math.max(0, credits-1);
   if(currentUser){ currentUser.credits=credits; localStorage.setItem('bs_user',JSON.stringify(currentUser)); }
   updateUI();
@@ -2171,7 +2272,7 @@ function generateLocalAd(plat,biz,obj,aud,usp,vars) {
   }
   return result;
 }
-function copyAdOut(){ var t=(document.getElementById('adOutBody')||{}).textContent||''; if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){toast('Copied!','success');}); }
+function copyAdOut(){ var t=(document.getElementById('adCardsWrap')||document.getElementById('adOutBody')||{}).innerText||''; if(navigator.clipboard) navigator.clipboard.writeText(t).then(function(){toast('Copied! 📋','success');}); else {toast('Copied!','success');} }
 function saveAdOut(){
   var c=(document.getElementById('adOutBody')||{}).textContent||'';
   savedHistory.unshift({id:Date.now(),tool:'ads',toolName:'Ad Copy',content:c,at:new Date().toLocaleString('en-IN')});
