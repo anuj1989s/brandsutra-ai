@@ -1222,7 +1222,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 // ══════════════════════════════════════════════════════════
 
 // ─── STATE ───
-var SERVER = 'https://brandsutra-backend-production.up.railway.app';
+var SERVER = 'https://brandsutra-backend-production-bf6c.up.railway.app';
 var authToken = localStorage.getItem('bs_token') || '';
 var currentUser = JSON.parse(localStorage.getItem('bs_user') || 'null');
 var credits = currentUser ? (currentUser.credits || 10) : 10;
@@ -1634,7 +1634,7 @@ function getData() {
 }
 
 function generate() {
-  if(!currentUser){ toast('Please login first!','error'); return; }
+  // Allow generation even without login for testing
   if(credits <= 0){ showPlanModal(); return; }
   var d = getData();
   if(!d.bizName){ toast('Enter business name!','error'); return; }
@@ -1649,23 +1649,18 @@ function generate() {
   var tool = TOOLS[selTool] ? TOOLS[selTool].n : 'Instagram Post';
   var tone = (document.querySelector('#toneG .on')||{textContent:'Professional'}).textContent.trim();
   var lang = (document.querySelector('#langG .on')||{textContent:'English'}).textContent.trim();
-  var prompt = 'You are an expert Indian digital marketing copywriter. Create ' + tool + ' content for Business: ' + d.bizName + (d.industry?', Industry: '+d.industry:'') + (d.service?', Service: '+d.service:'') + (d.audience?', Audience: '+d.audience:'') + (d.location?', City: '+d.location:'') + '. Tone: ' + tone + '. Language: ' + lang + '. Write complete ready-to-post content with sections (HOOK, PROBLEM, SOLUTION, BENEFITS, CTA) and hashtags at the end.';
+  var langMap = {'English':'English','Hindi':'Hindi','Hinglish':'Hinglish (mix of Hindi and English)'};
+  var langStr = langMap[lang] || lang || 'English';
+  var prompt = 'You are an expert Indian digital marketing copywriter.\n\nCreate a ' + tool + ' for:\n- Business: ' + (d.bizName||'Business') + '\n- Industry: ' + (d.industry||'General') + '\n- Product/Service: ' + (d.service||'Products') + '\n- Target Audience: ' + (d.audience||'General') + '\n- City/Location: ' + (d.location||'India') + '\n- Goal: ' + (d.goal||'Brand awareness') + '\n- Tone: ' + tone + '\n- Language: ' + langStr + '\n\nWrite complete ready-to-post content. Include:\n1. Attention-grabbing HOOK\n2. PROBLEM the audience faces\n3. SOLUTION your business provides\n4. Key BENEFITS (3-4 bullet points)\n5. Strong CTA\n6. 10-15 relevant HASHTAGS\n\nMake it authentic, engaging, and perfectly suited for Indian audience.';
 
-  fetch('https://api.anthropic.com/v1/messages',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':'','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:800,messages:[{role:'user',content:prompt}]})
-  })
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var content = data.content && data.content[0] ? data.content[0].text : null;
-    if(!content) throw new Error('no content');
-    finishGenerate(content);
-  })
-  .catch(function(){
-    fetch(SERVER+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':authToken},body:JSON.stringify({tool:tool,bizName:d.bizName,industry:d.industry,service:d.service,audience:d.audience,location:d.location,goal:d.goal,tone:tone,lang:lang})})
+  callGemini(prompt)
+  .then(function(content){ finishGenerate(content); })
+  .catch(function(err){
+    console.warn('Gemini failed:', err.message);
+    // Fallback to backend
+    fetch(SERVER+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':authToken||'guest'},body:JSON.stringify({tool:tool,bizName:d.bizName,industry:d.industry,service:d.service,audience:d.audience,location:d.location,goal:d.goal,tone:tone,lang:lang})})
     .then(function(r){return r.json();})
-    .then(function(res){if(res.content) finishGenerate(res.content); else throw new Error('no content');})
+    .then(function(res){if(res.content) finishGenerate(res.content); else throw new Error('empty');})
     .catch(function(){ finishGenerate(generateLocal(tool, d, tone, lang)); });
   })
   .finally(function(){
@@ -2021,16 +2016,12 @@ function generateAds() {
   var vars = parseInt((document.getElementById('adVar')||{}).value||'3');
   var budget = (document.getElementById('adBudget')||{}).value||'';
   var plat = selAdPlatformId;
-  var prompt = 'Create '+vars+' '+plat+' ad copies for: Business: '+biz+', Objective: '+obj+', Audience: '+aud+', Budget: '+budget+', USP: '+usp+'. Format each variation clearly numbered with Headline, Body, CTA.';
-  fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':'','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:1000,messages:[{role:'user',content:prompt}]})})
-  .then(function(r){return r.json();})
-  .then(function(data){
-    var content = data.content&&data.content[0]?data.content[0].text:null;
-    if(!content) throw new Error('no content');
-    showAdOutput(content);
-  })
-  .catch(function(){
-    fetch(SERVER+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':authToken},body:JSON.stringify({tool:'ads',platform:plat,bizName:biz,objective:obj,audience:aud,usp:usp,variations:vars})})
+  var prompt = 'You are an expert Indian digital marketing specialist.\n\nCreate ' + vars + ' high-converting ' + plat + ' ad copy variations for:\n- Business/Product: ' + biz + '\n- Objective: ' + obj + '\n- Target Audience: ' + (aud||'General Indian audience') + '\n- Budget: ' + (budget||'Not specified') + '\n- Unique Selling Point: ' + (usp||'Best quality') + '\n\nFor each variation, provide:\n## Variation [N]\n**Headline:** [punchy, max 30 chars for Google]\n**Body:** [compelling copy, max 90 chars for Google]\n**CTA:** [action-oriented button text]\n\nMake them conversion-focused, authentic for Indian market, and platform-optimized.';
+  callGemini(prompt)
+  .then(function(content){ showAdOutput(content); })
+  .catch(function(err){
+    console.warn('Gemini ads failed:', err.message);
+    fetch(SERVER+'/api/generate',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':authToken||'guest'},body:JSON.stringify({tool:'ads',platform:plat,bizName:biz,objective:obj,audience:aud,usp:usp,variations:vars})})
     .then(function(r){return r.json();})
     .then(function(res){if(res.content) showAdOutput(res.content); else showAdOutput(generateLocalAd(plat,biz,obj,aud,usp,vars));})
     .catch(function(){ showAdOutput(generateLocalAd(plat,biz,obj,aud,usp,vars)); });
