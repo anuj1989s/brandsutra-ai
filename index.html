@@ -1491,53 +1491,58 @@ function confirmPlanSelect() {
 
   var RZP_KEY = 'rzp_live_SN92MGlc5ZwPXK';
 
-  var rzp = new Razorpay({
-    key: RZP_KEY,
-    subscription_id: undefined,  // filled below if backend returns it
-    plan_id: p.planId,           // fallback: direct plan
-    name: 'BrandSutra AI',
-    description: p.label + ' — ₹' + p.price + '/month',
-    image: '',
-    currency: 'INR',
-    theme: { color: '#667eea' },
-    prefill: {
-      name:    currentUser ? (currentUser.name    || '') : '',
-      contact: currentUser ? (currentUser.phone   || '') : '',
-      email:   currentUser ? (currentUser.email   || '') : '',
-    },
-    handler: function(resp) {
-      // Payment success
-      credits = p.credits;
-      if(currentUser){
-        currentUser.credits               = p.credits;
-        currentUser.plan                  = plan;
-        currentUser.planLabel             = p.label;
-        currentUser.razorpay_payment_id   = resp.razorpay_payment_id      || '';
-        currentUser.razorpay_sub_id       = resp.razorpay_subscription_id || '';
-        currentUser.razorpay_signature    = resp.razorpay_signature        || '';
-        localStorage.setItem('bs_user', JSON.stringify(currentUser));
-      }
-      // Notify backend silently
-      fetch(SERVER + '/api/payment/verify', {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json', 'x-auth-token': authToken },
-        body: JSON.stringify({
-          razorpay_payment_id:      resp.razorpay_payment_id,
-          razorpay_subscription_id: resp.razorpay_subscription_id,
-          razorpay_signature:       resp.razorpay_signature,
-          plan: plan
-        })
-      }).catch(function(){});
-      updateUI();
-      document.getElementById('planModal').classList.remove('open');
-      toast('Welcome to ' + p.label + '! 🎉', 'success');
-    },
-    modal: {
-      ondismiss: function() { toast('Payment cancelled', 'error'); }
+  function onPaySuccess(resp) {
+    credits = p.credits;
+    if(currentUser){
+      currentUser.credits    = p.credits;
+      currentUser.plan       = plan;
+      currentUser.planLabel  = p.label;
+      currentUser.rzp_pay_id = resp.razorpay_payment_id      || '';
+      currentUser.rzp_sub_id = resp.razorpay_subscription_id || '';
+      currentUser.rzp_sig    = resp.razorpay_signature        || '';
+      localStorage.setItem('bs_user', JSON.stringify(currentUser));
     }
-  });
+    fetch(SERVER + '/api/payment/verify', {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json', 'x-auth-token': authToken },
+      body: JSON.stringify({
+        razorpay_payment_id:      resp.razorpay_payment_id,
+        razorpay_subscription_id: resp.razorpay_subscription_id,
+        razorpay_signature:       resp.razorpay_signature,
+        plan: plan
+      })
+    }).catch(function(){});
+    updateUI();
+    document.getElementById('planModal').classList.remove('open');
+    toast('Welcome to ' + p.label + '! 🎉', 'success');
+  }
 
-  // Try to create subscription from backend first, else open directly
+  function openRzpCheckout(subId) {
+    var opts = {
+      key: RZP_KEY,
+      name: 'BrandSutra AI',
+      description: p.label + ' — ₹' + p.price + '/month',
+      currency: 'INR',
+      theme: { color: '#667eea' },
+      prefill: {
+        name:    currentUser ? (currentUser.name  || '') : '',
+        contact: currentUser ? (currentUser.phone || '') : '',
+        email:   currentUser ? (currentUser.email || '') : '',
+      },
+      handler: onPaySuccess,
+      modal: { ondismiss: function(){ toast('Payment cancelled','error'); } }
+    };
+    if(subId){
+      opts.subscription_id = subId;   // ✅ Correct subscription flow — actual amount charged
+    } else {
+      // No subscription_id — charge actual amount directly (one-time fallback)
+      opts.amount   = p.price * 100;  // paise — e.g. 49900 for ₹499
+      opts.order_id = '';             // order_id optional for direct charge
+    }
+    new Razorpay(opts).open();
+  }
+
+  // Ask backend to create subscription first
   fetch(SERVER + '/api/payment/create-subscription', {
     method: 'POST',
     headers: { 'Content-Type':'application/json', 'x-auth-token': authToken },
@@ -1545,41 +1550,11 @@ function confirmPlanSelect() {
   })
   .then(function(r){ return r.json(); })
   .then(function(res){
-    if(res && res.subscription_id){
-      // Use subscription checkout
-      var rzpSub = new Razorpay({
-        key: RZP_KEY,
-        subscription_id: res.subscription_id,
-        name: 'BrandSutra AI',
-        description: p.label + ' — ₹' + p.price + '/month',
-        currency: 'INR',
-        theme: { color: '#667eea' },
-        prefill: {
-          name:    currentUser ? (currentUser.name    || '') : '',
-          contact: currentUser ? (currentUser.phone   || '') : '',
-          email:   currentUser ? (currentUser.email   || '') : '',
-        },
-        handler: function(resp){
-          credits = p.credits;
-          if(currentUser){
-            currentUser.credits = p.credits; currentUser.plan = plan; currentUser.planLabel = p.label;
-            currentUser.razorpay_sub_id = resp.razorpay_subscription_id || '';
-            localStorage.setItem('bs_user', JSON.stringify(currentUser));
-          }
-          fetch(SERVER+'/api/payment/verify',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':authToken},body:JSON.stringify({razorpay_payment_id:resp.razorpay_payment_id,razorpay_subscription_id:resp.razorpay_subscription_id,razorpay_signature:resp.razorpay_signature,plan:plan})}).catch(function(){});
-          updateUI();
-          document.getElementById('planModal').classList.remove('open');
-          toast('Welcome to ' + p.label + '! 🎉','success');
-        },
-        modal: { ondismiss: function(){ toast('Payment cancelled','error'); } }
-      });
-      rzpSub.open();
-    } else {
-      rzp.open(); // fallback to plan_id direct
-    }
+    openRzpCheckout(res && res.subscription_id ? res.subscription_id : null);
   })
   .catch(function(){
-    rzp.open(); // backend unavailable — open directly with plan_id
+    // Backend down — use one-time payment with correct amount
+    openRzpCheckout(null);
   });
 }
 
