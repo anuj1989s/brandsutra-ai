@@ -1670,12 +1670,14 @@ function getData() {
 var GEMINI_KEY = 'AIzaSyAm_g6p9X1zuPww_EDfC2u85OprrKFy4_I';
 function callGemini(prompt) {
   var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY;
+  // Add unique seed to every request so Gemini always generates FRESH content
+  var freshPrompt = prompt + '\n\n[Session:' + Date.now() + '-' + Math.random().toString(36).slice(2,7) + ']';
   return fetch(url, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: { temperature: 0.8, maxOutputTokens: 1200 }
+      contents: [{ parts: [{ text: freshPrompt }] }],
+      generationConfig: { temperature: 1.0, topP: 0.95, topK: 64, maxOutputTokens: 1400 }
     })
   })
   .then(function(r) { return r.json(); })
@@ -2188,7 +2190,7 @@ function generateAds() {
   var budget = (document.getElementById('adBudget')||{}).value||'';
   var plat = selAdPlatformId;
   var adCustom = (document.getElementById('adCustomPrompt')||{}).value||'';
-  var prompt = 'You are a world-class performance marketing expert specializing in Indian market.\n\nCreate ' + vars + ' HIGH-CONVERTING ' + plat + ' ad copy variations for:\n- Business/Product: ' + biz + '\n- Campaign Objective: ' + (obj||'Lead Generation') + '\n- Target Audience: ' + (aud||'Indian professionals and business owners') + '\n- Budget: ' + (budget||'Medium budget') + '\n- Unique Selling Point: ' + (usp||'Best quality at best price') + (adCustom ? '\n- Special Instructions: ' + adCustom : '') + '\n\nFor EACH variation write:\n\n## Variation [N]\n**Headline:** [max 30 chars — punchy, benefit-driven]\n**Body:** [max 90 chars — problem-solution format]\n**CTA:** [strong action button text]\n**Why it works:** [1 line explanation]\n\nMake each variation distinctly different — vary the angle (fear, desire, social proof, urgency, curiosity). Optimize specifically for ' + plat + ' platform best practices.';
+  var prompt = 'Create ' + vars + ' ' + plat + ' ad copies for "' + biz + '".\nObjective: ' + (obj||'Lead Generation') + '. Audience: ' + (aud||'Indian businesses') + '. USP: ' + (usp||'Best quality') + '.' + (adCustom ? ' Note: ' + adCustom : '') + '\n\nFor each ad, write EXACTLY in this format (no extra text):\n\nAD 1\nHeadline: [short punchy headline]\nBody: [1-2 sentence description]\nCTA: [button text]\n\nAD 2\nHeadline: [different angle]\nBody: [different hook]\nCTA: [button text]\n\n(continue for all ' + vars + ' ads)\n\nRules: Make each ad completely different. No ** or ## symbols. Just plain text in the format above.';
   callGemini(prompt)
   .then(function(content){ showAdOutput(content); })
   .catch(function(err){
@@ -2262,84 +2264,70 @@ function showAdOutput(raw) {
   var icons  = {google:'🔍',facebook:'📘',instagram:'📸',linkedin:'💼',twitter:'🐦',youtube:'▶️'};
   var color  = colors[plat] || '#4f46e5';
   var icon   = icons[plat]  || '📣';
-
-  // ── Smart parser: split into variation blocks ──
-  var blocks = [];
-  // Try splitting on ## Variation N or Variation N: patterns
-  var parts = raw.split(/(?=\n\s*##\s*Variation|\n\s*Variation\s*\d|\n---+)/i);
-  parts.forEach(function(p){ if(p.trim().length > 20) blocks.push(p.trim()); });
-  if(blocks.length < 2) {
-    // Fallback: split on double newline + Headline
-    blocks = raw.split(/\n\n(?=\*?\*?Headline)/i);
-    if(blocks.length < 2) blocks = [raw]; // just show as one
-  }
-
   var bizName = (document.getElementById('adBiz')||{}).value || 'Business';
 
+  // ── Parse: split on "AD N" markers ──
+  var blocks = raw.split(/\n(?=AD\s*\d)/i).filter(function(b){ return b.trim().length > 10; });
+  if(blocks.length < 1) {
+    // fallback: split on double newline
+    blocks = raw.split(/\n\n+/).filter(function(b){ return b.trim().length > 20; });
+  }
+
   var html2 = '';
-  blocks.forEach(function(block, idx) {
-    // Parse fields with simple line scanner
-    var lines = block.split('\n');
-    var headline='', body='', cta='', why='';
-    lines.forEach(function(line){
-      var clean = line.replace(/\*\*/g,'').replace(/^#+\s*/,'').trim();
-      var lc = clean.toLowerCase();
-      if(!headline && (lc.startsWith('headline:') || lc.startsWith('headline ')))
-        headline = clean.replace(/^headline[:\s]*/i,'').trim();
-      else if(!body && (lc.startsWith('body:') || lc.startsWith('description:') || lc.startsWith('body ') || lc.startsWith('description ')))
-        body = clean.replace(/^(body|description)[:\s]*/i,'').trim();
-      else if(!cta && (lc.startsWith('cta:') || lc.startsWith('call to action:') || lc.startsWith('cta ')))
-        cta = clean.replace(/^(cta|call to action)[:\s]*/i,'').trim();
-      else if(!why && (lc.startsWith('why') && lc.includes(':')))
-        why = clean.replace(/^why[^:]*:[\s]*/i,'').trim();
+  var adCount = 0;
+  blocks.forEach(function(block) {
+    var lines = block.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+    var headline = '', body = '', cta = '';
+
+    lines.forEach(function(line) {
+      var lc = line.toLowerCase();
+      if(!headline && lc.startsWith('headline:'))
+        headline = line.replace(/^headline:/i,'').trim();
+      else if(!body && (lc.startsWith('body:') || lc.startsWith('description:')))
+        body = line.replace(/^(body|description):/i,'').trim();
+      else if(!cta && lc.startsWith('cta:'))
+        cta = line.replace(/^cta:/i,'').trim();
     });
 
-    // If still no headline found, use first non-empty non-header line
+    // If no headline found, try first non-"AD N" line
     if(!headline) {
-      for(var k=0;k<lines.length;k++){
-        var l=lines[k].replace(/\*\*/g,'').replace(/^#+\s*/,'').replace(/^Variation\s*\d+:?/i,'').trim();
-        if(l.length>5 && !l.toLowerCase().startsWith('body') && !l.toLowerCase().startsWith('cta') && !l.toLowerCase().startsWith('why')){
-          headline=l; break;
+      for(var i=0;i<lines.length;i++){
+        if(!/^AD\s*\d/i.test(lines[i]) && lines[i].length > 3){
+          headline = lines[i]; break;
         }
       }
     }
-    if(!body) {
-      // grab second substantial line
-      var count=0;
-      for(var k=0;k<lines.length;k++){
-        var l=lines[k].replace(/\*\*/g,'').trim();
-        if(l.length>10){
-          count++;
-          if(count===2){body=l;break;}
+    if(!body && lines.length > 1) {
+      for(var i=0;i<lines.length;i++){
+        if(lines[i] !== headline && !/^(AD\s*\d|headline|cta)/i.test(lines[i]) && lines[i].length > 5){
+          body = lines[i]; break;
         }
       }
     }
+    if(!headline && !body) return;
+    adCount++;
 
-    if(!headline && !body) return; // skip empty
-
-    // Build image URL per ad
-    var imgSeed = (idx+1)*1337 + Math.floor(Math.random()*500);
-    var imgQ = encodeURIComponent(bizName+' '+plat+' advertisement, professional marketing visual, '+color+' theme, modern, Indian business, no text');
-    var imgUrl = 'https://image.pollinations.ai/prompt/'+imgQ+'?width=600&height=240&nologo=true&seed='+imgSeed;
+    // AI image for this ad card
+    var imgSeed = adCount * 919 + Math.floor(Math.random()*200);
+    var imgQ = encodeURIComponent('professional ' + plat + ' marketing visual ' + bizName + ' modern Indian business vibrant no text');
+    var imgUrl = 'https://image.pollinations.ai/prompt/'+imgQ+'?width=600&height=220&nologo=true&seed='+imgSeed;
 
     html2 +=
-      '<div style="background:var(--surface);border-radius:18px;overflow:hidden;margin-bottom:18px;box-shadow:0 4px 24px rgba(79,70,229,.10);border:1px solid var(--border)">'
-      // Banner with gradient + image
-      +'<div style="height:150px;background:linear-gradient(135deg,'+color+'40,'+color+'80);position:relative;overflow:hidden">'
-      +'<img src="'+imgUrl+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6" onerror="this.remove()">'
-      +'<div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 20%,rgba(0,0,0,.65))">'
-      +'<span style="position:absolute;top:10px;left:12px;background:'+color+';color:#fff;font-size:.6rem;font-weight:800;padding:3px 10px;border-radius:50px;font-family:Syne,sans-serif;letter-spacing:.06em">'+icon+' '+plat.toUpperCase()+' AD</span>'
-      +(headline?'<div style="position:absolute;bottom:12px;left:12px;right:12px;color:#fff;font-family:Syne,sans-serif;font-size:.95rem;font-weight:900;line-height:1.35;text-shadow:0 2px 8px rgba(0,0,0,.7)">'+headline+'</div>':'')
-      +'</div></div>'
-      // Content
+      '<div style="background:#fff;border-radius:18px;overflow:hidden;margin-bottom:18px;box-shadow:0 2px 20px rgba(0,0,0,.08);border:1px solid #e5e7eb">'
+      // Top gradient band with platform badge + headline
+      +'<div style="background:linear-gradient(135deg,'+color+','+color+'cc);min-height:90px;padding:14px 16px;position:relative;display:flex;flex-direction:column;justify-content:flex-end">'
+      +'<img src="'+imgUrl+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.25;border-radius:0" onerror="this.remove()">'
+      +'<span style="position:relative;display:inline-block;background:rgba(255,255,255,.25);color:#fff;font-size:.58rem;font-weight:800;padding:3px 9px;border-radius:50px;font-family:Syne,sans-serif;letter-spacing:.08em;margin-bottom:8px;width:fit-content">'+icon+' '+plat.toUpperCase()+' AD '+adCount+'</span>'
+      +(headline ? '<div style="position:relative;color:#fff;font-family:Syne,sans-serif;font-size:1rem;font-weight:900;line-height:1.3;text-shadow:0 1px 6px rgba(0,0,0,.3)">'+headline+'</div>' : '')
+      +'</div>'
+      // Body + CTA
       +'<div style="padding:14px 16px">'
-      +(body?'<p style="font-size:.83rem;color:#4b5563;line-height:1.7;margin:0 0 12px">'+body+'</p>':'')
-      +(cta?'<a style="display:inline-block;background:'+color+';color:#fff;font-size:.72rem;font-weight:800;padding:8px 20px;border-radius:50px;font-family:Syne,sans-serif;text-decoration:none;margin-bottom:10px">'+cta+' →</a>':'')
-      +(why?'<div style="background:rgba(79,70,229,.05);border-left:3px solid '+color+';padding:8px 12px;border-radius:0 8px 8px 0;font-size:.72rem;color:#6b7280;margin-top:4px"><b style="color:'+color+'">💡 </b>'+why+'</div>':'')
+      +(body ? '<p style="font-size:.84rem;color:#374151;line-height:1.7;margin:0 0 12px">'+body+'</p>' : '')
+      +(cta  ? '<span style="display:inline-block;background:'+color+';color:#fff;font-size:.72rem;font-weight:800;padding:8px 20px;border-radius:50px;font-family:Syne,sans-serif">'+cta+' →</span>' : '')
       +'</div></div>';
   });
 
-  wrap.innerHTML = html2 || '<div style="padding:16px;font-size:.83rem;line-height:1.7;color:var(--text)">'+raw.replace(/\n/g,'<br>')+'</div>';
+  wrap.innerHTML = html2 || '<div style="padding:16px;font-size:.84rem;line-height:1.8;white-space:pre-wrap;color:#374151">'+raw+'</div>';
   card.style.display = 'block';
   card.scrollIntoView({behavior:'smooth', block:'start'});
   credits = Math.max(0, credits-1);
@@ -2347,6 +2335,8 @@ function showAdOutput(raw) {
   updateUI();
   toast('Ad copies ready! 🎯','success');
 }
+
+
 function generateLocalAd(plat,biz,obj,aud,usp,vars) {
   var result = '';
   for(var i=1;i<=parseInt(vars);i++){
