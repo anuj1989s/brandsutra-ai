@@ -1468,72 +1468,118 @@ function highlightPlan(plan) {
 function confirmPlanSelect() {
   var plan = _selectedPlan;
   if(!plan) return;
+
   var PLANS = {
     free:   {label:'Free Plan',   credits:10,   price:0,    planId: null},
     pro:    {label:'Pro Plan',    credits:200,  price:499,  planId: 'plan_SNDjlwfxc1JJWW'},
     agency: {label:'Agency Plan', credits:9999, price:1499, planId: 'plan_SNDIAsEe5YKyLo'},
   };
+
   var p = PLANS[plan];
+
   if(plan === 'free'){
     document.getElementById('planModal').classList.remove('open');
     toast('You are on Free Plan','success');
     return;
   }
-  var opts = {
-    key: 'rzp_live_your_key',
-    plan_id: p.planId,
+
+  // ── Check Razorpay loaded ──
+  if(typeof Razorpay === 'undefined'){
+    toast('Payment gateway loading, try again!','error');
+    return;
+  }
+
+  var RZP_KEY = 'rzp_live_SN92MGlc5ZwPXK';
+
+  var rzp = new Razorpay({
+    key: RZP_KEY,
+    subscription_id: undefined,  // filled below if backend returns it
+    plan_id: p.planId,           // fallback: direct plan
     name: 'BrandSutra AI',
     description: p.label + ' — ₹' + p.price + '/month',
+    image: '',
     currency: 'INR',
-    theme: {color:'#667eea'},
+    theme: { color: '#667eea' },
     prefill: {
-      name: currentUser ? currentUser.name : '',
-      contact: currentUser ? (currentUser.phone||'') : '',
-      email: currentUser ? (currentUser.email||'') : '',
+      name:    currentUser ? (currentUser.name    || '') : '',
+      contact: currentUser ? (currentUser.phone   || '') : '',
+      email:   currentUser ? (currentUser.email   || '') : '',
     },
-    handler: function(resp){
+    handler: function(resp) {
+      // Payment success
       credits = p.credits;
       if(currentUser){
-        currentUser.credits = p.credits;
-        currentUser.plan = plan;
-        currentUser.planLabel = p.label;
-        currentUser.razorpay_payment_id = resp.razorpay_payment_id || '';
-        currentUser.razorpay_subscription_id = resp.razorpay_subscription_id || '';
+        currentUser.credits               = p.credits;
+        currentUser.plan                  = plan;
+        currentUser.planLabel             = p.label;
+        currentUser.razorpay_payment_id   = resp.razorpay_payment_id      || '';
+        currentUser.razorpay_sub_id       = resp.razorpay_subscription_id || '';
+        currentUser.razorpay_signature    = resp.razorpay_signature        || '';
         localStorage.setItem('bs_user', JSON.stringify(currentUser));
       }
-      fetch(SERVER+'/api/payment/verify', {
-        method:'POST',
-        headers:{'Content-Type':'application/json','x-auth-token':authToken},
+      // Notify backend silently
+      fetch(SERVER + '/api/payment/verify', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json', 'x-auth-token': authToken },
         body: JSON.stringify({
-          razorpay_payment_id: resp.razorpay_payment_id,
+          razorpay_payment_id:      resp.razorpay_payment_id,
           razorpay_subscription_id: resp.razorpay_subscription_id,
-          razorpay_signature: resp.razorpay_signature,
+          razorpay_signature:       resp.razorpay_signature,
           plan: plan
         })
       }).catch(function(){});
       updateUI();
       document.getElementById('planModal').classList.remove('open');
-      toast('Welcome to ' + p.label + '! 🎉','success');
+      toast('Welcome to ' + p.label + '! 🎉', 'success');
     },
-    modal: { ondismiss: function(){ toast('Payment cancelled','error'); } }
-  };
-  fetch(SERVER+'/api/payment/create-subscription', {
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-auth-token':authToken},
-    body: JSON.stringify({plan_id: p.planId, plan: plan})
-  })
-  .then(function(r){return r.json();})
-  .then(function(res){
-    if(res.subscription_id){
-      opts.subscription_id = res.subscription_id;
-      delete opts.plan_id;
+    modal: {
+      ondismiss: function() { toast('Payment cancelled', 'error'); }
     }
-    if(typeof Razorpay !== 'undefined'){ new Razorpay(opts).open(); }
-    else { toast('Payment coming soon! 🚀','success'); document.getElementById('planModal').classList.remove('open'); }
+  });
+
+  // Try to create subscription from backend first, else open directly
+  fetch(SERVER + '/api/payment/create-subscription', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', 'x-auth-token': authToken },
+    body: JSON.stringify({ plan_id: p.planId, plan: plan })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(res){
+    if(res && res.subscription_id){
+      // Use subscription checkout
+      var rzpSub = new Razorpay({
+        key: RZP_KEY,
+        subscription_id: res.subscription_id,
+        name: 'BrandSutra AI',
+        description: p.label + ' — ₹' + p.price + '/month',
+        currency: 'INR',
+        theme: { color: '#667eea' },
+        prefill: {
+          name:    currentUser ? (currentUser.name    || '') : '',
+          contact: currentUser ? (currentUser.phone   || '') : '',
+          email:   currentUser ? (currentUser.email   || '') : '',
+        },
+        handler: function(resp){
+          credits = p.credits;
+          if(currentUser){
+            currentUser.credits = p.credits; currentUser.plan = plan; currentUser.planLabel = p.label;
+            currentUser.razorpay_sub_id = resp.razorpay_subscription_id || '';
+            localStorage.setItem('bs_user', JSON.stringify(currentUser));
+          }
+          fetch(SERVER+'/api/payment/verify',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':authToken},body:JSON.stringify({razorpay_payment_id:resp.razorpay_payment_id,razorpay_subscription_id:resp.razorpay_subscription_id,razorpay_signature:resp.razorpay_signature,plan:plan})}).catch(function(){});
+          updateUI();
+          document.getElementById('planModal').classList.remove('open');
+          toast('Welcome to ' + p.label + '! 🎉','success');
+        },
+        modal: { ondismiss: function(){ toast('Payment cancelled','error'); } }
+      });
+      rzpSub.open();
+    } else {
+      rzp.open(); // fallback to plan_id direct
+    }
   })
   .catch(function(){
-    if(typeof Razorpay !== 'undefined'){ new Razorpay(opts).open(); }
-    else { toast('Payment coming soon! 🚀','success'); document.getElementById('planModal').classList.remove('open'); }
+    rzp.open(); // backend unavailable — open directly with plan_id
   });
 }
 
