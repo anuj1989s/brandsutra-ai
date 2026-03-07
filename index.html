@@ -1633,6 +1633,54 @@ function getData() {
   };
 }
 
+
+// ── GEMINI AI HELPER ──
+var GEMINI_KEY = 'AIzaSyAm_g6p9X1zuPww_EDfC2u85OprrKFy4_I';
+function callGemini(prompt) {
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=' + GEMINI_KEY;
+  return fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { temperature: 0.8, maxOutputTokens: 1200 }
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      return data.candidates[0].content.parts[0].text;
+    }
+    var errMsg = data.error ? data.error.message : 'No content returned';
+    throw new Error(errMsg);
+  });
+}
+
+// ── GEMINI IMAGE HELPER ──
+function callGeminiImage(prompt) {
+  var url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent?key=' + GEMINI_KEY;
+  return fetch(url, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+    })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+      var parts = data.candidates[0].content.parts;
+      for (var i = 0; i < parts.length; i++) {
+        if (parts[i].inlineData) {
+          return 'data:' + parts[i].inlineData.mimeType + ';base64,' + parts[i].inlineData.data;
+        }
+      }
+    }
+    throw new Error('No image generated');
+  });
+}
+
 function generate() {
   // Allow generation even without login for testing
   if(credits <= 0){ showPlanModal(); return; }
@@ -1818,33 +1866,46 @@ function generateImage() {
   var w=512, h=512;
   if(size.indexOf('Portrait')>-1){h=640;}
   else if(size.indexOf('Wide')>-1){w=768;h=432;}
-  var fullPrompt = prompt + ', ' + style + ' style, professional marketing image, high quality';
+  var fullPrompt = prompt + ', ' + style + ' style, professional marketing image, vibrant colors, high quality, commercial photography';
   var btn = document.getElementById('imgGenBtn');
   var spin = document.getElementById('imgGenSpin');
   var txt = document.getElementById('imgGenTxt');
+  var result = document.getElementById('imgResult');
   if(btn) btn.disabled = true;
   if(spin) spin.style.display = 'block';
   if(txt) txt.textContent = 'Generating...';
-  var result = document.getElementById('imgResult');
   if(result) result.style.display = 'none';
-  var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&seed='+Date.now();
-  var img = new Image();
-  img.onload = function(){
+
+  // Try Gemini Image first, fallback to Pollinations
+  callGeminiImage(fullPrompt)
+  .then(function(dataUrl) {
     var el = document.getElementById('genImgEl');
-    if(el) el.src = url;
+    if(el) el.src = dataUrl;
     if(result) result.style.display = 'block';
-    if(btn) btn.disabled = false;
-    if(spin) spin.style.display = 'none';
-    if(txt) txt.textContent = '🎨 Generate Image';
     toast('Image generated! 🎨','success');
-  };
-  img.onerror = function(){
+  })
+  .catch(function(err) {
+    console.warn('Gemini image failed:', err.message, '— trying Pollinations...');
+    // Fallback: Pollinations
+    var url = 'https://image.pollinations.ai/prompt/'+encodeURIComponent(fullPrompt)+'?width='+w+'&height='+h+'&nologo=true&enhance=true&seed='+Date.now();
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function(){
+      var el = document.getElementById('genImgEl');
+      if(el) el.src = url;
+      if(result) result.style.display = 'block';
+      toast('Image generated! 🎨','success');
+    };
+    img.onerror = function(){
+      toast('Image generation failed. Check internet!','error');
+    };
+    img.src = url;
+  })
+  .finally(function(){
     if(btn) btn.disabled = false;
     if(spin) spin.style.display = 'none';
     if(txt) txt.textContent = '🎨 Generate Image';
-    toast('Failed. Try again!','error');
-  };
-  img.src = url;
+  });
 }
 function downloadGenImg() {
   var src = (document.getElementById('genImgEl')||{}).src||'';
