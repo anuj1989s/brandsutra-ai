@@ -2190,7 +2190,12 @@ function generateAds() {
   var budget = (document.getElementById('adBudget')||{}).value||'';
   var plat = selAdPlatformId;
   var adCustom = (document.getElementById('adCustomPrompt')||{}).value||'';
-  var prompt = 'Create ' + vars + ' ' + plat + ' ad copies for "' + biz + '".\nObjective: ' + (obj||'Lead Generation') + '. Audience: ' + (aud||'Indian businesses') + '. USP: ' + (usp||'Best quality') + '.' + (adCustom ? ' Note: ' + adCustom : '') + '\n\nFor each ad, write EXACTLY in this format (no extra text):\n\nAD 1\nHeadline: [short punchy headline]\nBody: [1-2 sentence description]\nCTA: [button text]\n\nAD 2\nHeadline: [different angle]\nBody: [different hook]\nCTA: [button text]\n\n(continue for all ' + vars + ' ads)\n\nRules: Make each ad completely different. No ** or ## symbols. Just plain text in the format above.';
+  var adNums = ['ONE','TWO','THREE','FOUR','FIVE'];
+  var exampleAds = '';
+  for(var ai=0;ai<vars;ai++){
+    exampleAds += '<<<AD' + (ai+1) + '>>>\nHeadline: [write headline here]\nBody: [write body here]\nCTA: [write CTA here]\n\n';
+  }
+  var prompt = 'You are an expert Indian digital marketer. Write ' + vars + ' different ' + plat.toUpperCase() + ' ads for this business:\n\nBusiness: ' + biz + '\nObjective: ' + (obj||'Lead Generation') + '\nAudience: ' + (aud||'Indian businesses') + '\nUSP: ' + (usp||'Best quality') + (adCustom ? '\nInstructions: ' + adCustom : '') + '\n\nWrite EXACTLY ' + vars + ' ads using this format. Do not skip any. Do not add extra text:\n\n' + exampleAds + 'Rules:\n- Each Headline: max 8 words, punchy\n- Each Body: 1-2 sentences, benefit-focused\n- Each CTA: 2-4 words action text\n- Make all ' + vars + ' ads DIFFERENT angles\n- No markdown, no ** symbols, no numbering except the <<<ADn>>> markers';
   callGemini(prompt)
   .then(function(content){ showAdOutput(content); })
   .catch(function(err){
@@ -2266,68 +2271,93 @@ function showAdOutput(raw) {
   var icon   = icons[plat]  || '📣';
   var bizName = (document.getElementById('adBiz')||{}).value || 'Business';
 
-  // ── Parse: split on "AD N" markers ──
-  var blocks = raw.split(/\n(?=AD\s*\d)/i).filter(function(b){ return b.trim().length > 10; });
-  if(blocks.length < 1) {
-    // fallback: split on double newline
-    blocks = raw.split(/\n\n+/).filter(function(b){ return b.trim().length > 20; });
+  // ── Parse blocks: split on <<<ADn>>> markers ──
+  var blocks = [];
+  if(raw.indexOf('<<<AD') !== -1) {
+    // Split by <<<AD1>>>, <<<AD2>>> etc
+    var parts = raw.split(/<<<AD\d+>>>/);
+    parts.forEach(function(p){ if(p.trim().length > 5) blocks.push(p.trim()); });
   }
+  // Fallback 1: split on blank line between ads (Headline: appears after gap)
+  if(blocks.length < 2) {
+    blocks = [];
+    var chunks = raw.split(/\n\s*\n/);
+    var cur = '';
+    chunks.forEach(function(chunk){
+      var lc = chunk.toLowerCase().trim();
+      if(lc.indexOf('headline:') !== -1 && cur.length > 0) {
+        blocks.push(cur.trim());
+        cur = chunk;
+      } else {
+        cur += '\n' + chunk;
+      }
+    });
+    if(cur.trim().length > 5) blocks.push(cur.trim());
+  }
+  // Fallback 2: whole text as one block
+  if(blocks.length < 1) blocks = [raw];
 
   var html2 = '';
   var adCount = 0;
+
   blocks.forEach(function(block) {
-    var lines = block.split('\n').map(function(l){ return l.trim(); }).filter(Boolean);
+    if(block.trim().length < 5) return;
+    var lines = block.split('\n');
     var headline = '', body = '', cta = '';
 
-    lines.forEach(function(line) {
+    lines.forEach(function(rawLine) {
+      var line = rawLine.replace(/\*\*/g,'').trim();
+      if(!line) return;
       var lc = line.toLowerCase();
-      if(!headline && lc.startsWith('headline:'))
-        headline = line.replace(/^headline:/i,'').trim();
-      else if(!body && (lc.startsWith('body:') || lc.startsWith('description:')))
-        body = line.replace(/^(body|description):/i,'').trim();
-      else if(!cta && lc.startsWith('cta:'))
-        cta = line.replace(/^cta:/i,'').trim();
+      if(!headline && lc.indexOf('headline:') === 0)
+        headline = line.substring('headline:'.length).trim();
+      else if(!body && (lc.indexOf('body:') === 0 || lc.indexOf('description:') === 0))
+        body = line.substring(line.indexOf(':')+1).trim();
+      else if(!cta && lc.indexOf('cta:') === 0)
+        cta = line.substring('cta:'.length).trim();
     });
 
-    // If no headline found, try first non-"AD N" line
-    if(!headline) {
-      for(var i=0;i<lines.length;i++){
-        if(!/^AD\s*\d/i.test(lines[i]) && lines[i].length > 3){
-          headline = lines[i]; break;
-        }
-      }
+    // Aggressive fallback: use any non-label lines
+    if(!headline || !body) {
+      var content = [];
+      lines.forEach(function(rawLine){
+        var line = rawLine.replace(/\*\*/g,'').trim();
+        if(!line) return;
+        var lc = line.toLowerCase();
+        if(lc.indexOf('headline:')===0 || lc.indexOf('body:')===0 || lc.indexOf('cta:')===0 || lc.indexOf('description:')===0) return;
+        if(line.length > 4) content.push(line);
+      });
+      if(!headline && content.length > 0) headline = content[0];
+      if(!body && content.length > 1) body = content[1];
+      if(!cta && content.length > 2) cta = content[2];
     }
-    if(!body && lines.length > 1) {
-      for(var i=0;i<lines.length;i++){
-        if(lines[i] !== headline && !/^(AD\s*\d|headline|cta)/i.test(lines[i]) && lines[i].length > 5){
-          body = lines[i]; break;
-        }
-      }
-    }
+
     if(!headline && !body) return;
     adCount++;
 
-    // AI image for this ad card
-    var imgSeed = adCount * 919 + Math.floor(Math.random()*200);
-    var imgQ = encodeURIComponent('professional ' + plat + ' marketing visual ' + bizName + ' modern Indian business vibrant no text');
-    var imgUrl = 'https://image.pollinations.ai/prompt/'+imgQ+'?width=600&height=220&nologo=true&seed='+imgSeed;
+    var imgSeed = adCount * 1337;
+    var imgQ = encodeURIComponent('professional ' + plat + ' marketing ' + bizName + ' modern vibrant Indian business no text');
+    var imgUrl = 'https://image.pollinations.ai/prompt/'+imgQ+'?width=600&height=200&nologo=true&seed='+imgSeed;
 
     html2 +=
-      '<div style="background:#fff;border-radius:18px;overflow:hidden;margin-bottom:18px;box-shadow:0 2px 20px rgba(0,0,0,.08);border:1px solid #e5e7eb">'
-      // Top gradient band with platform badge + headline
-      +'<div style="background:linear-gradient(135deg,'+color+','+color+'cc);min-height:90px;padding:14px 16px;position:relative;display:flex;flex-direction:column;justify-content:flex-end">'
-      +'<img src="'+imgUrl+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.25;border-radius:0" onerror="this.remove()">'
-      +'<span style="position:relative;display:inline-block;background:rgba(255,255,255,.25);color:#fff;font-size:.58rem;font-weight:800;padding:3px 9px;border-radius:50px;font-family:Syne,sans-serif;letter-spacing:.08em;margin-bottom:8px;width:fit-content">'+icon+' '+plat.toUpperCase()+' AD '+adCount+'</span>'
-      +(headline ? '<div style="position:relative;color:#fff;font-family:Syne,sans-serif;font-size:1rem;font-weight:900;line-height:1.3;text-shadow:0 1px 6px rgba(0,0,0,.3)">'+headline+'</div>' : '')
+      '<div style="background:#fff;border-radius:18px;overflow:hidden;margin-bottom:16px;box-shadow:0 2px 16px rgba(0,0,0,.08);border:1px solid #e5e7eb">'
+      +'<div style="background:linear-gradient(135deg,'+color+','+color+'bb);padding:16px 16px 18px;position:relative;min-height:80px">'
+      +'<img src="'+imgUrl+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.2;border-radius:0" onerror="this.remove()">'
+      +'<span style="position:relative;display:inline-block;background:rgba(255,255,255,.2);color:#fff;font-size:.58rem;font-weight:800;padding:3px 10px;border-radius:50px;font-family:Syne,sans-serif;letter-spacing:.07em;margin-bottom:10px">'+icon+' '+plat.toUpperCase()+' AD '+adCount+'</span>'
+      +(headline ? '<div style="position:relative;color:#fff;font-family:Syne,sans-serif;font-size:1.05rem;font-weight:900;line-height:1.3">'+headline+'</div>' : '')
       +'</div>'
-      // Body + CTA
-      +'<div style="padding:14px 16px">'
-      +(body ? '<p style="font-size:.84rem;color:#374151;line-height:1.7;margin:0 0 12px">'+body+'</p>' : '')
-      +(cta  ? '<span style="display:inline-block;background:'+color+';color:#fff;font-size:.72rem;font-weight:800;padding:8px 20px;border-radius:50px;font-family:Syne,sans-serif">'+cta+' →</span>' : '')
+      +'<div style="padding:14px 16px 16px">'
+      +(body ? '<p style="font-size:.85rem;color:#374151;line-height:1.75;margin:0 0 14px">'+body+'</p>' : '')
+      +(cta  ? '<span style="display:inline-block;background:'+color+';color:#fff;font-size:.75rem;font-weight:800;padding:9px 22px;border-radius:50px;font-family:Syne,sans-serif;letter-spacing:.02em">'+cta+' →</span>' : '')
       +'</div></div>';
   });
 
-  wrap.innerHTML = html2 || '<div style="padding:16px;font-size:.84rem;line-height:1.8;white-space:pre-wrap;color:#374151">'+raw+'</div>';
+  if(!html2) {
+    // Last resort: show raw text nicely
+    html2 = '<div style="padding:16px;font-size:.85rem;line-height:1.8;white-space:pre-wrap;color:#374151;background:#fff;border-radius:14px;border:1px solid #e5e7eb">'+raw+'</div>';
+  }
+
+  wrap.innerHTML = html2;
   card.style.display = 'block';
   card.scrollIntoView({behavior:'smooth', block:'start'});
   credits = Math.max(0, credits-1);
