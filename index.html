@@ -95,11 +95,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 .splash-star{position:absolute;border-radius:50%;background:rgba(79,70,229,.5);animation:starTwinkle 2s ease-in-out infinite;pointer-events:none}
 .splash-shoot{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(167,139,250,.6),transparent);border-radius:2px;animation:shootStar linear infinite;width:100px;pointer-events:none}
 .splash-logo{position:relative;margin-bottom:24px}
-.splash-ring{position:absolute;border-radius:50%;border:1.5px solid}
+.splash-ring{position:absolute;border-radius:34px;border:1.5px solid}
 .splash-ring1{inset:-20px;border-color:rgba(79,70,229,.3);animation:spin 8s linear infinite}
 .splash-ring2{inset:-12px;border-color:rgba(225,29,72,.25);animation:spin 5s linear infinite reverse}
-.splash-icon{width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#e11d48);display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(79,70,229,.35);animation:pulse 2s ease-in-out infinite}
-.splash-brand{font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:900;background:linear-gradient(135deg,#4f46e5,#e11d48);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em}
+.splash-icon{width:96px;height:96px;border-radius:28px;background:linear-gradient(145deg,#4f46e5,#6d28d9,#7c3aed);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 40px rgba(79,70,229,.45),0 0 0 1px rgba(255,255,255,.15) inset;animation:pulse 2s ease-in-out infinite}
+.splash-brand{font-family:'Syne',sans-serif;font-size:2rem;font-weight:900;background:linear-gradient(135deg,#1a1a2e,#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.03em}
 .splash-tag{font-size:.75rem;color:var(--muted);letter-spacing:.2em;text-transform:uppercase;margin-top:4px;color:#6b7280}
 .splash-bar{width:140px;height:3px;background:rgba(79,70,229,.15);border-radius:2px;margin-top:48px;overflow:hidden}
 .splash-prog{height:100%;background:var(--grad);border-radius:2px;animation:loadBar 2.2s ease-in-out forwards}
@@ -108,8 +108,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 /* ── LOGIN ── */
 #loginScreen{padding:28px 24px;max-width:420px;width:100%}
 .login-logo-row{display:flex;align-items:center;gap:12px;margin-bottom:32px}
-.login-logo-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#ec4899);display:flex;align-items:center;justify-content:center}
-.login-title{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:900;color:#1a1a2e}
+.login-logo-icon{width:48px;height:48px;border-radius:14px;background:linear-gradient(145deg,#4f46e5,#6d28d9,#7c3aed);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(79,70,229,.35)}
+.login-title{font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:900;background:linear-gradient(135deg,#1a1a2e,#4f46e5);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
 .login-sub{color:#6b7280;font-size:.82rem;margin-bottom:32px;line-height:1.6}
 .login-card{background:rgba(255,255,255,.9);border:1px solid rgba(79,70,229,.15);border-radius:20px;padding:24px;backdrop-filter:blur(20px);box-shadow:0 8px 32px rgba(79,70,229,.12)}
 .login-section-title{font-size:.65rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.12em;margin-bottom:14px}
@@ -131,7 +131,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 #app.active{display:flex}
 .app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 10px;flex-shrink:0;position:relative;z-index:20;background:rgba(255,255,255,.85);backdrop-filter:blur(20px);border-bottom:1px solid rgba(79,70,229,.1);box-shadow:0 2px 12px rgba(79,70,229,.08)}
 .hdr-brand{display:flex;align-items:center;gap:9px}
-.hdr-logo{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#4f46e5,#e11d48);display:flex;align-items:center;justify-content:center;box-shadow:0 0 14px rgba(102,126,234,.4)}
+.hdr-logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(145deg,#4f46e5,#6d28d9,#7c3aed);display:flex;align-items:center;justify-content:center;box-shadow:0 3px 12px rgba(79,70,229,.35)}
 .hdr-name{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:900;background:linear-gradient(135deg,#4f46e5,#e11d48);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .hdr-right{display:flex;align-items:center;gap:10px}
 .credits-pill{display:flex;align-items:center;gap:6px;padding:7px 12px;background:linear-gradient(135deg,rgba(79,70,229,.1),rgba(225,29,72,.08));border:1px solid rgba(79,70,229,.2);border-radius:50px;cursor:pointer}
@@ -183,7 +183,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 .hero-ring.r1{inset:-18px;border-color:rgba(79,70,229,.2)}
 .hero-ring.r2{inset:-10px;border-color:rgba(225,29,72,.2);animation-direction:reverse;animation-duration:6s}
 .hero-glow{position:absolute;inset:-6px;border-radius:50%;background:radial-gradient(circle,rgba(79,70,229,.2),transparent);animation:pulse 3s ease-in-out infinite}
-.hero-icon{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#e11d48);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(102,126,234,.45);animation:pulse 2.5s ease-in-out infinite;position:relative}
+.hero-icon{width:80px;height:80px;border-radius:22px;background:linear-gradient(145deg,#4f46e5,#6d28d9,#7c3aed);display:flex;align-items:center;justify-content:center;box-shadow:0 0 30px rgba(102,126,234,.45);animation:pulse 2.5s ease-in-out infinite;position:relative}
 .orbit-dot{position:absolute;border-radius:50%;transform-origin:center}
 .hero-orbit1{inset:-22px;animation:spin 5s linear infinite}
 .hero-orbit2{inset:-16px;animation:spin 7s linear infinite reverse}
@@ -324,10 +324,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
 
 /* ── PROFILE TAB ── */
 .prof-hero{text-align:center;padding:24px 16px 20px;margin-bottom:4px}
-.prof-av-wrap{position:relative;display:inline-block;margin-bottom:12px}
-.prof-av{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#e11d48);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:900;border:3px solid rgba(79,70,229,.25);overflow:hidden;box-shadow:0 4px 20px rgba(79,70,229,.3)}
+.prof-av-wrap{position:relative;display:inline-block;margin-bottom:16px}
+.prof-av{width:80px;height:80px;border-radius:24px;background:linear-gradient(145deg,#4f46e5,#6d28d9,#7c3aed);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:1.6rem;font-weight:900;border:3px solid rgba(79,70,229,.25);overflow:hidden;box-shadow:0 4px 20px rgba(79,70,229,.3)}
 .prof-av img{width:100%;height:100%;object-fit:cover}
-.prof-cam{position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#4f46e5,#e11d48);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--ink);font-size:.7rem}
+.prof-cam{position:absolute;bottom:-2px;right:-2px;width:28px;height:28px;border-radius:9px;background:linear-gradient(135deg,#4f46e5,#7c3aed);display:flex;align-items:center;justify-content:center;cursor:pointer;border:2px solid var(--ink);font-size:.7rem}
 .prof-name{font-family:'Syne',sans-serif;font-size:1.2rem;font-weight:900;margin-bottom:4px;color:#1a1a2e}
 .prof-email{font-size:.78rem;color:#6b7280;margin-bottom:10px}
 .prof-plan-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:linear-gradient(135deg,rgba(79,70,229,.1),rgba(225,29,72,.08));border:1px solid rgba(79,70,229,.2);border-radius:50px;font-size:.7rem;font-weight:700;color:#4f46e5;font-family:'Syne',sans-serif;margin-bottom:16px}
@@ -433,18 +433,25 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
     <div class="splash-ring splash-ring1"></div>
     <div class="splash-ring splash-ring2"></div>
     <div class="splash-icon">
-      <svg width="40" height="40" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="200" cy="200" r="100" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="4"/>
-        <g style="transform-origin:200px 200px;animation:spin 8s linear infinite">
-          <circle cx="200" cy="100" r="20" fill="white"/>
-          <circle cx="200" cy="300" r="13" fill="rgba(255,255,255,.6)"/>
-        </g>
-        <g style="transform-origin:200px 200px;animation:spin 5s linear infinite reverse">
-          <circle cx="100" cy="200" r="16" fill="rgba(255,255,255,.8)"/>
-          <circle cx="300" cy="200" r="10" fill="rgba(255,255,255,.5)"/>
-        </g>
-        <circle cx="200" cy="200" r="30" fill="white"/>
-      </svg>
+      <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sp_lg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#c7d2fe"/>
+    </linearGradient>
+  </defs>
+  <!-- B letterform - bold and clean -->
+  <path d="M9 10 L9 38 L20.5 38 C26 38 30 35.5 30 30.5 C30 27.5 28 25.5 25.5 24.5 C27.5 23.5 29 21.5 29 18.5 C29 13.8 25.5 10 19.5 10 Z
+           M13.5 14 L19 14 C21.5 14 23 15.5 23 17.8 C23 20.1 21.5 21.3 18.8 21.3 L13.5 21.3 Z
+           M13.5 25 L19.5 25 C22.5 25 24.2 26.5 24.2 29 C24.2 31.5 22.5 32.8 19.2 32.8 L13.5 32.8 Z" 
+        fill="url(#sp_lg)"/>
+  <!-- S letterform - elegant curve -->
+  <path d="M37 12.5 C34 11 30 12 30 12 L30 12 C30 12 32.5 14 32.5 17 C32.5 19.5 30.5 21 28 22 C25 23 32.5 24.2 34.5 27.5 C36 30.2 34.5 34 31.5 35.5 C29 37 26 36.8 26 36.8 C26 36.8 28.5 34.8 28.5 32 C28.5 29.5 30.5 28 33.5 27 C36 26.2 39.5 24.5 39.5 20 C39.5 16 38 13.8 37 12.5 Z" 
+        fill="url(#sp_lg)" opacity="0.88"/>
+  <!-- AI spark dot top right -->
+  <circle cx="41" cy="10" r="3" fill="white" opacity="0.9"/>
+  <circle cx="41" cy="10" r="1.5" fill="#c7d2fe"/>
+</svg>
     </div>
   </div>
   <div class="splash-brand">BrandSutra AI</div>
@@ -474,7 +481,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
   <div style="width:100%;max-width:420px;padding:28px 20px;position:relative;z-index:1">
     <div class="login-logo-row">
       <div class="login-logo-icon">
-        <svg width="24" height="24" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <svg width="24" height="24" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="lg_md" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#e0d4ff" stop-opacity="0.85"/>
+    </linearGradient>
+  </defs>
+  <path d="M10 12 L10 32 L18 32 C22 32 25 30 25 26.5 C25 24 23.5 22.5 21.5 22 C23 21.3 24 19.8 24 17.5 C24 14.2 21.5 12 18 12 Z M13.5 15 L17.5 15 C19.5 15 20.5 16 20.5 17.8 C20.5 19.6 19.4 20.6 17.2 20.6 L13.5 20.6 Z M13.5 23.2 L17.8 23.2 C20.2 23.2 21.4 24.3 21.4 26.3 C21.4 28.3 20 29.2 17.6 29.2 L13.5 29.2 Z" fill="url(#lg_md)"/>
+  <path d="M30.5 13 C28 12 24.5 12.8 24.5 12.8 C24.5 12.8 27 14.5 27 17 C27 18.8 25.5 19.8 23.5 20.5 C21 21.4 28 22 29.5 24.5 C31 27 29.5 30 27 31.2 C25 32.2 22 32 22 32 C22 32 24.5 30.5 24.5 28 C24.5 26 26 24.8 28.5 24 C30.5 23.3 34 22 34 18.5 C34 15.5 32.5 13.8 30.5 13 Z" fill="url(#lg_md)" opacity="0.9"/>
+</svg>
+        <!--
           <g style="transform-origin:200px 200px;animation:spin 8s linear infinite"><circle cx="200" cy="80" r="35" fill="white"/></g>
           <circle cx="200" cy="200" r="45" fill="white"/>
         </svg>
@@ -514,7 +531,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
   <div class="app-header">
     <div class="hdr-brand">
       <div class="hdr-logo">
-        <svg width="18" height="18" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+        <svg width="18" height="18" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg_hdr" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#c7d2fe"/></linearGradient></defs>
           <g style="transform-origin:200px 200px;animation:spin 8s linear infinite"><circle cx="200" cy="80" r="40" fill="white"/><circle cx="200" cy="320" r="22" fill="rgba(255,255,255,.6)"/></g>
           <circle cx="200" cy="200" r="50" fill="white"/>
         </svg>
@@ -573,7 +590,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:'DM San
             <div class="orbit-dot hero-orbit2" style="position:absolute;inset:-16px">
               <div style="width:6px;height:6px;border-radius:50%;background:#0ea5a0;position:absolute;bottom:0;left:50%;transform:translateX(-50%);box-shadow:0 0 6px #0ea5a0"></div>
             </div>
-            <svg width="40" height="40" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+            <svg width="40" height="40" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="lg_hero" x1="0" y1="0" x2="44" y2="44" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#ffffff"/><stop offset="100%" stop-color="#c7d2fe"/></linearGradient></defs>
               <g style="transform-origin:200px 200px;animation:spin 8s linear infinite"><circle cx="200" cy="80" r="40" fill="white"/><circle cx="200" cy="320" r="22" fill="rgba(255,255,255,.6)"/></g>
               <g style="transform-origin:200px 200px;animation:spin 5s linear infinite reverse"><circle cx="80" cy="200" r="30" fill="rgba(255,255,255,.8)"/><circle cx="320" cy="200" r="18" fill="rgba(255,255,255,.5)"/></g>
               <circle cx="200" cy="200" r="50" fill="white"/>
