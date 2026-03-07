@@ -1319,18 +1319,35 @@ function handleGoogleSignIn() {
   if(btn) btn.disabled = true;
   if(txt) txt.textContent = 'Opening...';
   if(typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-    google.accounts.id.prompt(function(n){
-      if(n.isNotDisplayed() || n.isSkippedMoment()){
-        demoLogin('user@gmail.com', 'User', '');
+    // Use popup flow — user explicitly selects account, no auto-prompt
+    google.accounts.id.cancel(); // cancel any pending one-tap
+    var client = google.accounts.oauth2.initTokenClient({
+      client_id: '569411051375-io160ks712huh0fnq04frcca6sg9mfjb.apps.googleusercontent.com',
+      scope: 'email profile',
+      prompt: 'select_account', // always show account chooser
+      callback: function(tokenResp) {
+        if(tokenResp && tokenResp.access_token) {
+          fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+            headers: { Authorization: 'Bearer ' + tokenResp.access_token }
+          })
+          .then(function(r){ return r.json(); })
+          .then(function(u){ loginGoogle(u.email, u.name, u.picture, u.sub); })
+          .catch(function(){ demoLogin('user@gmail.com','User',''); });
+        } else {
+          demoLogin('user@gmail.com','User','');
+        }
+        if(btn) btn.disabled = false;
+        if(txt) txt.textContent = 'Continue with Google';
       }
     });
+    client.requestAccessToken();
   } else {
     setTimeout(function(){ demoLogin('user@gmail.com', 'User', ''); }, 800);
+    setTimeout(function(){
+      if(btn) btn.disabled = false;
+      if(txt) txt.textContent = 'Continue with Google';
+    }, 3000);
   }
-  setTimeout(function(){
-    if(btn) btn.disabled = false;
-    if(txt) txt.textContent = 'Continue with Google';
-  }, 3000);
 }
 
 function onGoogleCredential(resp) {
@@ -2270,8 +2287,13 @@ document.addEventListener('DOMContentLoaded', function(){
   // Setup Google Sign-In
   if(typeof google!=='undefined' && google.accounts && google.accounts.id){
     try{
-      google.accounts.id.initialize({client_id:'569411051375-io160ks712huh0fnq04frcca6sg9mfjb.apps.googleusercontent.com',callback:onGoogleCredential,auto_select:false});
-      google.accounts.id.renderButton(document.getElementById('google-signin-btn'),{theme:'outline',size:'large',width:'100%',text:'continue_with'});
+      google.accounts.id.initialize({
+        client_id:'569411051375-io160ks712huh0fnq04frcca6sg9mfjb.apps.googleusercontent.com',
+        callback: onGoogleCredential,
+        auto_select: false,
+        cancel_on_tap_outside: true
+      });
+      google.accounts.id.cancel(); // dismiss any auto One Tap prompt
     }catch(e){}
   }
   // Splash → correct screen after 2.4s
